@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>FEED DAYS | Phaser 01 Web Test</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: max(12px,env(safe-area-inset-top)) 10px max(18px,env(safe-area-inset-bottom));
+      background: #102b29; color: #f7e6b7;
+      font: 16px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      text-align: center;
+    }
+    h1 { font-size: 1.25rem; margin: 4px 0 8px; letter-spacing: .05em; }
+    .sub { font-size: .78rem; color: #b8cbbe; margin: 0 0 12px; }
+    #setup { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; align-items: center; margin-bottom: 10px; }
+    input, button { font: inherit; border-radius: 10px; border: 1px solid #bc9b55; min-height: 44px; }
+    input { padding: 10px 12px; background: #fbf4e3; color: #1b302a; width: min(100%,220px); }
+    button { background: #204b43; color: #fff; padding: 10px 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+    button:active { background: #3f7466; }
+    #status { margin: 8px auto; min-height: 21px; color: #d6dec4; font-size: .82rem; }
+    #status.error { color: #ffb9a0; }
+    #game { width: 100%; max-width: 960px; aspect-ratio: 16 / 9; margin: auto; overflow: hidden; border: 2px solid #bca36f; border-radius: 8px; background: #1c3c33; }
+    #game canvas { display: block; }
+    #pad { display: none; margin: 12px auto 0; width: max-content; }
+    #pad button { width: 64px; height: 52px; padding: 0; margin: 2px; font-size: 1.3rem; }
+    .hint { font-size: .75rem; color: #abbfb2; margin: 12px 0 0; }
+  </style>
+</head>
+<body>
+  <h1>FEED DAYS · Phaser 01</h1>
+  <p class="sub">แบบทดสอบผ่านเว็บ · ยังไม่ใช่เกมออนไลน์ Multiplayer</p>
+  <div id="setup">
+    <input id="name" aria-label="ชื่อตัวละคร" placeholder="ชื่อตัวละคร" maxlength="24">
+    <button id="male" type="button">ชาย</button>
+    <button id="female" type="button">หญิง</button>
+  </div>
+  <div id="status" aria-live="polite">กำลังโหลด Phaser...</div>
+  <div id="game"></div>
+  <div id="pad" aria-label="ปุ่มควบคุมตัวละคร">
+    <button type="button" data-dir="up" aria-label="เดินขึ้น">▲</button><br>
+    <button type="button" data-dir="left" aria-label="เดินซ้าย">◀</button>
+    <button type="button" data-dir="down" aria-label="เดินลง">▼</button>
+    <button type="button" data-dir="right" aria-label="เดินขวา">▶</button>
+  </div>
+  <p class="hint">บน iPad ใช้ปุ่มทิศทาง · บนคอมพิวเตอร์ใช้ปุ่มลูกศร</p>
+  <!-- Phaser is served from a public CDN. No secret files or game design documents are included. -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script>
+    'use strict';
+    const statusEl = document.getElementById('status');
+    const held = new Set();
+    function setStatus(message, error = false) {
+      statusEl.textContent = message;
+      statusEl.classList.toggle('error', error);
+    }
+    for (const button of document.querySelectorAll('[data-dir]')) {
+      button.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        held.add(button.dataset.dir);
+      });
+      for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        button.addEventListener(eventName, () => held.delete(button.dataset.dir));
+      }
+    }
+    window.addEventListener('blur', () => held.clear());
+    document.addEventListener('visibilitychange', () => held.clear());
+
+    if (typeof Phaser === 'undefined') {
+      setStatus('โหลด Phaser ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตและรีเฟรชหน้าเว็บ', true);
+      document.getElementById('male').disabled = true;
+      document.getElementById('female').disabled = true;
+    } else {
+      setStatus('พร้อมทดสอบ · ตั้งชื่อตัวละครและเลือกเพศ');
+
+      class Capital extends Phaser.Scene {
+        constructor(name, gender) {
+          super('capital');
+          this.playerName = name;
+          this.gender = gender;
+        }
+        create() {
+          this.physics.world.setBounds(0, 0, 1600, 1000);
+          this.cameras.main.setBounds(0, 0, 1600, 1000);
+          const g = this.add.graphics();
+          g.fillStyle(0x557c59).fillRect(0, 0, 1600, 1000);
+          g.fillStyle(0xc7b68e).fillRect(0, 430, 1600, 160).fillRect(700, 0, 200, 1000);
+          this.walls = this.physics.add.staticGroup();
+          for (const [x, y] of [[300,260], [1200,260], [300,750], [1200,750]]) {
+            g.fillStyle(0x345744).fillRect(x - 105, y - 75, 210, 155);
+            g.fillStyle(0xbca47b).fillRect(x - 85, y - 25, 170, 100);
+            g.fillStyle(0x245d57).fillTriangle(x - 120, y - 25, x, y - 120, x + 120, y - 25);
+            g.lineStyle(4, 0xc9a85b).strokeTriangle(x - 120, y - 25, x, y - 120, x + 120, y - 25);
+            const wall = this.add.zone(x, y, 170, 140);
+            this.physics.add.existing(wall, true);
+            this.walls.add(wall);
+          }
+          g.fillStyle(0x837b69).fillCircle(800, 500, 75);
+          g.fillStyle(0x5db8c6).fillCircle(800, 500, 61);
+          const fountain = this.add.zone(800, 500, 120, 120);
+          this.physics.add.existing(fountain, true);
+          this.walls.add(fountain);
+
+          const p = this.add.graphics();
+          p.fillStyle(0x262f39).fillEllipse(24, 57, 40, 12);
+          p.fillStyle(this.gender === 'female' ? 0x9272c6 : 0x397fbd).fillRoundedRect(10, 26, 28, 28, 7);
+          p.fillStyle(0xf0c5a0).fillCircle(24, 19, 15);
+          p.fillStyle(this.gender === 'female' ? 0x63458d : 0x45332d).fillEllipse(24, 9, 30, 17);
+          p.generateTexture('hero', 48, 64);
+          p.destroy();
+
+          this.hero = this.physics.add.sprite(800, 700, 'hero');
+          this.hero.setCollideWorldBounds(true);
+          this.hero.body.setSize(24, 18).setOffset(12, 42);
+          this.physics.add.collider(this.hero, this.walls);
+          this.label = this.add.text(800, 660, this.playerName, {
+            fontSize: '16px', color: '#fff', stroke: '#172421', strokeThickness: 4
+          }).setOrigin(.5);
+          this.cameras.main.startFollow(this.hero, true, .12, .12);
+          this.keys = this.input.keyboard.createCursorKeys();
+          setStatus('เข้าเมืองสำเร็จ · ทดลองเดินและชนสิ่งกีดขวาง');
+        }
+        update() {
+          const x = Number(this.keys.right.isDown || held.has('right')) - Number(this.keys.left.isDown || held.has('left'));
+          const y = Number(this.keys.down.isDown || held.has('down')) - Number(this.keys.up.isDown || held.has('up'));
+          const velocity = new Phaser.Math.Vector2(x, y).normalize().scale(180);
+          this.hero.setVelocity(velocity.x, velocity.y);
+          if (x) this.hero.setFlipX(x < 0);
+          this.label.setPosition(this.hero.x, this.hero.y - 42);
+        }
+      }
+
+      let gameStarted = false;
+      function start(gender) {
+        if (gameStarted) return;
+        try {
+          const name = document.getElementById('name').value.trim() || 'นักผจญภัย';
+          new Phaser.Game({
+            type: Phaser.AUTO,
+            parent: 'game',
+            width: 960,
+            height: 540,
+            scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+            physics: { default: 'arcade' },
+            scene: [new Capital(name, gender)]
+          });
+          gameStarted = true;
+          document.getElementById('setup').style.display = 'none';
+          document.getElementById('pad').style.display = 'block';
+          setStatus('กำลังเปิดฉากเมือง...');
+        } catch (error) {
+          setStatus('เปิดเกมไม่สำเร็จ: ' + error.message, true);
+        }
+      }
+      document.getElementById('male').addEventListener('click', () => start('male'));
+      document.getElementById('female').addEventListener('click', () => start('female'));
+    }
+  </script>
+</body>
+</html>
