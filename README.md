@@ -1,10 +1,19 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.4
+## Current playable build — Fantasy Realm v0.5
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` is a self-contained 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.5 — Move and attack simultaneously
+
+- Multi-touch controls: keep one finger on the virtual joystick while tapping **โจมตี** or **สกิล** with another finger. Movement is no longer interrupted by combat-button taps.
+- Hold the normal attack button for repeat attacks, respecting the existing 380 ms cooldown and target distance; release it to stop.
+- Tapping skill casts once, subject to MP, weapon and 700 ms cooldown restrictions.
+- Tap-to-move continues even while attacking. The normal attack now respects its 105-unit range for manually locked targets (skill range 150 units).
+- Automated JavaScript pointer-event checks verified simultaneous joystick movement, normal attack, skill, and release behavior. On-device iPad testing remains necessary.
+- This is still a local single-player prototype, not multiplayer combat.
 
 ### v0.4 HUD and layout
 
@@ -22,7 +31,7 @@ The current `main/index.html` is a self-contained 2D top-down browser RPG protot
 - If the browser leaves fullscreen or the app is interrupted, the game pauses; choose **กลับเข้าเกมเต็มจอ**, **เล่นต่อในหน้าต่างปกติ**, or **ออกจากเกม**.
 - Use **🚪 ออกเกม** in the HUD to save and return to character selection or log out. Web pages cannot forcibly lock operating-system gestures or close the browser itself.
 
-**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`, `backup/before-hud-overlay-side-dock-2026-11-24`.
+**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`, `backup/before-hud-overlay-side-dock-2026-11-24`, `backup/before-move-and-attack-2026-11-25`.
 
 ---
 
