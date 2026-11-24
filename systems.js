@@ -60,6 +60,8 @@ function fdInit(){
    if(!Number.isFinite(c.evolution))c.evolution=0;
    if(!Number.isFinite(c.xp))c.xp=0;
    if(!Number.isFinite(c.level))c.level=1;
+   if(!Number.isFinite(c.sp))c.sp=0;
+   if(!Number.isFinite(c.rarity))c.rarity=1;
    if(!Number.isFinite(c.hp))c.hp=fdPetMaxHP(c);
    if(!Number.isFinite(c.mp))c.mp=fdPetMaxMP(c);
  }
@@ -69,14 +71,14 @@ function fdCreatePet(species='wolf',opts={}){
  const genes={};
  for(const stat of ['STR','VIT','AGI','INT'])genes[stat]=clamp((opts.genes?.[stat]??base.genes[stat]),1,40);
  const c={id:guid(),species, name:opts.name||base.name,icon:opts.icon||base.icon,rarity:opts.rarity||1,generation:opts.generation||1,
-  lineage:opts.lineage||[],genes,level:1,xp:0,evolution:0,skills:[...(opts.skills||base.skills)],bag:[],equip:{weapon:null,armor:null,orb:null},
+  lineage:opts.lineage||[],genes,level:1,xp:0,sp:0,evolution:0,skills:[...(opts.skills||base.skills)],bag:[],equip:{weapon:null,armor:null,orb:null},
   hp:0,mp:0,autoHP:true,autoMP:true,hpThreshold:40,mpThreshold:30,knockedUntil:0,breedReadyAt:0,lastAttack:0,sex:Math.random()<.5?'male':'female'};
  c.hp=fdPetMaxHP(c);c.mp=fdPetMaxMP(c);return c;
 }
 function fdPetGear(c,key){return c?.bag?.find(it=>it.uid===c.equip?.[key])||null}
-function fdPetMaxHP(c){return 75+c.level*13+c.genes.VIT*10+c.evolution*14+(fdPetGear(c,'armor')?.def||0)*3+(fdPetGear(c,'armor')?.enh||0)*9}
+function fdPetMaxHP(c){return 75+c.level*13+c.genes.VIT*10+(c.rarity-1)*12+c.evolution*14+(fdPetGear(c,'armor')?.def||0)*3+(fdPetGear(c,'armor')?.enh||0)*9}
 function fdPetMaxMP(c){return 40+c.level*6+c.genes.INT*6+c.evolution*5+(fdPetGear(c,'orb')?.enh||0)*6}
-function fdPetPower(c){const w=fdPetGear(c,'weapon'),orb=fdPetGear(c,'orb');return 4+c.level*1.5+c.genes.STR*2+c.evolution*3+(w?.atk||0)+(w?.enh||0)*3+(orb?.atk||0)+(orb?.enh||0)*2}
+function fdPetPower(c){const w=fdPetGear(c,'weapon'),orb=fdPetGear(c,'orb');return 4+c.level*1.5+c.genes.STR*2+(c.rarity-1)*2+c.evolution*3+(w?.atk||0)+(w?.enh||0)*3+(orb?.atk||0)+(orb?.enh||0)*2}
 function fdPetDefense(c){const a=fdPetGear(c,'armor');return c.genes.VIT*.75+c.evolution*1.5+(a?.def||0)+(a?.enh||0)*2}
 function fdReady(c){return c&&(!c.knockedUntil||c.knockedUntil<=Date.now())&&c.hp>0}
 function fdPetById(id){return p?.companions?.find(c=>c.id===id)||null}
@@ -220,7 +222,7 @@ function fdPetGainExp(c,amount){
  if(!c||!fdReady(c))return;
  c.xp+=amount;let up=0;
  while(c.xp>=Math.ceil(25*Math.pow(c.level,1.3))&&up++<10){
-   const req=Math.ceil(25*Math.pow(c.level,1.3));c.xp-=req;c.level++;
+   const req=Math.ceil(25*Math.pow(c.level,1.3));c.xp-=req;c.level++;c.sp=(c.sp||0)+4;
    c.hp=fdPetMaxHP(c);c.mp=fdPetMaxMP(c);
  }
 }
@@ -422,6 +424,7 @@ function fdShowPet(){
       <h3>${selected.icon} ${esc(selected.name)} · Lv.${selected.level} · รุ่น ${selected.generation} · ความหายาก ${'⭐'.repeat(selected.rarity)}</h3>
       <div>❤️ ${Math.floor(selected.hp)}/${fdPetMaxHP(selected)} · 💧 ${Math.floor(selected.mp)}/${fdPetMaxMP(selected)} · EXP ${Math.floor(selected.xp)} · วิวัฒนาการ +${selected.evolution}</div>
       <div class="tiny dim">STR ${selected.genes.STR} · VIT ${selected.genes.VIT} · AGI ${selected.genes.AGI} · INT ${selected.genes.INT} · สกิล ${selected.skills.map(esc).join(', ')}</div>
+      <div class="line" style="flex-wrap:wrap"><b>แต้มสเตตัสคงเหลือ: ${selected.sp||0}</b>${['STR','VIT','AGI','INT'].map(k=>`<button class="button sm ghost" data-pstat="${k}" ${!selected.sp||down?'disabled':''}>+ ${k}</button>`).join('')}</div>
       ${down?`<div class="notice">💤 พักฟื้นอีก ${fdRemaining(selected.knockedUntil)} · ห้ามเรียก/เปิดกระเป๋า/เปลี่ยนของ</div>`:''}
       <div class="line" style="flex-wrap:wrap">
        <button class="button sm gold" data-setslot="0" ${down?'disabled':''}>สัตว์เลี้ยง 1 ${p.activePets[0]===selected.id?'✓':''}</button>
@@ -466,6 +469,12 @@ function fdShowPet(){
  if($('fdStarter'))$('fdStarter').onclick=fdStarterPets;
  if($('fdEvolve'))$('fdEvolve').onclick=()=>fdEvolvePet(selected);
  $('modalBody').querySelectorAll('[data-setslot]').forEach(b=>b.onclick=()=>fdSetPet(b.dataset.setslot==='mount'?'mount':Number(b.dataset.setslot),selected.id));
+ $('modalBody').querySelectorAll('[data-pstat]').forEach(b=>b.onclick=()=>{
+   if(!selected||selected.knockedUntil>Date.now()||(selected.sp||0)<1)return;
+   const stat=b.dataset.pstat;if(!['STR','VIT','AGI','INT'].includes(stat))return;
+   selected.sp--;selected.genes[stat]++;selected.hp=Math.min(fdPetMaxHP(selected),selected.hp);selected.mp=Math.min(fdPetMaxMP(selected),selected.mp);
+   save();fdShowPet();
+ });
  $('modalBody').querySelectorAll('[data-unequip]').forEach(b=>b.onclick=()=>{selected.equip[b.dataset.unequip]=null;save();fdShowPet()});
  $('modalBody').querySelectorAll('[data-enhance]').forEach(b=>b.onclick=()=>fdEnhancePetGear(selected,b.dataset.enhance));
  if($('fdRide'))$('fdRide').onclick=()=>{p.riding=!p.riding;save();fdShowPet()};
