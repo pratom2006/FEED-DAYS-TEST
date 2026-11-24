@@ -1,9 +1,9 @@
 (function v09Feature(){
 'use strict';
-const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,repeatMs:260};
+const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,dropChance:0.40};
 const rarityNames=['','ทั่วไป','Uncommon','Rare','Epic','Legendary'];
 const originals={fdInit,fdPetGear,fdShowPet,showScreen};
-let currentUid=null,highestZ=40,holdPickup=null,lastPickup=0,lastPetPickup=0,lastSweep=0,pendingLootId=null;
+let currentUid=null,highestZ=40,lastPetPickup=0,lastSweep=0,pendingLootId=null;
 const windowMap=new Map();
 const here=()=>Boolean(p&&$('game')&&!$('game').classList.contains('hide'));
 function safeItemName(it){return esc(itemName(it))}
@@ -127,8 +127,8 @@ function css(){
  .v09-bag-detail{margin-top:8px;padding:10px;border-radius:9px;background:#122738;min-height:86px}
  .v09-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.v09-actions button{font-size:12px}
  .v09-dragging{position:fixed;z-index:99999;pointer-events:none;width:51px;height:51px;border:2px solid #ffe0a1;border-radius:8px;background:#3c526cde;display:grid;place-items:center;font-size:29px;transform:translate(-50%,-50%);box-shadow:0 3px 14px #000a}
- #v09PickupBtn{position:absolute;z-index:6;right:164px;bottom:calc(92px + env(safe-area-inset-bottom));border:2px solid #d0c38e;border-radius:40px;background:#4b695bcc;color:#fff;font-size:13px;font-weight:700;padding:9px 10px;touch-action:none;min-width:68px;min-height:55px}
- @media(max-width:600px){.v09-window{width:min(350px,92vw)!important}.v09-content{padding:7px}#v09PickupBtn{right:90px;bottom:calc(124px + env(safe-area-inset-bottom));font-size:11px;padding:7px;min-width:58px;min-height:47px}}
+ #v09PickupBtn{position:absolute;z-index:6;right:164px;bottom:calc(92px + env(safe-area-inset-bottom));border:2px solid #d0c38e;border-radius:40px;background:#4b695bcc;color:#fff;font-size:13px;font-weight:700;padding:9px 10px;touch-action:none;min-width:90px;min-height:55px}
+ @media(max-width:600px){.v09-window{width:min(350px,92vw)!important}.v09-content{padding:7px}#v09PickupBtn{right:90px;bottom:calc(124px + env(safe-area-inset-bottom));font-size:11px;padding:7px;min-width:82px;min-height:47px}}
  `;
  document.head.appendChild(st);
 }
@@ -374,19 +374,46 @@ function v09Discard(index){
  consume(p.items,index,qty);currentUid=null;save();v09ShowBag();toast('🗑️ ทิ้ง '+it.name+' ×'+qty+' ลงพื้นแล้ว');
 }
 function v09DropMonsterLoot(mon){
- if(Math.random()<.75)v09SpawnGround({name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1},mon.x,mon.y,'monster');
- if(Math.random()<.22)v09SpawnGround({...SHOP[8],rarity:2,qty:1},mon.x,mon.y,'monster');
- if(Math.random()<.08)v09SpawnGround({...SHOP[9],rarity:3,qty:1},mon.x,mon.y,'monster');
- if(Math.random()<(mon.boss?.85:.22)){
-   const themed={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
-   const id=Math.random()<.6?themed[rand(0,themed.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
-   v09SpawnGround({...fdMakeScroll(id),rarity:mon.boss?4:2,qty:1},mon.x,mon.y,'monster');
+ // Precisely 40% of monster/boss kills drop ONE item. A successful roll
+ // then chooses the item category; boss rewards have better quality weights.
+ if(Math.random()>=RULES.dropChance)return false;
+ const roll=Math.random();
+ const boss=Boolean(mon.boss);
+ let item;
+ if(boss){
+   if(roll<.36){
+     const ids={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
+     const id=Math.random()<.7?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
+     item={...fdMakeScroll(id),rarity:4,qty:1};
+   }else if(roll<.65){
+     const sp={left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf';
+     item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:4,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
+   }else if(roll<.89){
+     item={...FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)],rarity:4,qty:1};
+   }else if(roll<.97){
+     item={...SHOP[9],rarity:3,qty:1};
+   }else{
+     item={...SHOP[8],rarity:2,qty:1};
+   }
+ }else{
+   if(roll<.48){
+     item={name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1};
+   }else if(roll<.63){
+     item={...SHOP[8],rarity:2,qty:1};
+   }else if(roll<.69){
+     item={...SHOP[9],rarity:3,qty:1};
+   }else if(roll<.87){
+     const ids={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
+     const id=Math.random()<.6?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
+     item={...fdMakeScroll(id),rarity:2,qty:1};
+   }else if(roll<.96){
+     const sp=['wolf','fox','horse','slime','crab'][rand(0,4)];
+     item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
+   }else{
+     item={...FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)],rarity:2,qty:1};
+   }
  }
- if(mon.boss||Math.random()<.09){
-   const sp=mon.boss?({left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf'):['wolf','fox','horse','slime','crab'][rand(0,4)];
-   v09SpawnGround({name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:mon.boss?4:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'},mon.x,mon.y,'monster');
- }
- if(Math.random()<(mon.boss?.55:.08))v09SpawnGround({...FD_PET_GEAR[rand(0,2)],rarity:mon.boss?4:2,qty:1},mon.x,mon.y,'monster');
+ return Boolean(v09SpawnGround(item,mon.x,mon.y,'monster'));
 }
 function v09KillEnemy(mon){
  const idx=enemies.findIndex(e=>e.uid===mon.uid);
@@ -394,9 +421,9 @@ function v09KillEnemy(mon){
  p.coins+=mon.coin; // Keep the original v0.8 automatic coin reward until the owner decides.
  gainExp(mon.xp);
  if(p.quest.active&&!p.quest.done)p.quest.kills++;
- v09DropMonsterLoot(mon);save();
+ const dropped=v09DropMonsterLoot(mon);save();
  effects.push({x:mon.x,y:mon.y-50,text:'EXP +'+mon.xp,life:1100,max:1100,color:'#f9da8a'});
- toast((mon.boss?'👑 บอส ':'กำจัด ')+mon.name+' สำเร็จ! มีของตกบนพื้น 📦');
+ toast((mon.boss?'👑 บอส ':'กำจัด ')+mon.name+' สำเร็จ! '+(dropped?'มีไอเทมตกบนพื้น 📦':'ครั้งนี้ไม่มีไอเทมดรอป'));
  const map=p.map;
  setTimeout(()=>{
    if(p&&p.map===map&&map!=='town'&&enemies.length<7){
@@ -412,7 +439,7 @@ function v09KillEnemy(mon){
 function v09CanCollect(drop){
  return drop&&drop.expiresAt>Date.now()&&(drop.owner===accountId||Date.now()>=drop.publicAt);
 }
-function v09Pickup(drop,targetPet,quiet){
+function v09Pickup(drop,targetPet,quiet,deferSync=false){
  if(!p||!drop)return false;
  if(!v09CanCollect(drop)){if(!quiet)toast('🔒 ยังอยู่ในช่วงสิทธิ์เก็บของเจ้าของ 1 นาที');return false}
  if(drop.map!==p.map)return false;
@@ -425,17 +452,30 @@ function v09Pickup(drop,targetPet,quiet){
  }
  const idx=p.groundLoot.findIndex(it=>it.id===drop.id);
  if(idx>=0)p.groundLoot.splice(idx,1);
- save();v09Refresh();
+ if(!deferSync){save();v09Refresh()}
  if(!quiet)toast('📦 เก็บ '+drop.item.name+' สำเร็จ');
  return true;
 }
-function v09ManualPickup(){
- const targets=(p?.groundLoot||[]).filter(x=>x.map===p.map&&x.expiresAt>Date.now()&&dist(p,x)<=RULES.pickupRange).sort((a,b)=>dist(p,a)-dist(p,b));
- if(!targets.length)return false;
- const eligible=targets.find(v09CanCollect);
- if(eligible)return v09Pickup(eligible,null,false);
- toast('ไอเทมนี้ยังมีเจ้าของ');return false;
+function v09CollectAll(){
+ // One tap collects every eligible drop in pickup range. Locked/out-of-range
+ // drops stay on the ground, and bag-full drops are never consumed.
+ if(!p||gamePaused||ui)return 0;
+ const candidates=(p.groundLoot||[])
+   .filter(x=>x.map===p.map&&x.expiresAt>Date.now()&&dist(p,x)<=RULES.pickupRange)
+   .sort((a,b)=>dist(p,a)-dist(p,b));
+ let collected=0,full=false,locked=0;
+ for(const drop of candidates){
+   if(!v09CanCollect(drop)){locked++;continue}
+   if(v09Pickup(drop,null,true,true)){collected++}
+   else{full=true}
+ }
+ if(collected){save();v09Refresh();toast('📦 เก็บไอเทมทั้งหมด '+collected+' ชิ้นสำเร็จ')}
+ else if(full){toast('🎒 กระเป๋าเต็ม เก็บของเพิ่มไม่ได้')}
+ else if(locked){toast('🔒 ของที่อยู่ใกล้ยังเป็นสิทธิ์ของผู้เล่นอื่น')}
+ else{toast('ไม่มีไอเทมที่เก็บได้ในระยะ')}
+ return collected;
 }
+
 function v09TapLoot(id){
  const drop=p.groundLoot.find(x=>x.id===id);
  if(!drop)return;
@@ -485,9 +525,6 @@ function v09Tick(dt){
    if(!drop){pendingLootId=null}
    else if(dist(p,drop)<=RULES.pickupRange){pendingLootId=null;walkTarget=null;v09Pickup(drop,null,false)}
  }
- if(holdPickup!==null&&now-lastPickup>=RULES.repeatMs){
-   lastPickup=now;v09ManualPickup();
- }
  if(now-lastPetPickup>=600){
    lastPetPickup=now;v09PetAutoPickup();
  }
@@ -497,15 +534,13 @@ window.v09DrawGroundLoot=v09DrawGroundLoot;
 window.v09KillEnemy=v09KillEnemy;
 window.v09CriticalItem=critical;
 function installPickup(){
- const button=document.createElement('button');button.id='v09PickupBtn';button.type='button';button.textContent='📦 เก็บของ';
+ const button=document.createElement('button');button.id='v09PickupBtn';button.type='button';button.textContent='📦 เก็บทั้งหมด';
  $('worldWrap').appendChild(button);
  button.addEventListener('pointerdown',e=>{
    if(!p||gamePaused||ui)return;
-   e.preventDefault();e.stopPropagation();button.setPointerCapture(e.pointerId);
-   holdPickup=e.pointerId;lastPickup=Date.now();v09ManualPickup();
+   e.preventDefault();e.stopPropagation();
+   v09CollectAll();
  });
- const stop=e=>{if(holdPickup===e.pointerId)holdPickup=null};
- button.addEventListener('pointerup',stop);button.addEventListener('pointercancel',stop);
  canvas.addEventListener('pointerdown',e=>{
    if(!p||gamePaused||ui||!here())return;
    const m=pointerWorld(e);
