@@ -114,6 +114,7 @@ function unequipPlayer(slot){
 function css(){
  const st=document.createElement('style');
  st.textContent=`
+ #overlay:not(.hide){z-index:100!important}
  .v09-window{position:fixed;display:flex;flex-direction:column;z-index:41;background:rgba(16,33,49,.92);backdrop-filter:blur(5px);border:1px solid #91b1bf;border-radius:13px;color:#f2f6fa;box-shadow:0 12px 35px #0009;min-width:245px;min-height:180px;max-width:96vw;max-height:80dvh;overflow:hidden;font-size:13px}
  .v09-head{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:9px;background:#27445ae8;touch-action:none;cursor:grab;user-select:none}
  .v09-head b{flex:1}.v09-head button{width:29px;height:27px;background:#142a39;border:1px solid #88a6b3;border-radius:6px;color:white;cursor:pointer}
@@ -162,7 +163,7 @@ function v09Window(key,title){
      head.addEventListener('pointermove',move);head.addEventListener('pointerup',done);head.addEventListener('pointercancel',done);
    });
  }
- node.querySelector('.v09-title').textContent=title;node.style.display='flex';node.style.zIndex=String(++highestZ);
+ node.querySelector('.v09-title').textContent=title;const wasHidden=node.style.display==='none';node.style.display='flex';if(wasHidden)node.style.zIndex=String(++highestZ);
  return node;
 }
 function closeAllWindows(){for(const node of windowMap.values())node.style.display='none'}
@@ -324,7 +325,9 @@ function petLootPanel(win){
 }
 fdShowPet=function(){
  if(!p)return;
+ const savedWalk=walkTarget,savedMove={...moveDir};
  originals.fdShowPet();
+ walkTarget=savedWalk;moveDir=savedMove;
  const body=$('modalBody');
  const win=v09Window('pet','🐾 สัตว์เลี้ยง · สัตว์ขี่ · ผสมพันธุ์');
  const content=win.querySelector('.v09-content');
