@@ -1,10 +1,19 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.5
+## Current playable build — Fantasy Realm v0.6
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` is a self-contained 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.6 — Directional map transitions
+
+- From town **west/left** → Slime Forest: spawn near the **east/right** edge; return through the **east/right** portal, then reappear near town's west edge.
+- From town **east/right** → Wolf Valley: spawn near the **west/left** edge; return through the **west/left** portal, then reappear near town's east edge.
+- From town **south/bottom** → Magic Beach: spawn near the **north/top** edge; return through the **north/top** portal, then reappear near town's south edge.
+- Arrival coordinates are safely outside portal triggers to prevent accidental ping-pong warps. Defeat respawns in the town's regular safe central position.
+- Both portal visuals and trigger logic share one `MAP_PORTALS` table; test harness verified all six transitions and safe respawns.
+- The previous map, NPC, combat, inventory, and login behavior are preserved.
 
 ### v0.5 — Move and attack simultaneously
 
@@ -31,7 +40,7 @@ The current `main/index.html` is a self-contained 2D top-down browser RPG protot
 - If the browser leaves fullscreen or the app is interrupted, the game pauses; choose **กลับเข้าเกมเต็มจอ**, **เล่นต่อในหน้าต่างปกติ**, or **ออกจากเกม**.
 - Use **🚪 ออกเกม** in the HUD to save and return to character selection or log out. Web pages cannot forcibly lock operating-system gestures or close the browser itself.
 
-**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`, `backup/before-hud-overlay-side-dock-2026-11-24`, `backup/before-move-and-attack-2026-11-25`.
+**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`, `backup/before-hud-overlay-side-dock-2026-11-24`, `backup/before-move-and-attack-2026-11-25`, `backup/before-directional-portals-v0-6-2026-11-25`.
 
 ---
 
