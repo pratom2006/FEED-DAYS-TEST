@@ -1,10 +1,18 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.3
+## Current playable build — Fantasy Realm v0.4
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` is a self-contained 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.4 HUD and layout
+
+- The 2D map now renders edge-to-edge behind the HUD, with no full-width top or bottom opaque panels.
+- Character level, HP, MP, EXP remain as compact floating controls in the upper-left corner; money, potions, exit stay upper-right.
+- All 7 menus (bag, equipment, stats, skills, quests, pets, guide) are moved into a vertical dock on the right, above combat buttons. On short landscape screens the dock uses two columns and can scroll.
+- Joystick stays at bottom left, while normal attack and skill buttons remain bottom right.
+- Fullscreen behavior is still subject to iPadOS and browser restrictions.
 
 ### Immersive play on iPad
 
@@ -14,7 +22,7 @@ The current `main/index.html` is a self-contained 2D top-down browser RPG protot
 - If the browser leaves fullscreen or the app is interrupted, the game pauses; choose **กลับเข้าเกมเต็มจอ**, **เล่นต่อในหน้าต่างปกติ**, or **ออกจากเกม**.
 - Use **🚪 ออกเกม** in the HUD to save and return to character selection or log out. Web pages cannot forcibly lock operating-system gestures or close the browser itself.
 
-**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`.
+**Backups:** `backup/before-fantasy-realm-v0-1-2026-11-24`, `backup/before-fullscreen-responsive-2026-11-24`, `backup/before-immersive-lock-2026-11-24`, `backup/before-hud-overlay-side-dock-2026-11-24`.
 
 ---
 
