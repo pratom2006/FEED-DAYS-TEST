@@ -247,6 +247,16 @@ function fdTickPets(dt){
  for(const c of active){
    const mount=p.activeMount===c.id;
    if(mount&&p.mountMode==='manual')continue;
+   // v0.9: treasure-mode AI prioritizes eligible nearby ground loot over attacks.
+   if(c.lootEnabled&&c.lootMode==='loot'&&c.skills.includes('treasure')&&
+     p.groundLoot?.some(g=>g.map===p.map&&g.expiresAt>Date.now()&&
+       dist(g,p)<=95&&((g.owner===accountId)||Date.now()>=g.publicAt)&&
+       (g.item.rarity||1)>=(c.lootRarity||1)&&c.lootTypes?.includes(
+         g.item.type==='skillScroll'?'คัมภีร์':g.item.type==='petEgg'?'ไข่สัตว์':
+         g.item.type==='gear'?(g.item.slot||'').startsWith('pet')?'อุปกรณ์สัตว์':'อาวุธ/เกราะ':
+         ['material','enhCrystal','starCrystal'].includes(g.item.type)?'วัสดุ':
+         ['potionHP','potionMP'].includes(g.item.type)?'ยา HP/MP':'อื่น ๆ'
+       )))continue;
    const foe=enemies.filter(x=>x.hp>0&&dist(x,p)<220).sort((a,b)=>dist(a,p)-dist(b,p))[0];
    if(!foe||Date.now()<(c.lastAttack||0))continue;
    let cost=mount?12:8;
