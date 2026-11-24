@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#111c2b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
 <title>Feed Days | Fantasy Realm — 2D RPG Prototype</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;color:#eff9ff;background:#0b1421;--gold:#eecb76;--muted:#a3b6ca;--card:#182a40;--border:#466079}
@@ -17,13 +20,32 @@
 #bottom{height:68px;flex-shrink:0;z-index:3;display:flex;gap:5px;justify-content:center;align-items:center;background:#0b1827;border-top:1px solid #52657a;padding:5px max(4px,env(safe-area-inset-left));padding-bottom:max(5px,env(safe-area-inset-bottom));overflow-x:auto}#bottom .button{font-size:12px;min-width:58px;padding:7px 6px;min-height:50px;white-space:nowrap}#bottom .button span{display:block;font-size:19px;line-height:22px}
 #overlay{position:absolute;inset:0;z-index:8;background:#030d1dc9;display:flex;align-items:center;justify-content:center;padding:8px}#modal{width:min(800px,100%);max-height:95%;display:flex;flex-direction:column;background:#13263b;border:1px solid #7d8b8b;border-radius:16px;box-shadow:0 18px 70px #000c;overflow:hidden}#modalHead{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-bottom:1px solid #4b657e;background:#1c3547}#modalHead h2{margin:0;font-size:19px}#modalBody{padding:13px;overflow:auto;overscroll-behavior:contain;flex:1;min-height:0}.section{padding:12px;border:1px solid #3e6076;border-radius:11px;background:#0e2032;margin:9px 0}.vlist{display:grid;gap:7px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}.threecol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tiny{font-size:12px}.shoprow,.itemline{padding:9px;border:1px solid #3d5669;background:#1a3146;border-radius:9px;display:flex;gap:9px;align-items:center;justify-content:space-between}.shoprow b{font-size:13px}.shoprow p{font-size:12px;color:#b5c7d8;margin:2px 0}.stackCount{color:var(--gold);font-size:12px}.invLayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,230px);gap:12px}.inventoryViewport{height:375px;overflow:auto;border:1px solid #466274;background:#071b2b;padding:6px;border-radius:10px;overscroll-behavior:contain}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.itemCell{border:1px solid #3a576f;border-radius:8px;background:#173047;min-height:54px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:24px;position:relative}.itemCell.sel{outline:2px solid #f7d781}.itemCell .qty{position:absolute;bottom:1px;right:4px;font-size:10px;color:#fff;text-shadow:0 1px 3px black}.itemCell .enh{position:absolute;top:0;right:4px;font-size:10px;color:#ffe18d}.detail{padding:10px;background:#0c1c2c;border:1px solid #426177;border-radius:10px;min-height:140px}.coin{color:#ffd887;font-weight:800}.equipSlots{display:grid;grid-template-columns:1fr 1fr;gap:7px}.equipSlot{background:#1e3449;border:1px solid #4c7087;border-radius:8px;padding:10px;font-size:12px;min-height:72px}.equipSlot span{color:#9dbece}.statrow{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid #34516a}.statrow b{color:#f6d895}.questProgress{height:15px;background:#071827;border:1px solid #396177;border-radius:8px;overflow:hidden}.questProgress div{height:100%;background:#d8b869}.toast{position:absolute;bottom:145px;left:50%;transform:translateX(-50%);background:#081927ed;color:#ffefbb;border:1px solid #dabb78;border-radius:10px;padding:9px 14px;max-width:90%;text-align:center;font-size:13px;pointer-events:none;z-index:12;opacity:0;transition:opacity .2s}.toast.show{opacity:1}.pill{padding:5px 9px;border:1px solid #58788b;border-radius:50px;font-size:12px;background:#1f3c50}.warn{color:#ffb1a8}.okay{color:#a9e6b8}
 @media(max-width:620px){.slots{grid-template-columns:repeat(2,minmax(0,1fr))}.slot{height:135px}.panel{padding:17px}#topbar{height:64px}.avatar{display:none}.bars{width:min(230px,48vw)}.hudActions button{font-size:10px;padding:6px}.invLayout,.twocol{grid-template-columns:1fr}.inventoryViewport{height:338px}.itemCell{min-height:48px}.fightBtn{width:64px;height:64px}.fightBtn.skill{width:58px;height:58px}#bottom .button{min-width:54px;font-size:10px}.touchPad{width:105px;height:105px}.touchPad .stick{left:30px;top:30px;width:41px;height:41px}}@media(max-height:560px){#topbar{height:52px}#bottom{height:55px}#bottom .button{min-height:42px}.touchPad{width:90px;height:90px}.touchPad .stick{left:25px;top:25px;width:36px;height:36px}}
+
+/* v0.2: use every available viewport pixel while keeping touch controls in safe areas */
+html,body{height:100%;height:100dvh;overscroll-behavior:none}
+#game{position:fixed;inset:0;display:block;width:100%;height:100vh;height:100dvh;min-height:0;overflow:hidden}
+#worldWrap{position:absolute;inset:0;width:100%;height:100%;min-height:0}
+#topbar{position:absolute;left:0;right:0;top:0;height:auto;min-height:63px;padding:calc(5px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 5px max(8px,env(safe-area-inset-left));background:linear-gradient(180deg,#0a1523f5,#0a1523c8)}
+#bottom{position:absolute;left:0;right:0;bottom:0;height:auto;min-height:68px;padding:5px max(4px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));justify-content:flex-start;background:linear-gradient(0deg,#0b1827f8,#0b1827c8);scrollbar-width:none}
+#bottom::-webkit-scrollbar{display:none}
+#bottom .button{flex:0 0 auto}
+.mapBadge{top:calc(72px + env(safe-area-inset-top))}
+.hint{top:calc(110px + env(safe-area-inset-top))}
+.touchPad,.fightButtons{bottom:calc(86px + env(safe-area-inset-bottom))}
+.touchPad{left:calc(16px + env(safe-area-inset-left))}
+.fightButtons{right:calc(12px + env(safe-area-inset-right))}
+#fullscreenBtn{position:absolute;right:calc(12px + env(safe-area-inset-right));top:calc(72px + env(safe-area-inset-top));z-index:5;min-width:38px;min-height:38px;background:#0a1827e6;border:1px solid #64859a;border-radius:10px;box-shadow:0 2px 10px #0008;font-size:21px;line-height:1}
+#overlay{position:fixed;inset:0;padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+#modal{max-height:calc(100dvh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+@media(max-width:620px){#topbar{min-height:60px}.mapBadge,#fullscreenBtn{top:calc(69px + env(safe-area-inset-top))}.hint{top:calc(104px + env(safe-area-inset-top))}.touchPad,.fightButtons{bottom:calc(80px + env(safe-area-inset-bottom))}}
+@media(max-height:500px){#topbar{min-height:50px}.mapBadge,#fullscreenBtn{top:calc(57px + env(safe-area-inset-top))}.hint{display:none}.touchPad,.fightButtons{bottom:calc(63px + env(safe-area-inset-bottom))}.touchPad{width:80px;height:80px}.touchPad .stick{top:22px;left:22px;width:32px;height:32px}.fightBtn{width:54px;height:54px}.fightBtn.skill{width:51px;height:51px}#bottom{min-height:52px}#bottom .button{min-height:38px;padding:4px 6px;font-size:10px}#bottom .button span{font-size:16px;line-height:18px}}
 </style>
 </head>
 <body>
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.1</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.2</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -38,7 +60,7 @@
 </section>
 <section id="game" class="hide">
  <div id="topbar"><div class="hudPlayer"><div class="avatar" id="hudAvatar">🧑</div><div class="bars"><div class="barlabel"><b id="hudName">-</b><b id="hudLevel">Lv.1</b></div><div class="bar"><div id="hpbar" class="fill hp"></div></div><div class="barlabel"><span id="hpnum">HP</span><span id="mpnum">MP</span></div><div class="bar" style="height:8px"><div id="mpbar" class="fill mp"></div></div><div class="barlabel"><span>EXP</span><span id="expnum">0%</span></div><div class="bar" style="height:7px"><div id="xpbar" class="fill xp"></div></div></div></div><div class="hudActions"><span class="coin" id="moneyhud">🪙 0</span><button class="button sm ghost" id="potionQuick">🧪 HP</button><button class="button sm ghost" id="backChars">ตัวละคร</button></div></div>
- <div id="worldWrap"><canvas id="world" width="960" height="600"></canvas><div class="mapBadge" id="mapName">เมืองเริ่มต้น</div><div class="hint" id="gameHint">แตะแผนที่เพื่อเดิน · เดินไปหา NPC เพื่อพูดคุย</div><div class="touchPad" id="joy"><div class="stick" id="stick"></div></div><div class="fightButtons"><button id="skillBtn" class="fightBtn skill">✨ สกิล</button><button id="attackBtn" class="fightBtn">⚔️<br>โจมตี</button></div></div>
+ <div id="worldWrap"><canvas id="world" width="960" height="600"></canvas><button id="fullscreenBtn" type="button" aria-label="ขยายเกมเต็มหน้าจอ" title="เต็มหน้าจอ">⛶</button><div class="mapBadge" id="mapName">เมืองเริ่มต้น</div><div class="hint" id="gameHint">แตะแผนที่เพื่อเดิน · เดินไปหา NPC เพื่อพูดคุย</div><div class="touchPad" id="joy"><div class="stick" id="stick"></div></div><div class="fightButtons"><button id="skillBtn" class="fightBtn skill">✨ สกิล</button><button id="attackBtn" class="fightBtn">⚔️<br>โจมตี</button></div></div>
  <div id="bottom"><button data-window="bag" class="button ghost"><span>🎒</span>กระเป๋า</button><button data-window="equip" class="button ghost"><span>🛡️</span>อุปกรณ์</button><button data-window="stats" class="button ghost"><span>💪</span>สเตตัส</button><button data-window="skills" class="button ghost"><span>📜</span>สกิล</button><button data-window="quest" class="button ghost"><span>📋</span>ภารกิจ</button><button data-window="pet" class="button ghost"><span>🐾</span>สัตว์เลี้ยง</button><button data-window="guide" class="button ghost"><span>🗺️</span>คู่มือ</button></div>
  <div id="toast" class="toast"></div>
 </section>
@@ -170,6 +192,37 @@ function spawnEnemies(){enemies=[];if(!p||p.map==='town')return;let map=p.map;fo
 function warp(dest){if(!p)return;p.map=dest;p.x=480;p.y=dest==='town'?410:dest==='bottom'?110:290;walkTarget=null;pendingNpc=null;targetEnemy=null;portalLock=Date.now()+1450;spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name)}
 function resizeCanvas(){let r=$('worldWrap').getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);view.cw=Math.max(1,r.width);view.ch=Math.max(1,r.height);canvas.width=Math.ceil(r.width*dpr);canvas.height=Math.ceil(r.height*dpr);const s=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);view.scale=s;view.dpr=dpr}
 window.addEventListener('resize',resizeCanvas);resizeCanvas();
+
+const fullscreenBtn=$('fullscreenBtn');
+const inFullscreen=()=>Boolean(document.fullscreenElement||document.webkitFullscreenElement);
+function updateFullscreenButton(){
+  fullscreenBtn.textContent=inFullscreen()?'⤢':'⛶';
+  fullscreenBtn.setAttribute('aria-label',inFullscreen()?'ออกจากโหมดเต็มหน้าจอ':'ขยายเกมเต็มหน้าจอ');
+}
+fullscreenBtn.addEventListener('click',async()=>{
+  try{
+    if(inFullscreen()){
+      if(document.exitFullscreen)await document.exitFullscreen();
+      else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+    }else{
+      const root=document.documentElement;
+      if(root.requestFullscreen)await root.requestFullscreen();
+      else if(root.webkitRequestFullscreen)await root.webkitRequestFullscreen();
+      else{toast('เบราว์เซอร์นี้ไม่รองรับปุ่มเต็มจอ · บน iPad เปิด Safari → แชร์ → เพิ่มไปยังหน้าจอโฮม');return}
+    }
+    updateFullscreenButton();
+    requestAnimationFrame(resizeCanvas);
+  }catch(e){
+    toast('เบราว์เซอร์ไม่อนุญาตโหมดเต็มจอ · บน iPad เปิดจากไอคอนที่เพิ่มไปหน้าจอโฮม');
+  }
+});
+document.addEventListener('fullscreenchange',()=>{updateFullscreenButton();resizeCanvas()});
+document.addEventListener('webkitfullscreenchange',()=>{updateFullscreenButton();resizeCanvas()});
+window.addEventListener('orientationchange',()=>setTimeout(resizeCanvas,180));
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resizeCanvas);
+if(window.ResizeObserver)new ResizeObserver(resizeCanvas).observe($('worldWrap'));
+updateFullscreenButton();
+
 function setViewport(){let s=view.scale,cw=view.cw,ch=view.ch,x=cw/2-(p?.x||480)*s,y=ch/2-(p?.y||300)*s;view.x=clamp(x,Math.min(0,cw-WORLD.w*s),Math.max(0,cw-WORLD.w*s));view.y=clamp(y,Math.min(0,ch-WORLD.h*s),Math.max(0,ch-WORLD.h*s));ctx.setTransform(view.dpr*s,0,0,view.dpr*s,view.dpr*view.x,view.dpr*view.y)}
 function pointerWorld(e){let r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left-view.x)/view.scale,y:(e.clientY-r.top-view.y)/view.scale}}
 canvas.addEventListener('pointerdown',e=>{if(!p||ui)return;let m=pointerWorld(e);if(p.map==='town'){let n=NPCS.find(n=>dist(n,m)<37);if(n){pendingNpc=n.id;walkTarget={x:n.x,y:n.y+35};if(dist(p,n)<110){walkTarget=null;npcOpen(n.id)}return}}
