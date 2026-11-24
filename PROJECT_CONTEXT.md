@@ -35,7 +35,8 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Current prototype requires both parents Lv.3 for same species, Lv.8 for cross-species and uses basic inheritance. Recessive/ancestral allele simulation and advanced special species recipes are a future milestone.
 
 ## Loot rules — v0.9 local prototype
-- Manual pickup: one tap picks one nearby item, hold pickup continuously (about 260ms interval), or tap ground loot and move closer. Target manual range 75 world units.
+- **Latest v0.9.1 decision:** tap the **📦 เก็บทั้งหมด (Collect all)** button **once** to collect every eligible item in a radius of **75 world units**. No hold is necessary. Tapping a specific ground drop still picks that single item (or walks toward it). Respect ownership, expiration and bag capacity.
+- Defeating any monster **or boss** now has **40% chance to drop one ground item** (60% none). On success, use weighted tables with stronger boss rarity. Money and EXP stay automatic. This supersedes v0.9's independent per-item rolls.
 - Ground dropped items initially available only to the owner for 60 seconds, then public for 2 more minutes, and disappear after 180 seconds. Server authority needed later.
 - Drop button for bag items; rare or enhanced gear needs confirmation before drop or sale. Coins remain auto-awarded pending an explicit later decision.
 - Bag: 80 fixed logical slots; manual hold-and-drag rearrangement; tap only selects; scrolling not reset on item selection.
@@ -47,15 +48,16 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Player-to-player free trade, escrow-confirmed trades, markets for scrolls, pet gear and other items; no forced scroll soulbinding.
 - Server-side accounts, database, anti-cheat, persistence, marketplace and multiplayer on Railway/GitHub remain future work; do not claim a deployed server or functioning player-to-player economy.
 
-## Current implementation status: v0.9 (code in main)
+## Current implementation status: v0.9.1 (code in main)
 - `index.html`: original game world/HUD/menus, v0.7 pixel-art map, 3 paired directional portals, local login, 6 character slots, combat, inventory, forge and NPCs.
 - `v09.js`: draggable multi-window interface (bag, equipped items, stats, pets), hold-to-drag 80-slot storage, no scroll reset, separated equipped player/pet gear, confirmation for dropping/selling rare gear, manual ground pickup (tap and hold), item ground drop with local 1-minute owner priority and 3-minute expiry, and fox treasure-hunter auto pickup with filters and destination.
 - `systems.js`: skill-scroll discovery / duplicates / six-slot hotbar; sample 10 skill types; monster and boss scroll/egg drops; two AI combat pets + mount with auto/manual skill; pet HP/MP potions; inventory transfer and lock; equipment and enhance; stat points and evolution; breeding with inherited genes and 5h parental cooldown.
 - **Test sample content only**: 10 registered skills, several companion species; thousands of skills, deep DNA simulation, full trading and networking are planned, not yet live.
 - Existing characters are migrated lazily without clearing saves. Data remains browser-specific localStorage. Don't use real passwords.
-- QA: JavaScript parse passed. Simulated tests passed for initial/duplicate scroll, pet team, breeding, 5h cooldown, auto potions, locked bag and 10m recovery; for v0.9 also item migration/swap, full-bag safety, loot owner timer, ground expiry, rarity, and pet auto-loot filters. Real iPad drag and fullscreen QA is pending.
+- QA: JavaScript parse passed. Simulated v0.8 pet/skill and v0.9 gear/ground loot tests passed. v0.9.1 tests verified pickup-all, rights, full bags, 40% exact boundary and ~40% 10,000 simulated kills. Real iPad drag and fullscreen QA is pending.
 - Backup before v0.8: `backup/before-skill-pet-breeding-systems-v0-8-2026-11-25`.
 - Backup before v0.9: `backup/before-v0-9-floating-inventory-ground-loot-2026-11-25`.
+- Backup before v0.9.1: `backup/before-pickup-all-and-drop-rate-40-percent-2026-11-25`.
 
 ## Engineering norms
 - Always backup main first. Preserve maps, graphics, UI, existing saves, all existing game mechanics unless explicitly approved.
