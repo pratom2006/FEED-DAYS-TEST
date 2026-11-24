@@ -1,5 +1,12 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.1
+- Changed **📦 เก็บของ** from one-at-a-time/hold to **📦 เก็บทั้งหมด**: one tap sweeps all eligible items within 75 world units, with ownership, expiry, and inventory capacity checks.
+- Replaced independent per-item random rolls with a single **40% chance per kill of one item** on ordinary monsters and bosses; weighted tables choose which item drops, with boss rarity advantages. No item 60% of the time.
+- Automatic money and EXP rewards remain unchanged. Ground item ownership 1 minute and expiration after 3 minutes remain unchanged.
+- Backed up v0.9 to `backup/before-pickup-all-and-drop-rate-40-percent-2026-11-25`.
+- JavaScript parsed; deterministic boundary and simulation checks, plus 10,000 randomized kill rolls, passed. Real iPad QA pending.
+
 ## 2026-11-25 — v0.9
 - Backed up v0.8 to `backup/before-v0-9-floating-inventory-ground-loot-2026-11-25`.
 - Added `v09.js`: movable, modeless inventory/equipment/pet/stat windows; persistent 80-slot bag order and touch long-press drag; equipped items leave bag; safety on equip swap/full bag.
