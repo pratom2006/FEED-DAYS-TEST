@@ -150,7 +150,7 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.5</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.6</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -198,6 +198,33 @@ let gamePaused=false,fullscreenManaged=false,exitInProgress=false;
 const WORLD={w:960,h:600}, canvas=$('world'),ctx=canvas.getContext('2d');
 const NPCS=[{id:'shop',name:'ร้านค้า',icon:'🛒',x:260,y:173,color:'#cfa66b'}, {id:'forge',name:'ช่างตีเหล็ก',icon:'🔨',x:711,y:174,color:'#d98e64'}, {id:'bank',name:'คลังเก็บของ',icon:'🏦',x:249,y:397,color:'#76b4d8'}, {id:'quest',name:'ภารกิจ',icon:'📜',x:704,y:394,color:'#b3a2e3'}, {id:'promote',name:'เลื่อนขั้น',icon:'🌟',x:481,y:215,color:'#f2ce7d'}];
 const MAPS={town:{name:'🏰 เมืองรุ่งอรุณ',color:'#52895b'},left:{name:'🌲 ป่าสไลม์',color:'#3a7652'},right:{name:'🪨 หุบเขาหมาป่า',color:'#697f65'},bottom:{name:'🌊 ชายหาดเวทมนตร์',color:'#638f9c'}};
+
+/* v0.6 directional warps: each map exit has a matching entry across the border.
+   An arrival is placed safely INSIDE the next map, outside the immediate warp trigger. */
+const MAP_PORTALS={
+  town:[
+    {x:48,y:308,side:'west',to:'left',label:'ป่าสไลม์',color:'#8aeab8'},
+    {x:912,y:308,side:'east',to:'right',label:'หุบเขาหมาป่า',color:'#f4a17e'},
+    {x:481,y:569,side:'south',to:'bottom',label:'ชายหาดเวทมนตร์',color:'#9bddff'}
+  ],
+  left:[{x:912,y:308,side:'east',to:'town',label:'กลับเมือง',color:'#f8e1a3'}],
+  right:[{x:48,y:308,side:'west',to:'town',label:'กลับเมือง',color:'#f8e1a3'}],
+  bottom:[{x:481,y:52,side:'north',to:'town',label:'กลับเมือง',color:'#f8e1a3'}]
+};
+const MAP_ENTRIES={
+  town:{left:{x:161,y:308},right:{x:799,y:308},bottom:{x:481,y:454},default:{x:479,y:415}},
+  left:{town:{x:790,y:308}},
+  right:{town:{x:170,y:308}},
+  bottom:{town:{x:481,y:158}}
+};
+function insidePortalArea(player,portal){
+  if(portal.side==='west')return player.x<98&&Math.abs(player.y-portal.y)<61;
+  if(portal.side==='east')return player.x>WORLD.w-98&&Math.abs(player.y-portal.y)<61;
+  if(portal.side==='north')return player.y<98&&Math.abs(player.x-portal.x)<63;
+  if(portal.side==='south')return player.y>WORLD.h-82&&Math.abs(player.x-portal.x)<63;
+  return false;
+}
+
 const SHOP=[{name:'ดาบไม้',icon:'🗡️',type:'gear',slot:'right',atk:5,price:80,desc:'อาวุธมือขวา'}, {name:'มีดสั้น',icon:'🔪',type:'gear',slot:'left',atk:3,price:65,desc:'อาวุธมือซ้าย'}, {name:'หมวกผ้า',icon:'🎩',type:'gear',slot:'head',def:2,price:45,desc:'สวมใส่หมวก'}, {name:'เกราะผ้า',icon:'🥋',type:'gear',slot:'armor',def:4,price:90,desc:'สวมใส่เกราะ'}, {name:'ปลอกแขนหนัง',icon:'🧤',type:'gear',slot:'arms',def:2,price:55,desc:'ปลอกแขน'}, {name:'รองเท้าหนัง',icon:'🥾',type:'gear',slot:'feet',def:2,price:50,desc:'รองเท้า'}, {name:'ยา HP',icon:'❤️',type:'potionHP',price:12,desc:'ฟื้น HP 50'}, {name:'ยา MP',icon:'💧',type:'potionMP',price:12,desc:'ฟื้น MP 30'}, {name:'ผลึกตีบวก',icon:'💠',type:'enhCrystal',price:50,desc:'ใช้ตีบวกอุปกรณ์'}, {name:'ผลึกดาว',icon:'🌟',type:'starCrystal',price:90,desc:'ใช้เพิ่มดาว'}, {name:'คัมภีร์ฟัน',icon:'📜',type:'skillScroll',skill:'slash',price:100,desc:'ใช้เพิ่มเลเวลสกิลโจมตี'}];
 const SLOTS={head:'🎩 หมวก',armor:'🥋 เกราะ',arms:'🧤 ปลอกแขน',feet:'🥾 รองเท้า',right:'⚔️ มือขวา',left:'🗡️ มือซ้าย'};
 const STATS={STR:'พลังโจมตี',AGI:'ความเร็วเคลื่อนที่',VIT:'HP สูงสุด',DEX:'ความแม่นยำ',INT:'พลังสกิล / MP',LUX:'โชค / คริ'};
@@ -329,7 +356,17 @@ $('potionQuick').onclick=()=>{if(!p)return;let i=p.items.findIndex(x=>x.type==='
 let targetEnemy=null,view={scale:1,x:0,y:0,cw:960,ch:600};
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function spawnEnemies(){enemies=[];if(!p||p.map==='town')return;let map=p.map;for(let i=0;i<7;i++){let x=rand(120,835),y=rand(145,510);if(Math.hypot(x-p.x,y-p.y)<140){x=rand(100,400);y=rand(360,530)}enemies.push({uid:guid(),x,y,hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,name:map==='left'?'สไลม์':map==='right'?'หมาป่า':'ปูเวท',color:map==='left'?'#5de0a4':map==='right'?'#a9a2a3':'#ee9c76',atk:map==='left'?4:map==='right'?9:6,xp:map==='left'?28:map==='right'?47:38,coin:map==='left'?16:map==='right'?30:24,lastAttack:0})}}
-function warp(dest){if(!p)return;heldAttackPointer=null;p.map=dest;p.x=480;p.y=dest==='town'?410:dest==='bottom'?110:290;walkTarget=null;pendingNpc=null;targetEnemy=null;portalLock=Date.now()+1450;spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name)}
+function warp(dest,options={}){
+  if(!p||!MAPS[dest])return;
+  const origin=p.map;
+  const arrival=options.respawn?MAP_ENTRIES.town.default
+    :(MAP_ENTRIES[dest]?.[origin]||MAP_ENTRIES[dest]?.default||MAP_ENTRIES.town.default);
+  heldAttackPointer=null;
+  p.map=dest;p.x=arrival.x;p.y=arrival.y;
+  walkTarget=null;pendingNpc=null;targetEnemy=null;
+  portalLock=Date.now()+1450;
+  spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name);
+}
 function resizeCanvas(){let r=$('worldWrap').getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);view.cw=Math.max(1,r.width);view.ch=Math.max(1,r.height);canvas.width=Math.ceil(r.width*dpr);canvas.height=Math.ceil(r.height*dpr);const s=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);view.scale=s;view.dpr=dpr}
 window.addEventListener('resize',resizeCanvas);resizeCanvas();
 
@@ -458,8 +495,11 @@ function attack(skill,silent=false){
 function killEnemy(t){let i=enemies.findIndex(x=>x.uid===t.uid);if(i>=0)enemies.splice(i,1);p.coins+=t.coin;gainExp(t.xp);if(p.quest.active&&!p.quest.done)p.quest.kills++;if(Math.random()<.75)addItem(p.items,{name:'วัสดุพัฒนา',type:'material',icon:'🧱',desc:'ใช้เพิ่มระดับสกิล'},1);if(Math.random()<.22)addItem(p.items,SHOP[8],1);if(Math.random()<.08)addItem(p.items,SHOP[9],1);save();effects.push({x:t.x,y:t.y-50,text:'EXP +'+t.xp,life:1100,max:1100,color:'#f9da8a'});toast('กำจัด '+t.name+' ได้ '+t.coin+' เหรียญ');setTimeout(()=>{if(p&&p.map!=='town'&&enemies.length<7){let map=p.map;enemies.push({uid:guid(),x:rand(120,830),y:rand(145,510),hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,name:map==='left'?'สไลม์':map==='right'?'หมาป่า':'ปูเวท',color:map==='left'?'#5de0a4':map==='right'?'#a9a2a3':'#ee9c76',atk:map==='left'?4:map==='right'?9:6,xp:map==='left'?28:map==='right'?47:38,coin:map==='left'?16:map==='right'?30:24,lastAttack:0})}},2400)}
 function step(dt){if(!p||ui)return;if(heldAttackPointer!==null)attack(false,true);let px=moveDir.x,py=moveDir.y,kx=(keydown['d']||keydown['arrowright']?1:0)-(keydown['a']||keydown['arrowleft']?1:0),ky=(keydown['s']||keydown['arrowdown']?1:0)-(keydown['w']||keydown['arrowup']?1:0);px+=kx;py+=ky;if(Math.hypot(px,py)<.02&&walkTarget){let dx=walkTarget.x-p.x,dy=walkTarget.y-p.y,n=Math.hypot(dx,dy);if(n<8){walkTarget=null}else{px=dx/n;py=dy/n}}let n=Math.hypot(px,py);if(n>.02){let speed=(138+p.stats.AGI*1.5)*dt/1000,travel=Math.min(speed,walkTarget?dist(p,walkTarget):999);p.x=clamp(p.x+px/n*travel,25,935);p.y=clamp(p.y+py/n*travel,38,564)}
  if(pendingNpc&&p.map==='town'){let npc=NPCS.find(n=>n.id===pendingNpc);if(npc&&dist(p,npc)<91){pendingNpc=null;walkTarget=null;npcOpen(npc.id)}}
- if(Date.now()>portalLock){if(p.map==='town'){if(p.x<105&&Math.abs(p.y-308)<92)warp('left');else if(p.x>855&&Math.abs(p.y-308)<92)warp('right');else if(p.y>524&&Math.abs(p.x-481)<92)warp('bottom')}else if(Math.abs(p.x-479)<75&&p.y<100)warp('town')}
- if(p.map!=='town'){for(let mob of enemies){if(mob.hp<=0)continue;let d=dist(mob,p);if(d<195&&d>49){let move=(mob.name==='หมาป่า'?46:30)*dt/1000;mob.x+=((p.x-mob.x)/d)*move;mob.y+=((p.y-mob.y)/d)*move}if(d<61&&Date.now()-mob.lastAttack>1700){mob.lastAttack=Date.now();let damage=Math.max(1,mob.atk-Math.floor(defense()*.4));p.hp-=damage;effects.push({x:p.x,y:p.y-23,text:'-'+damage,life:640,max:640,color:'#ff8080'});if(p.hp<=0){p.hp=maxHP();p.mp=maxMP();warp('town');toast('พ่ายแพ้! กลับเมืองและฟื้นฟูพลังแล้ว');break}}}}
+ if(Date.now()>portalLock){
+   const gate=(MAP_PORTALS[p.map]||[]).find(g=>insidePortalArea(p,g));
+   if(gate)warp(gate.to);
+ }
+ if(p.map!=='town'){for(let mob of enemies){if(mob.hp<=0)continue;let d=dist(mob,p);if(d<195&&d>49){let move=(mob.name==='หมาป่า'?46:30)*dt/1000;mob.x+=((p.x-mob.x)/d)*move;mob.y+=((p.y-mob.y)/d)*move}if(d<61&&Date.now()-mob.lastAttack>1700){mob.lastAttack=Date.now();let damage=Math.max(1,mob.atk-Math.floor(defense()*.4));p.hp-=damage;effects.push({x:p.x,y:p.y-23,text:'-'+damage,life:640,max:640,color:'#ff8080'});if(p.hp<=0){p.hp=maxHP();p.mp=maxMP();warp('town',{respawn:true});toast('พ่ายแพ้! กลับเมืองและฟื้นฟูพลังแล้ว');break}}}}
  effects=effects.filter(x=>(x.life-=dt)>0);tick+=dt;if(tick>4000){tick=0;save();refreshHUD()}}
 function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
@@ -476,7 +516,7 @@ function drawNPC(n){circle(n.x,n.y+15,21,'#183f42ad');rect(n.x-13,n.y-10,26,33,n
 function drawPlayer(){if(!p)return;let x=p.x,y=p.y;circle(x,y+16,18,'#112b3055');let armor=getEq(p.equip.armor),head=getEq(p.equip.head),right=getEq(p.equip.right);let strongest=Math.max(0,...Object.values(p.equip).map(uid=>(getEq(uid)?.enh||0)));if(strongest>=7){let col=strongest===10?'#bd7bff':strongest===9?'#65caff':'#ffdc66';ctx.save();ctx.globalAlpha=.27+Math.sin(Date.now()/190)*.12;circle(x,y-9,27,col);ctx.restore()}
  rect(x-13,y-8,26,30,armor?'#527ea7':'#366eaa');rect(x-9,y-28,18,21,p.gender==='male'?'#d9a581':'#f0b695');rect(x-10,y-31,20,7,p.gender==='male'?'#3a2923':'#663b43');if(head)rect(x-12,y-34,24,10,'#ab9870');rect(x-10,y+22,8,13,'#36485b');rect(x+3,y+22,8,13,'#36485b');rect(x-21,y-5,7,23,'#d8a281');rect(x+14,y-5,7,23,'#d8a281');if(right){rect(x+23,y-16,5,31,'#eff3f8');rect(x+16,y+2,20,5,'#8b714b')}if(getEq(p.equip.left)){rect(x-28,y-14,5,28,'#e2f2ff');rect(x-34,y+4,20,5,'#bba06e')}textLabel(p.name,x,y-46,'#fff',14);textLabel('Lv.'+p.lvl,x,y-62,'#f9d57f',11)}
 function drawMonster(e){let x=e.x,y=e.y;circle(x,y+13,20,'#11372399');if(e.name==='สไลม์'){circle(x,y,18,e.color);circle(x-8,y-6,9,'#8cf6c5');rect(x-7,y-1,4,5,'#172e38');rect(x+7,y-1,4,5,'#172e38')}else if(e.name==='หมาป่า'){rect(x-20,y-14,40,30,e.color);rect(x-18,y-25,12,14,'#bcb5a9');rect(x+6,y-25,12,14,'#bcb5a9');rect(x-7,y-4,5,5,'#2b2525');rect(x+7,y-4,5,5,'#2b2525')}else{circle(x,y,18,'#eea079');rect(x-18,y-4,36,9,'#b55753');rect(x-10,y-16,4,7,'#fff');rect(x+7,y-16,4,7,'#fff')}rect(x-23,y-38,46,6,'#2e2931');rect(x-23,y-38,46*clamp(e.hp/e.max,0,1),6,'#fa6b6b');if(targetEnemy===e.uid){ctx.strokeStyle='#fff4a2';ctx.lineWidth=2;ctx.strokeRect(x-25,y-41,50,10)}textLabel(e.name,x,y-46,'#ffedcf',11)}
-function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();drawGround(p.map);if(p.map==='town'){drawPortal(48,308,'ป่าสไลม์','#8aeab8');drawPortal(912,308,'หุบเขาหมาป่า','#f4a17e');drawPortal(481,569,'ชายหาดเวทมนตร์','#9bddff');NPCS.forEach(drawNPC)}else{drawPortal(480,52,'กลับเมือง','#f8e1a3');for(let mob of enemies)drawMonster(mob)}drawPlayer();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16);ctx.restore()}}
+function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();drawGround(p.map);for(const portal of MAP_PORTALS[p.map]||[])drawPortal(portal.x,portal.y,portal.label,portal.color);if(p.map==='town'){NPCS.forEach(drawNPC)}else{for(let mob of enemies)drawMonster(mob)}drawPlayer();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16);ctx.restore()}}
 function loop(t){let dt=Math.min(50,t-(lastFrame||t));lastFrame=t;if(p){if(!gamePaused)step(dt);render()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
