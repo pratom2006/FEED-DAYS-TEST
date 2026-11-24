@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="FEED DAYS" />
+<link rel="manifest" href="manifest.webmanifest" />
 <title>Feed Days | Fantasy Realm — 2D RPG Prototype</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;color:#eff9ff;background:#0b1421;--gold:#eecb76;--muted:#a3b6ca;--card:#182a40;--border:#466079}
@@ -39,13 +41,23 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
 #modal{max-height:calc(100dvh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 @media(max-width:620px){#topbar{min-height:60px}.mapBadge,#fullscreenBtn{top:calc(69px + env(safe-area-inset-top))}.hint{top:calc(104px + env(safe-area-inset-top))}.touchPad,.fightButtons{bottom:calc(80px + env(safe-area-inset-bottom))}}
 @media(max-height:500px){#topbar{min-height:50px}.mapBadge,#fullscreenBtn{top:calc(57px + env(safe-area-inset-top))}.hint{display:none}.touchPad,.fightButtons{bottom:calc(63px + env(safe-area-inset-bottom))}.touchPad{width:80px;height:80px}.touchPad .stick{top:22px;left:22px;width:32px;height:32px}.fightBtn{width:54px;height:54px}.fightBtn.skill{width:51px;height:51px}#bottom{min-height:52px}#bottom .button{min-height:38px;padding:4px 6px;font-size:10px}#bottom .button span{font-size:16px;line-height:18px}}
+
+/* v0.3 immersive: explicit exit, browser interruption pause, return-to-game */
+#reenterOverlay{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:#061321ee;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom))}
+#reenterOverlay .reenterPanel{width:min(460px,100%);padding:24px;border:1px solid #668fa3;border-radius:18px;background:#152b40;box-shadow:0 20px 60px #000b;text-align:center}
+#reenterOverlay h2{margin:10px 0;color:#f1d48d}
+#reenterOverlay p{font-size:14px;line-height:1.7;color:#d3e2ee}
+#reenterOverlay .stack{margin-top:15px}
+#exitGameBtn{white-space:nowrap}
+#fullscreenBtn:disabled{opacity:.65}
+@media(max-width:620px){#exitGameBtn{font-size:11px;padding:5px 8px}#reenterOverlay .reenterPanel{padding:16px}}
 </style>
 </head>
 <body>
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.2</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.3</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -59,9 +71,21 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
  <div class="line" style="justify-content:flex-end;flex-wrap:wrap"><small id="selectedInfo" style="flex:1">เลือกตัวละครเพื่อเข้าเกม</small><button id="play" class="button gold" disabled>⚔️ เข้าเกม</button></div></div>
 </section>
 <section id="game" class="hide">
- <div id="topbar"><div class="hudPlayer"><div class="avatar" id="hudAvatar">🧑</div><div class="bars"><div class="barlabel"><b id="hudName">-</b><b id="hudLevel">Lv.1</b></div><div class="bar"><div id="hpbar" class="fill hp"></div></div><div class="barlabel"><span id="hpnum">HP</span><span id="mpnum">MP</span></div><div class="bar" style="height:8px"><div id="mpbar" class="fill mp"></div></div><div class="barlabel"><span>EXP</span><span id="expnum">0%</span></div><div class="bar" style="height:7px"><div id="xpbar" class="fill xp"></div></div></div></div><div class="hudActions"><span class="coin" id="moneyhud">🪙 0</span><button class="button sm ghost" id="potionQuick">🧪 HP</button><button class="button sm ghost" id="backChars">ตัวละคร</button></div></div>
+ <div id="topbar"><div class="hudPlayer"><div class="avatar" id="hudAvatar">🧑</div><div class="bars"><div class="barlabel"><b id="hudName">-</b><b id="hudLevel">Lv.1</b></div><div class="bar"><div id="hpbar" class="fill hp"></div></div><div class="barlabel"><span id="hpnum">HP</span><span id="mpnum">MP</span></div><div class="bar" style="height:8px"><div id="mpbar" class="fill mp"></div></div><div class="barlabel"><span>EXP</span><span id="expnum">0%</span></div><div class="bar" style="height:7px"><div id="xpbar" class="fill xp"></div></div></div></div><div class="hudActions"><span class="coin" id="moneyhud">🪙 0</span><button class="button sm ghost" id="potionQuick">🧪 HP</button><button class="button sm ghost" id="exitGameBtn">🚪 ออกเกม</button></div></div>
  <div id="worldWrap"><canvas id="world" width="960" height="600"></canvas><button id="fullscreenBtn" type="button" aria-label="ขยายเกมเต็มหน้าจอ" title="เต็มหน้าจอ">⛶</button><div class="mapBadge" id="mapName">เมืองเริ่มต้น</div><div class="hint" id="gameHint">แตะแผนที่เพื่อเดิน · เดินไปหา NPC เพื่อพูดคุย</div><div class="touchPad" id="joy"><div class="stick" id="stick"></div></div><div class="fightButtons"><button id="skillBtn" class="fightBtn skill">✨ สกิล</button><button id="attackBtn" class="fightBtn">⚔️<br>โจมตี</button></div></div>
  <div id="bottom"><button data-window="bag" class="button ghost"><span>🎒</span>กระเป๋า</button><button data-window="equip" class="button ghost"><span>🛡️</span>อุปกรณ์</button><button data-window="stats" class="button ghost"><span>💪</span>สเตตัส</button><button data-window="skills" class="button ghost"><span>📜</span>สกิล</button><button data-window="quest" class="button ghost"><span>📋</span>ภารกิจ</button><button data-window="pet" class="button ghost"><span>🐾</span>สัตว์เลี้ยง</button><button data-window="guide" class="button ghost"><span>🗺️</span>คู่มือ</button></div>
+ <div id="reenterOverlay" class="hide" role="dialog" aria-modal="true" aria-labelledby="reenterTitle">
+   <div class="reenterPanel">
+     <div style="font-size:39px">🛡️🎮</div>
+     <h2 id="reenterTitle">หยุดเกมชั่วคราว</h2>
+     <p>หน้าจอเกมถูกย่อหรือคุณสลับออกจากเกม เพื่อไม่ให้เสียจังหวะ ระบบได้หยุดการเคลื่อนไหวชั่วคราวแล้ว</p>
+     <div class="stack">
+       <button id="reenterBtn" type="button" class="button gold full">⛶ กลับเข้าเกมเต็มจอ</button>
+       <button id="continueWindowed" type="button" class="button ghost full">เล่นต่อในหน้าต่างปกติ</button>
+       <button id="pauseExit" type="button" class="button red full">🚪 ออกจากเกม</button>
+     </div>
+   </div>
+ </div>
  <div id="toast" class="toast"></div>
 </section>
 <div id="overlay" class="hide"><div id="modal"><div id="modalHead"><h2 id="modalTitle">หน้าต่าง</h2><button id="closeModal" class="button ghost sm">✕ ปิด</button></div><div id="modalBody"></div></div></div>
@@ -76,6 +100,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const guid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 let db={accounts:{}},accountId=null,selectedSlot=-1,p=null,mode='login',ui=null,selectedItem=-1,sellSelected=new Set(),pendingNpc=null,lastItemTap={uid:null,at:0};
 let enemies=[],effects=[],lastFrame=0,tick=0,attackTime=0,portalLock=0,walkTarget=null,moveDir={x:0,y:0},joyPointer=null,toastTimer=null;
+let gamePaused=false,fullscreenManaged=false,exitInProgress=false;
 const WORLD={w:960,h:600}, canvas=$('world'),ctx=canvas.getContext('2d');
 const NPCS=[{id:'shop',name:'ร้านค้า',icon:'🛒',x:260,y:173,color:'#cfa66b'}, {id:'forge',name:'ช่างตีเหล็ก',icon:'🔨',x:711,y:174,color:'#d98e64'}, {id:'bank',name:'คลังเก็บของ',icon:'🏦',x:249,y:397,color:'#76b4d8'}, {id:'quest',name:'ภารกิจ',icon:'📜',x:704,y:394,color:'#b3a2e3'}, {id:'promote',name:'เลื่อนขั้น',icon:'🌟',x:481,y:215,color:'#f2ce7d'}];
 const MAPS={town:{name:'🏰 เมืองรุ่งอรุณ',color:'#52895b'},left:{name:'🌲 ป่าสไลม์',color:'#3a7652'},right:{name:'🪨 หุบเขาหมาป่า',color:'#697f65'},bottom:{name:'🌊 ชายหาดเวทมนตร์',color:'#638f9c'}};
@@ -131,10 +156,31 @@ $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('authGo').cli
 function renderChars(){let a=account();$('accountName').textContent='ID: '+accountId+' · สร้างได้ 6 ตัวละคร';$('charSlots').innerHTML=a.characters.map((ch,i)=>`<button class="slot ${ch?'on':''} ${selectedSlot===i?'active':''}" data-i="${i}">${ch?`<div class="miniChar">${ch.gender==='male'?'🧑‍🎤':'👩‍🎤'}</div><b>${esc(ch.name)}</b><span class="lvl">Lv.${ch.lvl}</span>`:`<span class="plus">＋</span><b>ช่องที่ ${i+1}</b><span class="lvl">สร้างตัวละคร</span>`}</button>`).join('');$('charSlots').querySelectorAll('.slot').forEach(el=>el.onclick=()=>{let i=Number(el.dataset.i);if(!a.characters[i])openCreate(i);else{selectedSlot=i;renderChars();}});$('play').disabled=selectedSlot<0;$('selectedInfo').textContent=selectedSlot>=0?'เลือก: '+a.characters[selectedSlot].name:'แตะตัวละคร หรือเครื่องหมาย + เพื่อสร้าง';}
 $('logout').onclick=()=>{accountId=null;selectedSlot=-1;showScreen('login')};
 function openCreate(i){openModal('✨ สร้างตัวละคร',`<div class="stack"><div>ช่องที่ ${i+1} / 6</div><label>ชื่อตัวละคร<input id="newCharName" maxlength="16" class="input" placeholder="ชื่อ 2–16 ตัวอักษร"></label><div>เลือกเพศ (เปลี่ยนได้เฉพาะตอนสร้าง)</div><div class="line"><button id="maleBtn" class="button selected" style="flex:1">🧑‍🎤 ชาย</button><button id="femaleBtn" class="button ghost" style="flex:1">👩‍🎤 หญิง</button></div><div class="notice">ตัวละครไม่มีอาชีพ เริ่ม Lv.1 พร้อมดาบไม้และยาเริ่มต้น</div><button id="createDone" class="button gold">สร้างตัวละคร</button></div>`);let gender='male';$('maleBtn').onclick=()=>{gender='male';$('maleBtn').className='button selected';$('femaleBtn').className='button ghost'};$('femaleBtn').onclick=()=>{gender='female';$('femaleBtn').className='button selected';$('maleBtn').className='button ghost'};$('createDone').onclick=()=>{let name=$('newCharName').value.trim();if(name.length<2||name.length>16){alert('ชื่อต้องมี 2–16 ตัวอักษร');return}if(account().characters.some(c=>c&&c.name===name)){alert('ชื่อตัวละครซ้ำในบัญชีนี้');return}account().characters[i]=gameStartChar(name,gender);selectedSlot=i;save();closeModal();renderChars()}}
-$('play').onclick=()=>{if(selectedSlot<0)return;p=account().characters[selectedSlot];p.hp=clamp(p.hp,0,maxHP());p.mp=clamp(p.mp,0,maxMP());walkTarget=null;moveDir={x:0,y:0};spawnEnemies();showScreen('game');resizeCanvas();refreshHUD()};
-$('backChars').onclick=()=>{save();p=null;closeModal();renderChars();showScreen('chars')};
+$('play').onclick=()=>{if(selectedSlot<0)return;p=account().characters[selectedSlot];p.hp=clamp(p.hp,0,maxHP());p.mp=clamp(p.mp,0,maxMP());walkTarget=null;moveDir={x:0,y:0};gamePaused=false;exitInProgress=false;$('reenterOverlay').classList.add('hide');spawnEnemies();showScreen('game');resizeCanvas();refreshHUD();
+  // The request is initiated by the explicit "เข้าเกม" tap, as browsers require.
+  enterImmersiveFromGesture().then(ok=>{if(!ok&&!isStandalone())toast('เพื่อซ่อนแถบ Chrome แนะนำเปิดผ่าน Safari → เพิ่มไปยังหน้าจอโฮม')});
+};
+function finishExitGame(logout=false){
+  exitInProgress=true;fullscreenManaged=false;
+  if(p)save();
+  p=null;walkTarget=null;pendingNpc=null;moveDir={x:0,y:0};
+  $('reenterOverlay').classList.add('hide');
+  closeModal();gamePaused=false;
+  if(inFullscreen()){const leave=document.exitFullscreen||document.webkitExitFullscreen;if(leave){try{const v=leave.call(document);if(v&&typeof v.catch==='function')v.catch(()=>{});}catch(e){}}}
+  if(logout){accountId=null;selectedSlot=-1;toggleMode('login');showScreen('login')}
+  else{renderChars();showScreen('chars')}
+  exitInProgress=false;
+}
+function openExitGame(){
+  gamePaused=true;walkTarget=null;moveDir={x:0,y:0};
+  openModal('🚪 ออกจากเกม',`<div class="section stack"><p>ต้องการออกจากเกมใช่ไหม? ความคืบหน้าจะถูกบันทึกไว้ในเบราว์เซอร์ของอุปกรณ์นี้ก่อนออก</p><button id="exitToChars" class="button gold full">บันทึกและกลับหน้าเลือกตัวละคร</button><button id="exitToLogin" class="button ghost full">บันทึกและออกจากระบบ</button><button id="stayInGame" class="button full">เล่นต่อ</button></div>`);
+  $('exitToChars').onclick=()=>finishExitGame(false);
+  $('exitToLogin').onclick=()=>finishExitGame(true);
+  $('stayInGame').onclick=()=>closeModal();
+}
+$('exitGameBtn').onclick=openExitGame;
 function openModal(title,body){ui=title;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('overlay').classList.remove('hide');walkTarget=null;moveDir={x:0,y:0}}
-function closeModal(){$('overlay').classList.add('hide');ui=null;pendingNpc=null}
+function closeModal(){$('overlay').classList.add('hide');ui=null;pendingNpc=null;if($('reenterOverlay').classList.contains('hide'))gamePaused=false}
 $('closeModal').onclick=closeModal;
 $('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))closeModal()});
 function refreshHUD(){if(!p)return;$('hudName').textContent=p.name;$('hudLevel').textContent='Lv.'+p.lvl;$('hudAvatar').textContent=p.gender==='male'?'🧑‍🎤':'👩‍🎤';$('hpnum').textContent=`HP ${Math.floor(p.hp)}/${maxHP()}`;$('mpnum').textContent=`MP ${Math.floor(p.mp)}/${maxMP()}`;let ex=Math.floor(p.exp/xpNeed(p.lvl)*100);$('expnum').textContent=ex+'%';$('hpbar').style.width=clamp(p.hp/maxHP()*100,0,100)+'%';$('mpbar').style.width=clamp(p.mp/maxMP()*100,0,100)+'%';$('xpbar').style.width=clamp(ex,0,100)+'%';$('moneyhud').textContent='🪙 '+p.coins.toLocaleString('th-TH');$('mapName').textContent=MAPS[p.map].name;}
@@ -195,29 +241,59 @@ window.addEventListener('resize',resizeCanvas);resizeCanvas();
 
 const fullscreenBtn=$('fullscreenBtn');
 const inFullscreen=()=>Boolean(document.fullscreenElement||document.webkitFullscreenElement);
+function isStandalone(){return Boolean(navigator.standalone||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches));}
 function updateFullscreenButton(){
-  fullscreenBtn.textContent=inFullscreen()?'⤢':'⛶';
-  fullscreenBtn.setAttribute('aria-label',inFullscreen()?'ออกจากโหมดเต็มหน้าจอ':'ขยายเกมเต็มหน้าจอ');
+  const active=inFullscreen()||isStandalone();
+  fullscreenBtn.textContent=active?'🔒':'⛶';
+  fullscreenBtn.disabled=active;
+  fullscreenBtn.setAttribute('aria-label',active?'กำลังเล่นแบบเต็มหน้าจอ':'ขยายเกมเต็มหน้าจอ');
 }
-fullscreenBtn.addEventListener('click',async()=>{
+function enterImmersiveFromGesture(){
+  if(inFullscreen()||isStandalone()){updateFullscreenButton();return Promise.resolve(true)}
+  const root=document.documentElement;
+  const action=root.requestFullscreen||root.webkitRequestFullscreen;
+  if(!action)return Promise.resolve(false);
   try{
-    if(inFullscreen()){
-      if(document.exitFullscreen)await document.exitFullscreen();
-      else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
-    }else{
-      const root=document.documentElement;
-      if(root.requestFullscreen)await root.requestFullscreen();
-      else if(root.webkitRequestFullscreen)await root.webkitRequestFullscreen();
-      else{toast('เบราว์เซอร์นี้ไม่รองรับปุ่มเต็มจอ · บน iPad เปิด Safari → แชร์ → เพิ่มไปยังหน้าจอโฮม');return}
-    }
-    updateFullscreenButton();
-    requestAnimationFrame(resizeCanvas);
-  }catch(e){
-    toast('เบราว์เซอร์ไม่อนุญาตโหมดเต็มจอ · บน iPad เปิดจากไอคอนที่เพิ่มไปหน้าจอโฮม');
-  }
+    return Promise.resolve(action.call(root)).then(()=>{
+      fullscreenManaged=inFullscreen();
+      updateFullscreenButton();resizeCanvas();
+      return inFullscreen();
+    }).catch(()=>false);
+  }catch(e){return Promise.resolve(false)}
+}
+function showPauseOverlay(){
+  if(!p||exitInProgress||$('game').classList.contains('hide'))return;
+  if(ui)closeModal();
+  gamePaused=true;walkTarget=null;moveDir={x:0,y:0};
+  $('reenterOverlay').classList.remove('hide');
+}
+function dismissPauseOverlay(){
+  $('reenterOverlay').classList.add('hide');
+  gamePaused=false;resizeCanvas();
+}
+fullscreenBtn.addEventListener('click',()=>{
+  if(inFullscreen()||isStandalone())return;
+  enterImmersiveFromGesture().then(ok=>{if(!ok)toast('เบราว์เซอร์นี้ไม่รองรับเต็มจอแบบถาวร · ใช้ Safari → เพิ่มไปยังหน้าจอโฮม')});
 });
-document.addEventListener('fullscreenchange',()=>{updateFullscreenButton();resizeCanvas()});
-document.addEventListener('webkitfullscreenchange',()=>{updateFullscreenButton();resizeCanvas()});
+$('reenterBtn').onclick=()=>{
+  enterImmersiveFromGesture().then(ok=>{
+    if(ok){dismissPauseOverlay()}
+    else{toast('ไม่สามารถกลับเต็มจออัตโนมัติได้ · เลือกเล่นต่อหรือเปิดจากหน้าจอโฮม')}
+  });
+};
+$('continueWindowed').onclick=()=>{fullscreenManaged=false;dismissPauseOverlay()};
+$('pauseExit').onclick=()=>{dismissPauseOverlay();openExitGame()};
+function onFullscreenChanged(){
+  updateFullscreenButton();resizeCanvas();
+  if(fullscreenManaged&&!inFullscreen()&&!isStandalone()&&!exitInProgress)showPauseOverlay();
+}
+document.addEventListener('fullscreenchange',onFullscreenChanged);
+document.addEventListener('webkitfullscreenchange',onFullscreenChanged);
+document.addEventListener('visibilitychange',()=>{
+  if(!p||exitInProgress)return;
+  if(document.hidden){gamePaused=true;walkTarget=null;moveDir={x:0,y:0}}
+  else if(gamePaused)showPauseOverlay();
+});
 window.addEventListener('orientationchange',()=>setTimeout(resizeCanvas,180));
 if(window.visualViewport)window.visualViewport.addEventListener('resize',resizeCanvas);
 if(window.ResizeObserver)new ResizeObserver(resizeCanvas).observe($('worldWrap'));
@@ -259,7 +335,7 @@ function drawPlayer(){if(!p)return;let x=p.x,y=p.y;circle(x,y+16,18,'#112b3055')
  rect(x-13,y-8,26,30,armor?'#527ea7':'#366eaa');rect(x-9,y-28,18,21,p.gender==='male'?'#d9a581':'#f0b695');rect(x-10,y-31,20,7,p.gender==='male'?'#3a2923':'#663b43');if(head)rect(x-12,y-34,24,10,'#ab9870');rect(x-10,y+22,8,13,'#36485b');rect(x+3,y+22,8,13,'#36485b');rect(x-21,y-5,7,23,'#d8a281');rect(x+14,y-5,7,23,'#d8a281');if(right){rect(x+23,y-16,5,31,'#eff3f8');rect(x+16,y+2,20,5,'#8b714b')}if(getEq(p.equip.left)){rect(x-28,y-14,5,28,'#e2f2ff');rect(x-34,y+4,20,5,'#bba06e')}textLabel(p.name,x,y-46,'#fff',14);textLabel('Lv.'+p.lvl,x,y-62,'#f9d57f',11)}
 function drawMonster(e){let x=e.x,y=e.y;circle(x,y+13,20,'#11372399');if(e.name==='สไลม์'){circle(x,y,18,e.color);circle(x-8,y-6,9,'#8cf6c5');rect(x-7,y-1,4,5,'#172e38');rect(x+7,y-1,4,5,'#172e38')}else if(e.name==='หมาป่า'){rect(x-20,y-14,40,30,e.color);rect(x-18,y-25,12,14,'#bcb5a9');rect(x+6,y-25,12,14,'#bcb5a9');rect(x-7,y-4,5,5,'#2b2525');rect(x+7,y-4,5,5,'#2b2525')}else{circle(x,y,18,'#eea079');rect(x-18,y-4,36,9,'#b55753');rect(x-10,y-16,4,7,'#fff');rect(x+7,y-16,4,7,'#fff')}rect(x-23,y-38,46,6,'#2e2931');rect(x-23,y-38,46*clamp(e.hp/e.max,0,1),6,'#fa6b6b');if(targetEnemy===e.uid){ctx.strokeStyle='#fff4a2';ctx.lineWidth=2;ctx.strokeRect(x-25,y-41,50,10)}textLabel(e.name,x,y-46,'#ffedcf',11)}
 function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();drawGround(p.map);if(p.map==='town'){drawPortal(48,308,'ป่าสไลม์','#8aeab8');drawPortal(912,308,'หุบเขาหมาป่า','#f4a17e');drawPortal(481,569,'ชายหาดเวทมนตร์','#9bddff');NPCS.forEach(drawNPC)}else{drawPortal(480,52,'กลับเมือง','#f8e1a3');for(let mob of enemies)drawMonster(mob)}drawPlayer();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16);ctx.restore()}}
-function loop(t){let dt=Math.min(50,t-(lastFrame||t));lastFrame=t;if(p){step(dt);render()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+function loop(t){let dt=Math.min(50,t-(lastFrame||t));lastFrame=t;if(p){if(!gamePaused)step(dt);render()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
