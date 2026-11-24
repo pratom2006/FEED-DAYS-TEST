@@ -13,7 +13,7 @@ const q = context.window.FEED_DAYS_QA;
 const spawn = {x:1024,y:1800};
 test('classic scripts parse and load in original dependency order', () => {
   let last = -1;
-  const html = read('index.html');
+  const html = read('game.html');
   for (const p of files) {
     new vm.Script(read(p), {filename:p});
     const position = html.indexOf(`src="${p}"`);

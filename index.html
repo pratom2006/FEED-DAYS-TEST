@@ -1,36 +1,36 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#102b23">
-  <title>FEED DAYS | Ring Town · Phaser 08</title>
-  <link rel="stylesheet" href="styles/game.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102b23">
+<title>FEED DAYS | Account</title>
+<link rel="stylesheet" href="styles/game.css">
+<link rel="stylesheet" href="styles/account.css">
+<script src="scripts/account.js" defer></script>
 </head>
-<body>
-  <h1>🐉 FEED DAYS · เมืองวงแหวน</h1>
-  <p class="sub">Phaser 08 · เมืองไม้สร้างจากโค้ด · ทางออก 4 ทิศ · ทดสอบการเดิน/การชน (ยังไม่ใช่ Multiplayer)</p>
-  <div id="setup">
-    <input id="name" aria-label="ชื่อตัวละคร" placeholder="ตั้งชื่อตัวละคร" maxlength="24" autocomplete="off">
-    <button class="pick" id="male" type="button">เริ่มตัวละครชาย</button>
-    <button class="pick" id="female" type="button">เริ่มตัวละครหญิง</button>
-  </div>
-  <div id="stage">
-    <div id="game"></div>
-    <div id="hud">
-      <span id="mode">เดินสำรวจเมือง</span>
-      <button type="button" id="debug" aria-pressed="false">แสดงพื้นที่ชน</button>
-      <div id="joystick" aria-label="จอยสติ๊กเสมือนสำหรับเดิน" role="application"><div id="thumb"></div></div>
-      <div id="touchHint">แตะพื้นเพื่อเดินอัตโนมัติ</div>
-    </div>
-  </div>
-  <div id="status" role="status" aria-live="polite">กำลังเตรียมเกม...</div>
-  <p class="hint">iPad/โทรศัพท์: จอยสติ๊ก + แตะพื้นเดิน · คอมพิวเตอร์: WASD + คลิกเมาส์เดิน · ถนนวงแหวน/สะพานเดินได้ · บ้าน สระ และรั้วห้ามผ่าน</p>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-  <script src="scripts/config.js"></script>
-  <script src="scripts/input.js"></script>
-  <script src="scripts/town.js"></script>
-  <script src="scripts/navigation.js"></script>
-  <script src="scripts/game.js"></script>
+<body class="account-page">
+<main class="account-panel">
+<p class="account-eyebrow">FEED DAYS · PHASE 2</p>
+<h1>FEED DAYS</h1>
+<p>ยินดีต้อนรับสู่เมืองวงแหวน</p>
+<div class="account-tabs" aria-label="เมนูบัญชี">
+<button class="pick" type="button" id="login-tab" aria-pressed="true">เข้าสู่ระบบ</button>
+<button class="pick" type="button" id="register-tab" aria-pressed="false">สมัครสมาชิก</button>
+</div>
+<form id="account-form">
+<h2 id="form-title">เข้าสู่ระบบ</h2>
+<label for="account-id">Login ID</label>
+<input id="account-id" name="id" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ตัวอักษรอังกฤษ ตัวเลข หรือ _">
+<label for="password">Password</label>
+<input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password">
+<div id="confirm-row" hidden><label for="confirm-password">ยืนยัน Password</label><input id="confirm-password" type="password" maxlength="128" autocomplete="new-password" disabled></div>
+<p id="password-hint" hidden>รหัสผ่านอย่างน้อย 10 ตัวอักษร</p>
+<button class="pick account-submit" id="submit-account" type="submit">เข้าสู่ระบบ</button>
+</form>
+<p id="account-status" role="status" aria-live="polite">กำลังตรวจสอบการเชื่อมต่อ...</p>
+<noscript>กรุณาเปิด JavaScript เพื่อเล่นเกม</noscript>
+<p class="account-foot">บัญชีออนไลน์ · เกมต้นแบบสำหรับผู้เล่นคนเดียว</p>
+</main>
 </body>
 </html>

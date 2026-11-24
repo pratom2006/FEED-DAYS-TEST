@@ -1,25 +1,24 @@
-# FEED-DAYS-TEST
+# FEED DAYS — Phase 2
 
-Phase 1 — Phaser 08 Ring Town, structure-only refactor. Original visuals, character selection, movement, collision and A* navigation are retained. Single-player browser prototype; no server or account system yet.
+Online accounts + persistent SQLite database + original Phaser 08 Ring Town. The game itself is still single-player; multiplayer and character persistence arrive in later phases.
 
 ## Run
-Serve the repository root with a static HTTP server (or GitHub Pages). Open `index.html` through that server. Phaser 3.90.0 is still loaded from the original CDN; internet access is required. No build step.
+Requires Node.js 24 (built-in SQLite, no npm dependencies). Run `npm start`, then visit http://localhost:8080. Run `npm test` for navigation and account integration tests.
 
-## Structure
-- `index.html`: entry page and HUD markup
-- `styles/game.css`: original styles
-- `scripts/config.js`: world constants and asset paths
-- `scripts/input.js`: UI and joystick input
-- `scripts/town.js`: procedural map and buildings
-- `scripts/navigation.js`: collision and A* navigation
-- `scripts/game.js`: Phaser scene, animations, movement, startup
-- `assets/characters/`: original PNG spritesheets, extracted without re-encoding
-- `tests/navigation.test.cjs`: syntax, sprite signature, and navigation smoke checks
+## Deploy
+GitHub Pages cannot execute a Node server. Deploy the repository using its Dockerfile on a Node/Docker host such as Railway. Use one instance with a persistent writable volume mounted at /data. Set `NODE_ENV=production`, `PUBLIC_ORIGIN=https://your-real-hostname` (no trailing slash), and `DB_PATH=/data/feed-days.sqlite`. Use the host's HTTPS endpoint and keep backups of the database (SQLite online backup or stopped-service snapshot). Do not deploy with an ephemeral filesystem or multiple replicas. The server intentionally refuses production startup without PUBLIC_ORIGIN. Health endpoint: /health. Never commit database files or real credentials. For public scale-out, plan PostgreSQL and distributed rate limiting.
 
-Scripts are classic browser scripts and must load in the order defined by `index.html`.
+## Auth
+Register an ID (3–24 ASCII letters, digits, underscores; case-insensitive) and password (10–128 characters). Login issues a seven-day random session cookie (HttpOnly, SameSite=Lax, Secure in production); the database stores a SHA-256 token digest and salted scrypt password hash, not passwords or raw session tokens. Requests require same origin. In-process throttling and bounded password hashing protect a single instance; reverse proxy IP sharing may affect limits. Logout revokes the session. There is no password recovery yet. No character data is saved in Phase 2.
 
-## Test
-With Node.js 18 or later: `node --test tests/navigation.test.cjs`. This checks navigation and source syntax, not rendering or device touch behavior.
+## Files
+- index.html: registration/login
+- game.html: original Phase 1 entry page plus session bar
+- scripts/account.js, scripts/session.js, styles/account.css: account UI
+- server/server.cjs, server/database.cjs: HTTP server and schema
+- scripts/config.js, input.js, town.js, navigation.js, game.js, styles/game.css and original PNG assets: unchanged Phase 1
+- tests/: navigation and account tests
 
-## Backup
-Original version: `backup/phaser-08-before-phase-1` (commit `740fd34546658924d28cad1ad32a8e3aab071cbe`).
+## Backups
+Phase 1: backup/phase-1-before-phase-2 (a87d3225d47cc8f0b359a44aaca70d3b92e9b1cf).
+Phase 0: backup/phaser-08-before-phase-1.
