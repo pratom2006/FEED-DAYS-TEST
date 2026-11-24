@@ -382,7 +382,7 @@ function fdTransferItem(c,index,fromPlayer){
  if(fromPlayer&&Object.values(p.equip).includes(it.uid))return toast('ถอดอุปกรณ์ผู้เล่นก่อนย้าย');
  if(!isStack(it)&&dst.length>=cap)return toast('กระเป๋าปลายทางเต็ม');
  if(isStack(it)){
-   const other=dst.find(x=>x.type===it.type&&x.name===it.name&&x.skill===it.skill);
+   const other=dst.find(x=>x.type===it.type&&x.name===it.name&&x.skill===it.skill&&(x.rarity||1)===(it.rarity||1)&&(x.enh||0)===(it.enh||0)&&(x.stars||0)===(it.stars||0));
    if(!other&&dst.length>=cap)return toast('กระเป๋าปลายทางเต็ม');
    if(other)other.qty=(other.qty||1)+(it.qty||1);else dst.push(it);
  }else dst.push(it);
