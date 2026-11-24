@@ -1,0 +1,15 @@
+{
+  "name": "FEED DAYS — Fantasy Realm",
+  "short_name": "FEED DAYS",
+  "description": "2D top-down MMORPG browser prototype",
+  "lang": "th",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "background_color": "#0b1421",
+  "theme_color": "#111c2b"
+}
