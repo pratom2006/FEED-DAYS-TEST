@@ -1,5 +1,14 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9
+- Backed up v0.8 to `backup/before-v0-9-floating-inventory-ground-loot-2026-11-25`.
+- Added `v09.js`: movable, modeless inventory/equipment/pet/stat windows; persistent 80-slot bag order and touch long-press drag; equipped items leave bag; safety on equip swap/full bag.
+- World loot from monsters/bosses and manual dropped items; each drop has owner lock 1m, expires after 3m. Tap/pickup button, hold repeat, walk-to-tap pickup.
+- Rare/enchanted item disposal and sale confirmation; pet treasure AI filter by rarity/type and destination, fight/loot/balanced priority.
+- Existing v0.8 systems and legacy save key remain. Currency still enters the player automatically, pending design decision.
+- JS parsing and 13 isolated behavior assertions passed for v0.9 equipment/loot/filters. iPad touch/browser UI not verified.
+- No new online server, multiplayer or shared loot authority.
+
 ## 2026-11-25 — v0.8
 - Added `systems.js` while retaining legacy in-game UI and the pixel-art world.
 - Ten sample classless skills and six hotbar slots; scroll name/type visible in bag; first use unlocks; duplicate scroll grants XP; casting grants XP and can be swapped among slots.
