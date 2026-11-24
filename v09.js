@@ -1,0 +1,520 @@
+(function v09Feature(){
+'use strict';
+const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,repeatMs:260};
+const rarityNames=['','ทั่วไป','Uncommon','Rare','Epic','Legendary'];
+const originals={fdInit,fdPetGear,fdShowPet,showScreen};
+let currentUid=null,highestZ=40,holdPickup=null,lastPickup=0,lastPetPickup=0,lastSweep=0,pendingLootId=null;
+const windowMap=new Map();
+const here=()=>Boolean(p&&$('game')&&!$('game').classList.contains('hide'));
+function safeItemName(it){return esc(itemName(it))}
+function critical(it){return !!it&&((it.rarity||1)>=3||(it.enh||0)>0||(it.stars||0)>0)}
+function nameType(it){
+ if(it.type==='gear')return it.slot?.includes('pet')?'อุปกรณ์สัตว์':'อาวุธ/เกราะ';
+ if(it.type==='skillScroll')return 'คัมภีร์';
+ if(it.type==='petEgg')return 'ไข่สัตว์';
+ if(it.type==='material'||it.type==='enhCrystal'||it.type==='starCrystal')return 'วัสดุ';
+ if(it.type==='potionHP'||it.type==='potionMP')return 'ยา HP/MP';
+ if(it.type==='coin')return 'เหรียญ';
+ return 'อื่น ๆ';
+}
+function ensureSlots(){
+ if(!p)return;
+ const busy=new Set();
+ for(const it of p.items){
+   if(!Number.isInteger(it.bagSlot)||it.bagSlot<0||it.bagSlot>=80||busy.has(it.bagSlot)){
+     let i=0;while(busy.has(i)&&i<80)i++;it.bagSlot=i;
+   }
+   busy.add(it.bagSlot);
+ }
+}
+function v09Init(){
+ if(!p)return;
+ if(!Array.isArray(p.items))p.items=[];
+ if(!p.equippedItems||typeof p.equippedItems!=='object')p.equippedItems={};
+ if(!Array.isArray(p.groundLoot))p.groundLoot=[];
+ if(!p.v09InventoryMigrated){
+   for(const [slot,uid] of Object.entries(p.equip||{})){
+     if(!uid)continue;
+     if(p.equippedItems[slot])continue;
+     const i=p.items.findIndex(it=>it.uid===uid);
+     if(i>=0)p.equippedItems[slot]=p.items.splice(i,1)[0];
+   }
+   for(const c of p.companions||[]){
+     if(!c.equippedItems)c.equippedItems={};
+     for(const [slot,uid] of Object.entries(c.equip||{})){
+       if(!uid||c.equippedItems[slot])continue;
+       const i=c.bag?.findIndex(it=>it.uid===uid)??-1;
+       if(i>=0)c.equippedItems[slot]=c.bag.splice(i,1)[0];
+     }
+   }
+   p.v09InventoryMigrated=true;
+   ensureSlots();save();
+ }
+ for(const c of p.companions||[]){
+   if(!c.equippedItems)c.equippedItems={};
+   if(c.species==='fox'&&!c.skills.includes('treasure'))c.skills.push('treasure');
+   if(!c.lootTypes)c.lootTypes=['อาวุธ/เกราะ','อุปกรณ์สัตว์','คัมภีร์','ไข่สัตว์','วัสดุ','ยา HP/MP'];
+   if(!Number.isFinite(c.lootRarity))c.lootRarity=1;
+   if(c.lootMode!=='combat'&&c.lootMode!=='loot')c.lootMode='balanced';
+   if(c.lootTarget!=='pet')c.lootTarget='player';
+   if(typeof c.lootEnabled!=='boolean')c.lootEnabled=false;
+ }
+ ensureSlots();
+}
+fdInit=function(){originals.fdInit();v09Init()};
+getEq=function(uid){
+ if(!p||!uid)return null;
+ for(const it of Object.values(p.equippedItems||{}))if(it?.uid===uid)return it;
+ return p.items.find(x=>x.uid===uid)||null;
+};
+recheckEquipment=function(){
+ v09Init();
+ for(const [slot,uid] of Object.entries(p.equip||{})){
+   if(uid&&!getEq(uid))p.equip[slot]=null;
+ }
+};
+fdPetGear=function(c,key){
+ return c?.equippedItems?.[key]||originals.fdPetGear(c,key);
+};
+function v09PetEquip(c,slot,index){
+ if(!c||c.knockedUntil>Date.now())return toast('สัตว์กำลังพักฟื้น');
+ const it=c.bag[index];if(!it||it.type!=='gear')return;
+ const allowed={weapon:['right','left','petWeapon'],armor:['armor','petArmor'],orb:['petOrb']}[slot];
+ if(!allowed||!allowed.includes(it.slot))return toast('อุปกรณ์ไม่ตรงช่อง');
+ const old=c.equippedItems?.[slot]||null;
+ c.bag.splice(index,1);
+ if(old)c.bag.push(old);
+ c.equippedItems[slot]=it;c.equip[slot]=it.uid;save();fdShowPet();v09Refresh();
+}
+fdEquipPet=v09PetEquip;
+function v09UnequipPet(c,slot){
+ if(!c||c.knockedUntil>Date.now())return toast('สัตว์ยังพักฟื้น');
+ const it=c.equippedItems?.[slot];if(!it)return;
+ if(c.bag.length>=24)return toast('กระเป๋าสัตว์เต็ม ถอดไม่ได้');
+ c.bag.push(it);c.equippedItems[slot]=null;c.equip[slot]=null;save();fdShowPet();v09Refresh();
+}
+function equipFromBag(index,preferred){
+ v09Init();const it=p.items[index];if(!it||it.type!=='gear')return;
+ if(!Object.prototype.hasOwnProperty.call(SLOTS,it.slot))return toast('อุปกรณ์เฉพาะสัตว์ต้องใส่ในหน้าต่างสัตว์');
+ const slot=['right','left'].includes(it.slot)?(['right','left'].includes(preferred)?preferred:it.slot):it.slot;
+ const old=p.equippedItems[slot]||null;
+ p.items.splice(index,1);
+ if(old){old.bagSlot=it.bagSlot;p.items.push(old)}
+ p.equippedItems[slot]=it;p.equip[slot]=it.uid;
+ save();refreshHUD();v09Refresh();
+ toast('สวมใส่ '+it.name+(old?' (สลับอุปกรณ์เดิมกลับกระเป๋า)':''));
+}
+equipItem=equipFromBag;
+function unequipPlayer(slot){
+ v09Init();const it=p.equippedItems[slot];if(!it)return;
+ if(p.items.length>=80)return toast('กระเป๋าเต็ม ต้องเว้นช่องก่อนถอด');
+ it.bagSlot=undefined;p.items.push(it);p.equippedItems[slot]=null;p.equip[slot]=null;
+ ensureSlots();save();refreshHUD();v09Refresh();
+}
+function css(){
+ const st=document.createElement('style');
+ st.textContent=`
+ .v09-window{position:fixed;display:flex;flex-direction:column;z-index:41;background:rgba(16,33,49,.92);backdrop-filter:blur(5px);border:1px solid #91b1bf;border-radius:13px;color:#f2f6fa;box-shadow:0 12px 35px #0009;min-width:245px;min-height:180px;max-width:96vw;max-height:80dvh;overflow:hidden;font-size:13px}
+ .v09-head{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:9px;background:#27445ae8;touch-action:none;cursor:grab;user-select:none}
+ .v09-head b{flex:1}.v09-head button{width:29px;height:27px;background:#142a39;border:1px solid #88a6b3;border-radius:6px;color:white;cursor:pointer}
+ .v09-content{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;padding:10px;touch-action:pan-y}
+ .v09-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .v09-cell{position:relative;min-height:57px;border-radius:7px;border:1px solid #49667b;background:#1b394c;color:white;font-size:24px;touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center}
+ .v09-cell.v09-selected{outline:2px solid #f1cf76}.v09-cell small{font-size:10px;position:absolute;right:2px;bottom:0;color:#f1f0e9}
+ .v09-cell.v09-target{border-color:#fff0ae;background:#65774a}
+ .v09-bag-scroll{height:min(38dvh,365px);overflow:auto;overscroll-behavior:contain;border:1px solid #476474;border-radius:9px;padding:5px;background:#081c29}
+ .v09-bag-detail{margin-top:8px;padding:10px;border-radius:9px;background:#122738;min-height:86px}
+ .v09-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.v09-actions button{font-size:12px}
+ .v09-dragging{position:fixed;z-index:99999;pointer-events:none;width:51px;height:51px;border:2px solid #ffe0a1;border-radius:8px;background:#3c526cde;display:grid;place-items:center;font-size:29px;transform:translate(-50%,-50%);box-shadow:0 3px 14px #000a}
+ #v09PickupBtn{position:absolute;z-index:6;right:164px;bottom:calc(92px + env(safe-area-inset-bottom));border:2px solid #d0c38e;border-radius:40px;background:#4b695bcc;color:#fff;font-size:13px;font-weight:700;padding:9px 10px;touch-action:none;min-width:68px;min-height:55px}
+ @media(max-width:600px){.v09-window{width:min(350px,92vw)!important}.v09-content{padding:7px}#v09PickupBtn{right:90px;bottom:calc(124px + env(safe-area-inset-bottom));font-size:11px;padding:7px;min-width:58px;min-height:47px}}
+ `;
+ document.head.appendChild(st);
+}
+css();
+function clampWindow(node,left,top){
+ const rect=node.getBoundingClientRect();
+ const width=rect.width||330,height=rect.height||280;
+ node.style.left=Math.max(2,Math.min(window.innerWidth-width-2,left))+'px';
+ node.style.top=Math.max(2,Math.min(window.innerHeight-Math.min(height,60)-2,top))+'px';
+}
+function v09Window(key,title){
+ let node=windowMap.get(key);
+ if(!node){
+   const defaults={bag:{x:16,y:70,w:375},equip:{x:405,y:85,w:320},stats:{x:140,y:130,w:300},pet:{x:380,y:100,w:385}};
+   const config=defaults[key]||defaults.bag;
+   node=document.createElement('section');node.className='v09-window';node.dataset.name=key;node.style.width='min('+config.w+'px,94vw)';
+   node.style.left=Math.min(config.x,Math.max(2,window.innerWidth-config.w-5))+'px';
+   node.style.top=Math.min(config.y,window.innerHeight-85)+'px';node.style.display='none';
+   node.innerHTML='<div class="v09-head"><b class="v09-title"></b><button type="button" class="v09-reset" title="คืนตำแหน่ง">⟲</button><button type="button" class="v09-close" title="ปิด">✕</button></div><div class="v09-content"></div>';
+   document.body.appendChild(node);windowMap.set(key,node);
+   node.querySelector('.v09-close').onclick=()=>{node.style.display='none'};
+   node.querySelector('.v09-reset').onclick=()=>clampWindow(node,config.x,config.y);
+   node.addEventListener('pointerdown',()=>{node.style.zIndex=String(++highestZ)});
+   const head=node.querySelector('.v09-head');
+   head.addEventListener('pointerdown',e=>{
+     if(e.target.closest('button'))return;
+     e.preventDefault();node.style.zIndex=String(++highestZ);
+     const x=e.clientX,y=e.clientY,box=node.getBoundingClientRect();
+     head.setPointerCapture(e.pointerId);
+     const move=ev=>{if(ev.pointerId!==e.pointerId)return;clampWindow(node,box.left+ev.clientX-x,box.top+ev.clientY-y)};
+     const done=()=>{head.removeEventListener('pointermove',move);head.removeEventListener('pointerup',done);head.removeEventListener('pointercancel',done)};
+     head.addEventListener('pointermove',move);head.addEventListener('pointerup',done);head.addEventListener('pointercancel',done);
+   });
+ }
+ node.querySelector('.v09-title').textContent=title;node.style.display='flex';node.style.zIndex=String(++highestZ);
+ return node;
+}
+function closeAllWindows(){for(const node of windowMap.values())node.style.display='none'}
+showScreen=function(id){if(id!=='game')closeAllWindows();return originals.showScreen(id)};
+function bagSelectedItem(){return p?.items?.find(x=>x.uid===currentUid)||null}
+function v09Detail(){
+ const win=windowMap.get('bag');if(!win||win.style.display==='none')return;
+ win.querySelectorAll('.v09-cell').forEach(b=>b.classList.toggle('v09-selected',b.dataset.uid&&b.dataset.uid===currentUid));
+ const detail=win.querySelector('.v09-bag-detail');if(!detail)return;
+ const it=bagSelectedItem();
+ if(!it){detail.innerHTML='แตะไอเทมเพื่อดูรายละเอียด · กดค้าง 0.4 วินาทีแล้วลากเพื่อจัดเรียง';return}
+ let info=it.type==='skillScroll'?'ประเภท: '+(FD_SKILLS[it.skill]?.type||'สกิล')+' · ใช้คัมภีร์แล้วจึงเห็นพลังสกิล':(it.desc||it.type);
+ detail.innerHTML='<b>'+esc(it.icon||'📦')+' '+safeItemName(it)+'</b><div class="dim tiny">'+esc(info)+' · จำนวน '+(it.qty||1)+'</div><div class="v09-actions">'+
+ (it.type==='gear'?'<button class="button gold sm" data-act="equip">⚔️ สวมใส่</button>':'')+
+ (it.type?.startsWith('potion')?'<button class="button gold sm" data-act="use">🧪 ใช้ยา</button>':'')+
+ (it.type==='skillScroll'?'<button class="button gold sm" data-act="scroll">📜 ใช้คัมภีร์</button>':'')+
+ (it.type==='petEgg'?'<button class="button gold sm" data-act="hatch">🥚 ฟักไข่</button>':'')+
+ '<button class="button red sm" data-act="drop">🗑️ ทิ้งไอเทม</button></div>';
+ detail.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{
+   const idx=p.items.findIndex(x=>x.uid===currentUid);if(idx<0)return;
+   switch(button.dataset.act){
+     case 'equip':equipFromBag(idx);return;
+     case 'use':usePotion(idx);break;
+     case 'scroll':fdUseScroll(idx);break;
+     case 'hatch':fdHatch(idx);break;
+     case 'drop':v09Discard(idx);return;
+   }
+   currentUid=null;v09ShowBag();
+ });
+}
+function v09SwapSlots(a,b){
+ v09Init();if(a===b)return;
+ const first=p.items.find(it=>it.bagSlot===a),second=p.items.find(it=>it.bagSlot===b);
+ if(!first)return;
+ if(second)second.bagSlot=a;
+ first.bagSlot=b;save();v09ShowBag();
+}
+function v09BindBagCells(win,viewport){
+ let pointerState=null,ghost=null,dragTimer=null;
+ function cleanup(){
+   if(dragTimer!==null){clearTimeout(dragTimer);dragTimer=null}
+   if(ghost){ghost.remove();ghost=null}
+   win.querySelectorAll('.v09-target').forEach(el=>el.classList.remove('v09-target'));
+ }
+ win.querySelectorAll('.v09-cell').forEach(cell=>{
+   cell.addEventListener('pointerdown',e=>{
+     if(!p||e.button>0)return;
+     const from=Number(cell.dataset.slot),item=p.items.find(it=>it.bagSlot===from);
+     if(!item)return;
+     const startX=e.clientX,startY=e.clientY,scrollAt=viewport.scrollTop;
+     pointerState={id:e.pointerId,from,item,downX:startX,downY:startY,scrollAt,scrolling:false,dragging:false};
+     try{cell.setPointerCapture(e.pointerId)}catch(err){}
+     dragTimer=setTimeout(()=>{
+       if(!pointerState||pointerState.id!==e.pointerId||pointerState.scrolling)return;
+       pointerState.dragging=true;
+       ghost=document.createElement('div');ghost.className='v09-dragging';ghost.textContent=item.icon||'📦';document.body.appendChild(ghost);
+       ghost.style.left=startX+'px';ghost.style.top=startY+'px';
+     },RULES.holdMs);
+     e.preventDefault();
+   });
+   cell.addEventListener('pointermove',e=>{
+     if(!pointerState||e.pointerId!==pointerState.id||pointerState.from!==Number(cell.dataset.slot))return;
+     const dx=e.clientX-pointerState.downX,dy=e.clientY-pointerState.downY;
+     if(!pointerState.dragging&&Math.hypot(dx,dy)>9){
+       pointerState.scrolling=true;
+       if(dragTimer!==null){clearTimeout(dragTimer);dragTimer=null}
+     }
+     if(pointerState.scrolling){viewport.scrollTop=pointerState.scrollAt-dy;return}
+     if(pointerState.dragging){
+       if(ghost){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}
+       win.querySelectorAll('.v09-target').forEach(el=>el.classList.remove('v09-target'));
+       const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('.v09-cell');
+       if(hit&&win.contains(hit))hit.classList.add('v09-target');
+     }
+   });
+   const finish=e=>{
+     if(!pointerState||e.pointerId!==pointerState.id||pointerState.from!==Number(cell.dataset.slot))return;
+     const state=pointerState;pointerState=null;
+     const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('.v09-cell');
+     cleanup();
+     if(state.dragging){
+       if(hit&&win.contains(hit))v09SwapSlots(state.from,Number(hit.dataset.slot));
+     }else if(!state.scrolling){
+       currentUid=state.item.uid;v09Detail();
+     }
+   };
+   cell.addEventListener('pointerup',finish);cell.addEventListener('pointercancel',()=>{pointerState=null;cleanup()});
+ });
+}
+function v09ShowBag(){
+ if(!p)return;v09Init();const win=v09Window('bag','🎒 กระเป๋า · จัดช่องด้วยการกดค้างลาก');
+ const holder=win.querySelector('.v09-content'),prior=holder.querySelector('.v09-bag-scroll')?.scrollTop||0;
+ const bySlot=new Map(p.items.map(it=>[it.bagSlot,it]));
+ holder.innerHTML='<div class="line space"><b>'+p.items.length+'/80 ช่อง</b><span class="coin">🪙 '+p.coins.toLocaleString('th-TH')+'</span></div>'+
+ '<p class="dim tiny" style="margin:5px 0">แตะดูของ · กดค้างแล้วลากเพื่อย้ายหรือสลับ · ปัดเลื่อนรายการได้</p>'+
+ '<div class="v09-bag-scroll"><div class="v09-grid">'+
+ Array.from({length:80},(_,i)=>{const it=bySlot.get(i);return '<button type="button" class="v09-cell" data-slot="'+i+'" '+(it?'data-uid="'+esc(it.uid)+'"':'')+'>'+(it?esc(it.icon||ITEM_ICONS[it.type]||'📦')+'<small>'+(it.qty>1?'×'+it.qty:'')+(it.enh?' +'+it.enh:'')+'</small>':'·')+'</button>'}).join('')+
+ '</div></div><div class="v09-bag-detail"></div>';
+ const viewport=holder.querySelector('.v09-bag-scroll');viewport.scrollTop=prior;
+ v09BindBagCells(win,viewport);v09Detail();
+}
+showBag=v09ShowBag;
+function v09ShowEquip(){
+ if(!p)return;v09Init();
+ const win=v09Window('equip','🛡️ อุปกรณ์ที่สวมอยู่');
+ const row=Object.entries(SLOTS).map(([slot,label])=>{
+   const it=p.equippedItems[slot];
+   return '<div class="line space" style="margin:7px 0;gap:6px"><span>'+esc(label)+'<br><b>'+(it?safeItemName(it):'ว่าง')+'</b></span>'+
+     (it?'<button type="button" class="button sm ghost" data-unequip="'+slot+'">ถอด</button>':'')+'</div>';
+ }).join('');
+ win.querySelector('.v09-content').innerHTML='<div class="section"><b>'+esc(p.name)+'</b> Lv.'+p.lvl+'<p class="dim tiny">สวมใส่แล้วไม่กินช่องกระเป๋า · ถอดต้องมีช่องว่าง</p><p>ATK '+attackPower()+' · DEF '+defense()+'</p></div><div class="section">'+row+'</div>';
+ win.querySelectorAll('[data-unequip]').forEach(b=>b.onclick=()=>unequipPlayer(b.dataset.unequip));
+}
+showEquip=v09ShowEquip;
+function v09ShowStats(){
+ if(!p)return;
+ const win=v09Window('stats','💪 สเตตัสตัวละคร');
+ win.querySelector('.v09-content').innerHTML='<div class="line space"><b>'+esc(p.name)+' Lv.'+p.lvl+'</b><span class="pill">แต้ม '+p.sp+'</span></div>'+
+ '<div class="section">'+Object.entries(STATS).map(([k,desc])=>'<div class="statrow"><div><b>'+k+' '+p.stats[k]+'</b><div class="dim tiny">'+esc(desc)+'</div></div><button type="button" class="button sm" data-stat="'+k+'" '+(p.sp<1?'disabled':'')+'>+1</button></div>').join('')+'</div>'+
+ '<div class="notice">HP '+maxHP()+' · MP '+maxMP()+' · ATK '+attackPower()+' · DEF '+defense()+'</div>';
+ win.querySelectorAll('[data-stat]').forEach(b=>b.onclick=()=>{
+   if(p.sp<1||!Object.prototype.hasOwnProperty.call(p.stats,b.dataset.stat))return;
+   p.stats[b.dataset.stat]++;p.sp--;p.hp=clamp(p.hp,0,maxHP());p.mp=clamp(p.mp,0,maxMP());
+   save();refreshHUD();v09ShowStats();
+ });
+}
+showStats=v09ShowStats;
+function petLootPanel(win){
+ const selected=p.companions[fdPetIndex];
+ if(!selected||fdPetTab!=='team')return;
+ const hasSkill=selected.skills?.includes('treasure');
+ const panel=document.createElement('div');panel.className='section stack';
+ const disabled=hasSkill&&selected.knockedUntil<=Date.now()?'':'disabled';
+ panel.innerHTML='<h3>💎 AI สัตว์เก็บสมบัติ</h3>'+
+ (hasSkill?'<p class="tiny dim">ตั้งค่าเฉพาะสัตว์ตัวนี้ · เก็บเฉพาะของที่มีสิทธิ์และไม่เกินระยะ</p>':'<div class="notice">สัตว์ตัวนี้ยังไม่มีสกิลค้นหาสมบัติ · ตัวอย่างสัตว์ที่มีสกิลนี้: จิ้งจอกเวท</div>')+
+ '<label><input type="checkbox" data-loot="enabled" '+(selected.lootEnabled?'checked':'')+' '+disabled+'> เปิด Auto Pickup</label>'+
+ '<label>พฤติกรรม<select class="input" data-loot="mode" '+disabled+'><option value="combat">⚔️ ต่อสู้ก่อน</option><option value="loot">💎 เน้นสมบัติ</option><option value="balanced">⚖️ สมดุล</option></select></label>'+
+ '<label>ส่งไอเทมไป<select class="input" data-loot="target" '+disabled+'><option value="player">🎒 กระเป๋าตัวละคร</option><option value="pet">🐾 กระเป๋าสัตว์ตัวนี้</option></select></label>'+
+ '<label>ระดับขั้นต่ำ<select class="input" data-loot="rarity" '+disabled+'>'+rarityNames.slice(1).map((name,i)=>'<option value="'+(i+1)+'">'+name+' ขึ้นไป</option>').join('')+'</select></label>'+
+ '<b class="tiny">ประเภทที่ให้เก็บ</b><div class="v09-actions">'+['อาวุธ/เกราะ','อุปกรณ์สัตว์','คัมภีร์','ไข่สัตว์','วัสดุ','ยา HP/MP'].map(type=>'<label class="tiny"><input type="checkbox" data-loottype="'+type+'" '+(selected.lootTypes.includes(type)?'checked':'')+' '+disabled+'>'+type+'</label>').join('')+'</div>';
+ win.querySelector('.v09-content').appendChild(panel);
+ if(!hasSkill)return;
+ panel.querySelector('[data-loot="mode"]').value=selected.lootMode;
+ panel.querySelector('[data-loot="target"]').value=selected.lootTarget;
+ panel.querySelector('[data-loot="rarity"]').value=selected.lootRarity;
+ panel.querySelectorAll('[data-loot]').forEach(el=>el.onchange=()=>{
+   const type=el.dataset.loot;
+   if(type==='enabled')selected.lootEnabled=el.checked;
+   if(type==='mode')selected.lootMode=el.value;
+   if(type==='target')selected.lootTarget=el.value;
+   if(type==='rarity')selected.lootRarity=Number(el.value);
+   save();toast('บันทึกการตั้งค่าเก็บสมบัติแล้ว');
+ });
+ panel.querySelectorAll('[data-loottype]').forEach(el=>el.onchange=()=>{
+   const type=el.dataset.loottype;
+   selected.lootTypes=el.checked?[...new Set([...selected.lootTypes,type])]:selected.lootTypes.filter(x=>x!==type);
+   save();
+ });
+}
+fdShowPet=function(){
+ if(!p)return;
+ originals.fdShowPet();
+ const body=$('modalBody');
+ const win=v09Window('pet','🐾 สัตว์เลี้ยง · สัตว์ขี่ · ผสมพันธุ์');
+ const content=win.querySelector('.v09-content');
+ content.replaceChildren(...Array.from(body.childNodes));
+ $('overlay').classList.add('hide');
+ ui=null;
+ // Replace only pet-specific equipment buttons with storage-safe behavior.
+ content.querySelectorAll('[data-unequip]').forEach(button=>button.onclick=()=>{
+   const c=p.companions[fdPetIndex];
+   v09UnequipPet(c,button.dataset.unequip);
+ });
+ petLootPanel(win);
+};
+showPet=fdShowPet;
+function v09Refresh(){
+ for(const [key,node] of windowMap){
+   if(node.style.display==='none')continue;
+   if(key==='bag')v09ShowBag();
+   if(key==='equip')v09ShowEquip();
+   if(key==='stats')v09ShowStats();
+ }
+}
+function v09SpawnGround(it,x,y,source){
+ if(!p||!it)return;
+ v09Init();
+ const created=Date.now(),n=p.groundLoot.filter(x=>x.map===p.map).length;
+ const targetX=clamp(x+Math.sin(n*2.4)*20,30,930),targetY=clamp(y+Math.cos(n*2.1)*16,45,555);
+ const ground={id:guid(),item:makeItem(it,it.qty||1),x:targetX,y:targetY,map:p.map,
+   owner:accountId||'local',ownerChar:p.name,createdAt:created,publicAt:created+RULES.ownerMs,expiresAt:created+RULES.expireMs,source:source||'drop'};
+ delete ground.item.bagSlot;
+ p.groundLoot.push(ground);save();return ground;
+}
+function v09Discard(index){
+ if(!p||index<0)return;
+ const it=p.items[index];if(!it)return;
+ if(critical(it)&&!confirm('⚠️ ไอเทมหายาก/ตีบวก: ต้องการทิ้ง '+itemName(it)+' จริงหรือไม่?'))return;
+ let qty=it.qty||1;
+ if(isStack(it)&&qty>1){
+   const raw=prompt('ทิ้งจำนวนเท่าไร (1–'+qty+')?',String(qty));
+   if(raw===null)return;
+   qty=Math.floor(Number(raw));if(!Number.isSafeInteger(qty)||qty<1||qty>it.qty)return toast('จำนวนไม่ถูกต้อง');
+ }
+ v09SpawnGround({...it,qty},p.x+18,p.y+20,'player');
+ consume(p.items,index,qty);currentUid=null;save();v09ShowBag();toast('🗑️ ทิ้ง '+it.name+' ×'+qty+' ลงพื้นแล้ว');
+}
+function v09DropMonsterLoot(mon){
+ if(Math.random()<.75)v09SpawnGround({name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1},mon.x,mon.y,'monster');
+ if(Math.random()<.22)v09SpawnGround({...SHOP[8],rarity:2,qty:1},mon.x,mon.y,'monster');
+ if(Math.random()<.08)v09SpawnGround({...SHOP[9],rarity:3,qty:1},mon.x,mon.y,'monster');
+ if(Math.random()<(mon.boss?.85:.22)){
+   const themed={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
+   const id=Math.random()<.6?themed[rand(0,themed.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
+   v09SpawnGround({...fdMakeScroll(id),rarity:mon.boss?4:2,qty:1},mon.x,mon.y,'monster');
+ }
+ if(mon.boss||Math.random()<.09){
+   const sp=mon.boss?({left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf'):['wolf','fox','horse','slime','crab'][rand(0,4)];
+   v09SpawnGround({name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:mon.boss?4:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'},mon.x,mon.y,'monster');
+ }
+ if(Math.random()<(mon.boss?.55:.08))v09SpawnGround({...FD_PET_GEAR[rand(0,2)],rarity:mon.boss?4:2,qty:1},mon.x,mon.y,'monster');
+}
+function v09KillEnemy(mon){
+ const idx=enemies.findIndex(e=>e.uid===mon.uid);
+ if(idx>=0)enemies.splice(idx,1);
+ p.coins+=mon.coin; // Keep the original v0.8 automatic coin reward until the owner decides.
+ gainExp(mon.xp);
+ if(p.quest.active&&!p.quest.done)p.quest.kills++;
+ v09DropMonsterLoot(mon);save();
+ effects.push({x:mon.x,y:mon.y-50,text:'EXP +'+mon.xp,life:1100,max:1100,color:'#f9da8a'});
+ toast((mon.boss?'👑 บอส ':'กำจัด ')+mon.name+' สำเร็จ! มีของตกบนพื้น 📦');
+ const map=p.map;
+ setTimeout(()=>{
+   if(p&&p.map===map&&map!=='town'&&enemies.length<7){
+     enemies.push({uid:guid(),x:rand(120,830),y:rand(145,510),
+       hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,
+       name:map==='left'?'สไลม์':map==='right'?'หมาป่า':'ปูเวท',
+       color:map==='left'?'#5de0a4':map==='right'?'#a9a2a3':'#ee9c76',
+       atk:map==='left'?4:map==='right'?9:6,xp:map==='left'?28:map==='right'?47:38,
+       coin:map==='left'?16:map==='right'?30:24,lastAttack:0});
+   }
+ },2400);
+}
+function v09CanCollect(drop){
+ return drop&&drop.expiresAt>Date.now()&&(drop.owner===accountId||Date.now()>=drop.publicAt);
+}
+function v09Pickup(drop,targetPet,quiet){
+ if(!p||!drop)return false;
+ if(!v09CanCollect(drop)){if(!quiet)toast('🔒 ยังอยู่ในช่วงสิทธิ์เก็บของเจ้าของ 1 นาที');return false}
+ if(drop.map!==p.map)return false;
+ if(dist(p,drop)> (targetPet?RULES.petRange:RULES.pickupRange))return false;
+ const bag=targetPet?.lootTarget==='pet'?targetPet.bag:p.items;
+ const max=bag===p.items?80:24;
+ if(!addItem(bag,drop.item,drop.item.qty||1,max)){
+   if(!quiet)toast('🎒 กระเป๋าปลายทางเต็ม');
+   return false;
+ }
+ const idx=p.groundLoot.findIndex(it=>it.id===drop.id);
+ if(idx>=0)p.groundLoot.splice(idx,1);
+ save();v09Refresh();
+ if(!quiet)toast('📦 เก็บ '+drop.item.name+' สำเร็จ');
+ return true;
+}
+function v09ManualPickup(){
+ const targets=(p?.groundLoot||[]).filter(x=>x.map===p.map&&x.expiresAt>Date.now()&&dist(p,x)<=RULES.pickupRange).sort((a,b)=>dist(p,a)-dist(p,b));
+ if(!targets.length)return false;
+ const eligible=targets.find(v09CanCollect);
+ if(eligible)return v09Pickup(eligible,null,false);
+ toast('ไอเทมนี้ยังมีเจ้าของ');return false;
+}
+function v09TapLoot(id){
+ const drop=p.groundLoot.find(x=>x.id===id);
+ if(!drop)return;
+ if(!v09CanCollect(drop))return toast('🔒 ยังไม่ครบ 1 นาทีของเจ้าของ');
+ if(dist(p,drop)<=RULES.pickupRange)return v09Pickup(drop,null,false);
+ walkTarget={x:drop.x,y:drop.y};pendingLootId=drop.id;
+ toast('กำลังเดินไปเก็บ '+drop.item.name);
+}
+function v09DrawGroundLoot(){
+ if(!p)return;
+ const now=Date.now();
+ for(const drop of p.groundLoot||[]){
+   if(drop.map!==p.map||drop.expiresAt<=now)continue;
+   const rarity=drop.item.rarity||1;
+   const color=['','#d1e8e1','#93d89c','#80afff','#c68bff','#f7d179'][rarity]||'#d1e8e1';
+   ctx.save();ctx.shadowColor=color;ctx.shadowBlur=rarity>=3?15:4;
+   ctx.textAlign='center';ctx.font='24px Arial';ctx.fillText(drop.item.icon||'📦',drop.x,drop.y+4);
+   ctx.shadowBlur=0;ctx.fillStyle=color;ctx.font='10px sans-serif';
+   ctx.fillText(String(drop.item.name||'ไอเทม').slice(0,17),drop.x,drop.y-20);
+   if(!v09CanCollect(drop)){ctx.fillStyle='#ffdd9d';ctx.fillText('🔒',drop.x+24,drop.y+4)}
+   ctx.restore();
+ }
+}
+function v09PetAutoPickup(){
+ const threats=enemies.filter(x=>x.hp>0&&dist(p,x)<180);
+ for(const c of fdActivePets()){
+   if(!c.skills?.includes('treasure')||!c.lootEnabled)continue;
+   if(c.lootMode==='combat'&&threats.length)continue;
+   if(c.lootMode==='balanced'&&threats.some(x=>dist(x,p)<110))continue;
+   const target=(p.groundLoot||[]).filter(x=>x.map===p.map&&dist(p,x)<=RULES.petRange&&v09CanCollect(x)&&
+      (x.item.rarity||1)>=c.lootRarity&&c.lootTypes.includes(nameType(x.item)))
+      .sort((a,b)=>dist(p,a)-dist(p,b))[0];
+   if(target){v09Pickup(target,c,true);break}
+ }
+}
+function v09Tick(dt){
+ if(!p)return;
+ v09Init();const now=Date.now();
+ if(now-lastSweep>=1000){
+   lastSweep=now;
+   const before=p.groundLoot.length;
+   p.groundLoot=p.groundLoot.filter(x=>x.expiresAt>now);
+   if(before!==p.groundLoot.length)save();
+ }
+ if(pendingLootId){
+   const drop=p.groundLoot.find(x=>x.id===pendingLootId&&x.map===p.map);
+   if(!drop){pendingLootId=null}
+   else if(dist(p,drop)<=RULES.pickupRange){pendingLootId=null;walkTarget=null;v09Pickup(drop,null,false)}
+ }
+ if(holdPickup!==null&&now-lastPickup>=RULES.repeatMs){
+   lastPickup=now;v09ManualPickup();
+ }
+ if(now-lastPetPickup>=600){
+   lastPetPickup=now;v09PetAutoPickup();
+ }
+}
+window.v09Tick=v09Tick;
+window.v09DrawGroundLoot=v09DrawGroundLoot;
+window.v09KillEnemy=v09KillEnemy;
+window.v09CriticalItem=critical;
+function installPickup(){
+ const button=document.createElement('button');button.id='v09PickupBtn';button.type='button';button.textContent='📦 เก็บของ';
+ $('worldWrap').appendChild(button);
+ button.addEventListener('pointerdown',e=>{
+   if(!p||gamePaused||ui)return;
+   e.preventDefault();e.stopPropagation();button.setPointerCapture(e.pointerId);
+   holdPickup=e.pointerId;lastPickup=Date.now();v09ManualPickup();
+ });
+ const stop=e=>{if(holdPickup===e.pointerId)holdPickup=null};
+ button.addEventListener('pointerup',stop);button.addEventListener('pointercancel',stop);
+ canvas.addEventListener('pointerdown',e=>{
+   if(!p||gamePaused||ui||!here())return;
+   const m=pointerWorld(e);
+   const target=(p.groundLoot||[]).filter(x=>x.map===p.map&&x.expiresAt>Date.now()&&dist(x,m)<32)
+       .sort((a,b)=>dist(a,m)-dist(b,m))[0];
+   if(target){e.stopImmediatePropagation();e.preventDefault();v09TapLoot(target.id)}
+ },true);
+}
+installPickup();
+window.addEventListener('resize',()=>{
+ for(const node of windowMap.values()){
+   const rect=node.getBoundingClientRect();clampWindow(node,rect.left,rect.top);
+ }
+});
+})();
