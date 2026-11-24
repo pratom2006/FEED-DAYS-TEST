@@ -469,7 +469,7 @@ function v09CollectAll(){
    if(v09Pickup(drop,null,true,true)){collected++}
    else{full=true}
  }
- if(collected){save();v09Refresh();toast('📦 เก็บไอเทมทั้งหมด '+collected+' ชิ้นสำเร็จ')}
+ if(collected){save();v09Refresh();toast('📦 เก็บได้ '+collected+' ชิ้น'+(full?' · กระเป๋าเต็ม ยังมีของเหลือบนพื้น':' สำเร็จ'))}
  else if(full){toast('🎒 กระเป๋าเต็ม เก็บของเพิ่มไม่ได้')}
  else if(locked){toast('🔒 ของที่อยู่ใกล้ยังเป็นสิทธิ์ของผู้เล่นอื่น')}
  else{toast('ไม่มีไอเทมที่เก็บได้ในระยะ')}
