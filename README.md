@@ -1,10 +1,23 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.8
+## Current playable build — Fantasy Realm v0.9
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
-The current `main/index.html` + `main/systems.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9 — Floating UI, item arrangement, ground loot and treasure hunter pets
+
+- `v09.js` adds **modeless, semi-transparent, draggable floating windows** for player Bag, Equipment, Stats, and Pets. Open multiple at once; bring a window forward by touching it. Basic gameplay continues while these windows are open. NPC/dialogue modals remain modal.
+- Existing equipped player and pet gear is migrated out of the bag into dedicated equipped item storage **without deleting its upgrade, rarity, UID or stars**. New gear replaces old gear atomically; the old gear takes the vacated inventory slot even when full. Unequipping is blocked if there is no bag space.
+- Bag layout has 80 persistent logical slots using `bagSlot`. Tap an item for details **without resetting scroll position**. Long press ~420ms then drag to empty/occupied slots to move/swap. Swipe normally to scroll the bag. Item positions persist with the character's existing local save.
+- A visible **🗑️ Drop** action drops player-carried items on the ground. Rare / enhanced / starred items require confirmation before drop or shop sale.
+- Monster and boss item rewards appear **on the map**, with 1 minute initial collector ownership and 3 minute expiration. They can be collected with **📦 Pickup** (tap one, hold for continuous pickups with ~260ms cadence), or tap a specific ground item to walk toward it and collect when near. Manual pickup range is 75 in-world units. Pickup respects bag capacity.
+- Treasure-skilled fox pets (incl. the starter fox) can enable Auto Pickup; set behavior (fight-first, balanced, prioritize loot), item rarity and type filters, and destination (player bag or own pet bag). The pet bag remains unavailable while that companion is incapacitated. Auto pickup only takes eligible nearby ground items.
+- **Currency from monsters remains an automatic reward pending an explicit separate coin-loot decision**. This release switches **item drops**, not coins, to ground pickup.
+- All timers and loot ownership are **local prototype simulation** in the browser's character save. There is no real shared-world loot, no online trading, no authoritative server, no live multiplayer, and no trusted anti-cheat yet. Actual online shared ownership will need a server.
+- Script syntax and isolated logic tests passed: equipment migration/replacement, inventory slot swapping, inventory-full safety, ground ownership/expiration, rarity guards, and pet loot filtering. **Real iPad/fullscreen drag QA not performed**.
+- Backup: `backup/before-v0-9-floating-inventory-ground-loot-2026-11-25`.
 
 ### v0.8 — Skill scrolls, 2 pets + mount, genetic breeding
 
@@ -65,16 +78,17 @@ The current `main/index.html` + `main/systems.js` form a 2D top-down browser RPG
 
 ---
 
-## Historical Phaser 08 / Phase 1 notes (not the current v0.8 entry point)
+## Historical Phaser 08 / Phase 1 notes (not the current v0.9 entry point)
 
 Phase 1 — Phaser 08 Ring Town, structure-only refactor. Original visuals, character selection, movement, collision and A* navigation are retained. Single-player browser prototype; no server or account system yet.
 
 ## Run current v0.8
-Serve the repository root with a static HTTP server (or GitHub Pages). Open `index.html`; its classic script loads `systems.js` relative to the page. No build step, no browser back-end, no Phaser dependency for the current v0.8 game.
+Serve the repository root with a static HTTP server (or GitHub Pages). Open `index.html`; its classic scripts load `systems.js` then `v09.js` relative to the page. No build step, no browser back-end, no Phaser dependency for the current v0.8 game.
 
 ## Structure (current v0.8 + historical files)
 - `index.html`: current self-contained main game and HUD code
 - `systems.js`: classless skill library, pets, mounts, breeding and AI gameplay extension
+- `v09.js`: draggable floating windows, bag slots, equipped item separation, world loot, pickup and pet loot filters
 - `PROJECT_CONTEXT.md`: agreed game-design rules and current implemented vs. planned states
 - `DEVELOPMENT_LOG.md`: version history and release notes
 - `ROADMAP.md`: next milestones and server-dependent features
@@ -91,7 +105,7 @@ Serve the repository root with a static HTTP server (or GitHub Pages). Open `ind
 Scripts are classic browser scripts and must load in the order defined by `index.html`.
 
 ## Test
-JavaScript parsing and isolated simulated skill/pet/cooldown behavior were checked for v0.8. Test the updated game on an iPad Home Screen web app before treating the features as reliable. Historical Phaser navigation test: `node --test tests/navigation.test.cjs`; it does not cover the current v0.8 systems.
+JavaScript parsing and isolated simulated skill/pet/cooldown behavior were checked for v0.8; v0.9 equipment, loot and drop logic smoke checks were also passed. Test the updated game on an iPad Home Screen web app before treating the features as reliable. Historical Phaser navigation test: `node --test tests/navigation.test.cjs`; it does not cover the current v0.8 systems.
 
 ## Backup
 Original version: `backup/phaser-08-before-phase-1` (commit `740fd34546658924d28cad1ad32a8e3aab071cbe`).
