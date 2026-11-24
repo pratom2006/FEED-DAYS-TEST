@@ -1,10 +1,19 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9
+## Current playable build — Fantasy Realm v0.9.1
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.1 — Collect all + 40% item drop chance
+
+- **📦 เก็บทั้งหมด / Collect all**: one tap picks up **all nearby eligible ground items in the 75-unit pickup radius**. Items outside range, reserved for another player, expired, or unable to fit in the player bag remain uncollected. Tap a specific ground item still picks that one (or walks toward it).
+- **Overall item drop chance is exactly 40% per defeated enemy**, including ordinary monsters **and bosses**. On a successful roll, one ground item is drawn from a rarity-weighted loot table. Boss tables still favor rarer items; 60% of kills drop no item. The old independent 75% materials / 22% crystals etc. rules no longer apply.
+- **Gold and character EXP are unaffected**: gold is still awarded directly, while ground loot uses owner lock for 1 minute and expires after 3 minutes.
+- Batch pickup saves and refreshes after collecting to avoid unnecessary repeated writes on iPad.
+- Automated logic checks: 10,000 simulated kills produced ~40% item drops; owner lock, quantity, bag-full, expiration, and single-tap batch pickup checks passed. Real iPad interaction is still unverified.
+- Backup: `backup/before-pickup-all-and-drop-rate-40-percent-2026-11-25`.
 
 ### v0.9 — Floating UI, item arrangement, ground loot and treasure hunter pets
 
