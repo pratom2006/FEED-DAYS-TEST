@@ -140,13 +140,17 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
   .hint{display:none}
   .touchPad,.fightButtons{bottom:calc(9px + env(safe-area-inset-bottom))}
 }
+
+/* v0.5: independent multi-touch combat, keep joystick active while pressing attack/skill */
+#attackBtn,#skillBtn{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#attackBtn:active,#skillBtn:active{filter:brightness(1.17);transform:scale(.96)}
 </style>
 </head>
 <body>
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.4</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.5</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -189,6 +193,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const guid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 let db={accounts:{}},accountId=null,selectedSlot=-1,p=null,mode='login',ui=null,selectedItem=-1,sellSelected=new Set(),pendingNpc=null,lastItemTap={uid:null,at:0};
 let enemies=[],effects=[],lastFrame=0,tick=0,attackTime=0,portalLock=0,walkTarget=null,moveDir={x:0,y:0},joyPointer=null,toastTimer=null;
+let heldAttackPointer=null,lastAttackPointerDown=0,lastSkillPointerDown=0;
 let gamePaused=false,fullscreenManaged=false,exitInProgress=false;
 const WORLD={w:960,h:600}, canvas=$('world'),ctx=canvas.getContext('2d');
 const NPCS=[{id:'shop',name:'ร้านค้า',icon:'🛒',x:260,y:173,color:'#cfa66b'}, {id:'forge',name:'ช่างตีเหล็ก',icon:'🔨',x:711,y:174,color:'#d98e64'}, {id:'bank',name:'คลังเก็บของ',icon:'🏦',x:249,y:397,color:'#76b4d8'}, {id:'quest',name:'ภารกิจ',icon:'📜',x:704,y:394,color:'#b3a2e3'}, {id:'promote',name:'เลื่อนขั้น',icon:'🌟',x:481,y:215,color:'#f2ce7d'}];
@@ -252,7 +257,7 @@ $('play').onclick=()=>{if(selectedSlot<0)return;p=account().characters[selectedS
 function finishExitGame(logout=false){
   exitInProgress=true;fullscreenManaged=false;
   if(p)save();
-  p=null;walkTarget=null;pendingNpc=null;moveDir={x:0,y:0};
+  p=null;walkTarget=null;pendingNpc=null;heldAttackPointer=null;moveDir={x:0,y:0};
   $('reenterOverlay').classList.add('hide');
   closeModal();gamePaused=false;
   if(inFullscreen()){const leave=document.exitFullscreen||document.webkitExitFullscreen;if(leave){try{const v=leave.call(document);if(v&&typeof v.catch==='function')v.catch(()=>{});}catch(e){}}}
@@ -268,7 +273,7 @@ function openExitGame(){
   $('stayInGame').onclick=()=>closeModal();
 }
 $('exitGameBtn').onclick=openExitGame;
-function openModal(title,body){ui=title;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('overlay').classList.remove('hide');walkTarget=null;moveDir={x:0,y:0}}
+function openModal(title,body){heldAttackPointer=null;ui=title;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('overlay').classList.remove('hide');walkTarget=null;moveDir={x:0,y:0}}
 function closeModal(){$('overlay').classList.add('hide');ui=null;pendingNpc=null;if($('reenterOverlay').classList.contains('hide'))gamePaused=false}
 $('closeModal').onclick=closeModal;
 $('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))closeModal()});
@@ -324,7 +329,7 @@ $('potionQuick').onclick=()=>{if(!p)return;let i=p.items.findIndex(x=>x.type==='
 let targetEnemy=null,view={scale:1,x:0,y:0,cw:960,ch:600};
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function spawnEnemies(){enemies=[];if(!p||p.map==='town')return;let map=p.map;for(let i=0;i<7;i++){let x=rand(120,835),y=rand(145,510);if(Math.hypot(x-p.x,y-p.y)<140){x=rand(100,400);y=rand(360,530)}enemies.push({uid:guid(),x,y,hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,name:map==='left'?'สไลม์':map==='right'?'หมาป่า':'ปูเวท',color:map==='left'?'#5de0a4':map==='right'?'#a9a2a3':'#ee9c76',atk:map==='left'?4:map==='right'?9:6,xp:map==='left'?28:map==='right'?47:38,coin:map==='left'?16:map==='right'?30:24,lastAttack:0})}}
-function warp(dest){if(!p)return;p.map=dest;p.x=480;p.y=dest==='town'?410:dest==='bottom'?110:290;walkTarget=null;pendingNpc=null;targetEnemy=null;portalLock=Date.now()+1450;spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name)}
+function warp(dest){if(!p)return;heldAttackPointer=null;p.map=dest;p.x=480;p.y=dest==='town'?410:dest==='bottom'?110:290;walkTarget=null;pendingNpc=null;targetEnemy=null;portalLock=Date.now()+1450;spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name)}
 function resizeCanvas(){let r=$('worldWrap').getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);view.cw=Math.max(1,r.width);view.ch=Math.max(1,r.height);canvas.width=Math.ceil(r.width*dpr);canvas.height=Math.ceil(r.height*dpr);const s=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);view.scale=s;view.dpr=dpr}
 window.addEventListener('resize',resizeCanvas);resizeCanvas();
 
@@ -353,7 +358,7 @@ function enterImmersiveFromGesture(){
 function showPauseOverlay(){
   if(!p||exitInProgress||$('game').classList.contains('hide'))return;
   if(ui)closeModal();
-  gamePaused=true;walkTarget=null;moveDir={x:0,y:0};
+  gamePaused=true;heldAttackPointer=null;walkTarget=null;moveDir={x:0,y:0};
   $('reenterOverlay').classList.remove('hide');
 }
 function dismissPauseOverlay(){
@@ -380,7 +385,7 @@ document.addEventListener('fullscreenchange',onFullscreenChanged);
 document.addEventListener('webkitfullscreenchange',onFullscreenChanged);
 document.addEventListener('visibilitychange',()=>{
   if(!p||exitInProgress)return;
-  if(document.hidden){gamePaused=true;walkTarget=null;moveDir={x:0,y:0}}
+  if(document.hidden){gamePaused=true;heldAttackPointer=null;walkTarget=null;moveDir={x:0,y:0}}
   else if(gamePaused)showPauseOverlay();
 });
 window.addEventListener('orientationchange',()=>setTimeout(resizeCanvas,180));
@@ -400,10 +405,58 @@ joy.addEventListener('pointermove',e=>{if(joyPointer===e.pointerId)joyUpdate(e)}
 function joyStop(e){if(joyPointer!==e.pointerId)return;joyPointer=null;moveDir={x:0,y:0};stick.style.transform='translate(0,0)'}
 joy.addEventListener('pointerup',joyStop);joy.addEventListener('pointercancel',joyStop);
 const keydown={};window.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keydown[e.key.toLowerCase()]=true;if(e.key==='Escape')closeModal();if(p&&e.code==='Space'&&!e.repeat)attack(false);if(p&&e.key.toLowerCase()==='e'&&!e.repeat)attack(true)});window.addEventListener('keyup',e=>keydown[e.key.toLowerCase()]=false);
-$('attackBtn').onclick=()=>attack(false);$('skillBtn').onclick=()=>attack(true);
-function attack(skill){if(!p||ui||p.map==='town'){toast('ต้องอยู่แผนที่มอนสเตอร์');return}if(Date.now()-attackTime<(skill?700:380))return;let weapon=getEq(p.equip.right);if(skill&&!weapon){toast('สกิลนี้ต้องสวมอาวุธมือขวา');return}let mana=15+Math.floor(p.skills.slash/5)*3;if(skill&&p.mp<mana){toast('MP ไม่เพียงพอ');return}let t=enemies.find(e=>e.uid===targetEnemy&&e.hp>0&&dist(e,p)<150)||enemies.filter(e=>e.hp>0&&dist(e,p)<(skill?150:105)).sort((a,b)=>dist(a,p)-dist(b,p))[0];if(!t){toast('ไม่มีมอนสเตอร์ในระยะโจมตี');return}attackTime=Date.now();if(skill)p.mp-=mana;let dmg=Math.max(1,Math.round((attackPower()*(skill?1.45+p.skills.slash*.13:1)+(skill?p.stats.INT*.6:0))*(.88+Math.random()*.24)));if(Math.random()<Math.min(.4,p.stats.LUX*.007))dmg=Math.round(dmg*1.5);t.hp-=dmg;effects.push({x:t.x,y:t.y-25,text:'-'+dmg,life:750,max:750,color:skill?'#b7e6ff':'#fff0a6'});if(t.hp<=0)killEnemy(t);refreshHUD()}
+// Pointer Events are per-finger: left thumb can keep joystick movement while the
+// right thumb presses attack or skill. Holding normal attack repeats at its cooldown.
+const normalAttackBtn=$('attackBtn'),skillAttackBtn=$('skillBtn');
+normalAttackBtn.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  if(!p||ui||gamePaused)return;
+  e.preventDefault();
+  lastAttackPointerDown=Date.now();
+  if(heldAttackPointer!==null)return;
+  heldAttackPointer=e.pointerId;
+  try{normalAttackBtn.setPointerCapture(e.pointerId)}catch(err){}
+  attack(false);
+});
+function stopHeldAttack(e){if(heldAttackPointer===e.pointerId)heldAttackPointer=null}
+normalAttackBtn.addEventListener('pointerup',stopHeldAttack);
+normalAttackBtn.addEventListener('pointercancel',stopHeldAttack);
+normalAttackBtn.addEventListener('lostpointercapture',stopHeldAttack);
+skillAttackBtn.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  if(!p||ui||gamePaused)return;
+  e.preventDefault();
+  lastSkillPointerDown=Date.now();
+  attack(true);
+});
+// Preserve keyboard-triggered click activation for accessibility and mouse fallback.
+// Ignore synthesized click following pointerdown, so a single tap cannot attack twice.
+normalAttackBtn.onclick=()=>{if(Date.now()-lastAttackPointerDown>550)attack(false)};
+skillAttackBtn.onclick=()=>{if(Date.now()-lastSkillPointerDown>550)attack(true)};
+function attack(skill,silent=false){
+  if(!p||ui||gamePaused)return false;
+  if(p.map==='town'){if(!silent)toast('ต้องอยู่แผนที่มอนสเตอร์');return false}
+  if(Date.now()-attackTime<(skill?700:380))return false;
+  let weapon=getEq(p.equip.right);
+  if(skill&&!weapon){if(!silent)toast('สกิลนี้ต้องสวมอาวุธมือขวา');return false}
+  let mana=15+Math.floor(p.skills.slash/5)*3;
+  if(skill&&p.mp<mana){if(!silent)toast('MP ไม่เพียงพอ');return false}
+  const range=skill?150:105;
+  const locked=enemies.find(e=>e.uid===targetEnemy&&e.hp>0&&dist(e,p)<range);
+  const t=locked||enemies.filter(e=>e.hp>0&&dist(e,p)<range).sort((a,b)=>dist(a,p)-dist(b,p))[0];
+  if(!t){if(!silent)toast('ไม่มีมอนสเตอร์ในระยะโจมตี');return false}
+  attackTime=Date.now();
+  if(skill)p.mp-=mana;
+  let dmg=Math.max(1,Math.round((attackPower()*(skill?1.45+p.skills.slash*.13:1)+(skill?p.stats.INT*.6:0))*(.88+Math.random()*.24)));
+  if(Math.random()<Math.min(.4,p.stats.LUX*.007))dmg=Math.round(dmg*1.5);
+  t.hp-=dmg;
+  effects.push({x:t.x,y:t.y-25,text:'-'+dmg,life:750,max:750,color:skill?'#b7e6ff':'#fff0a6'});
+  if(t.hp<=0)killEnemy(t);
+  refreshHUD();
+  return true;
+}
 function killEnemy(t){let i=enemies.findIndex(x=>x.uid===t.uid);if(i>=0)enemies.splice(i,1);p.coins+=t.coin;gainExp(t.xp);if(p.quest.active&&!p.quest.done)p.quest.kills++;if(Math.random()<.75)addItem(p.items,{name:'วัสดุพัฒนา',type:'material',icon:'🧱',desc:'ใช้เพิ่มระดับสกิล'},1);if(Math.random()<.22)addItem(p.items,SHOP[8],1);if(Math.random()<.08)addItem(p.items,SHOP[9],1);save();effects.push({x:t.x,y:t.y-50,text:'EXP +'+t.xp,life:1100,max:1100,color:'#f9da8a'});toast('กำจัด '+t.name+' ได้ '+t.coin+' เหรียญ');setTimeout(()=>{if(p&&p.map!=='town'&&enemies.length<7){let map=p.map;enemies.push({uid:guid(),x:rand(120,830),y:rand(145,510),hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,name:map==='left'?'สไลม์':map==='right'?'หมาป่า':'ปูเวท',color:map==='left'?'#5de0a4':map==='right'?'#a9a2a3':'#ee9c76',atk:map==='left'?4:map==='right'?9:6,xp:map==='left'?28:map==='right'?47:38,coin:map==='left'?16:map==='right'?30:24,lastAttack:0})}},2400)}
-function step(dt){if(!p||ui)return;let px=moveDir.x,py=moveDir.y,kx=(keydown['d']||keydown['arrowright']?1:0)-(keydown['a']||keydown['arrowleft']?1:0),ky=(keydown['s']||keydown['arrowdown']?1:0)-(keydown['w']||keydown['arrowup']?1:0);px+=kx;py+=ky;if(Math.hypot(px,py)<.02&&walkTarget){let dx=walkTarget.x-p.x,dy=walkTarget.y-p.y,n=Math.hypot(dx,dy);if(n<8){walkTarget=null}else{px=dx/n;py=dy/n}}let n=Math.hypot(px,py);if(n>.02){let speed=(138+p.stats.AGI*1.5)*dt/1000,travel=Math.min(speed,walkTarget?dist(p,walkTarget):999);p.x=clamp(p.x+px/n*travel,25,935);p.y=clamp(p.y+py/n*travel,38,564)}
+function step(dt){if(!p||ui)return;if(heldAttackPointer!==null)attack(false,true);let px=moveDir.x,py=moveDir.y,kx=(keydown['d']||keydown['arrowright']?1:0)-(keydown['a']||keydown['arrowleft']?1:0),ky=(keydown['s']||keydown['arrowdown']?1:0)-(keydown['w']||keydown['arrowup']?1:0);px+=kx;py+=ky;if(Math.hypot(px,py)<.02&&walkTarget){let dx=walkTarget.x-p.x,dy=walkTarget.y-p.y,n=Math.hypot(dx,dy);if(n<8){walkTarget=null}else{px=dx/n;py=dy/n}}let n=Math.hypot(px,py);if(n>.02){let speed=(138+p.stats.AGI*1.5)*dt/1000,travel=Math.min(speed,walkTarget?dist(p,walkTarget):999);p.x=clamp(p.x+px/n*travel,25,935);p.y=clamp(p.y+py/n*travel,38,564)}
  if(pendingNpc&&p.map==='town'){let npc=NPCS.find(n=>n.id===pendingNpc);if(npc&&dist(p,npc)<91){pendingNpc=null;walkTarget=null;npcOpen(npc.id)}}
  if(Date.now()>portalLock){if(p.map==='town'){if(p.x<105&&Math.abs(p.y-308)<92)warp('left');else if(p.x>855&&Math.abs(p.y-308)<92)warp('right');else if(p.y>524&&Math.abs(p.x-481)<92)warp('bottom')}else if(Math.abs(p.x-479)<75&&p.y<100)warp('town')}
  if(p.map!=='town'){for(let mob of enemies){if(mob.hp<=0)continue;let d=dist(mob,p);if(d<195&&d>49){let move=(mob.name==='หมาป่า'?46:30)*dt/1000;mob.x+=((p.x-mob.x)/d)*move;mob.y+=((p.y-mob.y)/d)*move}if(d<61&&Date.now()-mob.lastAttack>1700){mob.lastAttack=Date.now();let damage=Math.max(1,mob.atk-Math.floor(defense()*.4));p.hp-=damage;effects.push({x:p.x,y:p.y-23,text:'-'+damage,life:640,max:640,color:'#ff8080'});if(p.hp<=0){p.hp=maxHP();p.mp=maxMP();warp('town');toast('พ่ายแพ้! กลับเมืองและฟื้นฟูพลังแล้ว');break}}}}
