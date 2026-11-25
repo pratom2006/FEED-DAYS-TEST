@@ -1,10 +1,25 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9.5
+## Current playable build — Fantasy Realm v0.9.6
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.6 — Large new leveling zones, smarter roaming monsters and minimap
+
+- All previous maps remain. Three NEW scrolling maps joined by actual walk-through portals:
+  - **🌿 ทุ่งเขียวคราม** (`meadow`): **2300×1500** world units, recommended **Lv18–32**, up to **32 ordinary monsters plus boss**, entry from **east side of หุบเขาหมาป่า**. Wildlife: horned rabbits (normal), glowing deer (peaceful), dark wolves (aggressive), shadow wolf boss.
+  - **🏛️ ซากนครอาคม** (`ruins`): **2880×1800**, **Lv30–48**, **38 ordinary monsters plus boss**, walk east from the meadow. Stone golems (normal), ancient sentinels (peaceful), spirits (aggressive), spirit king boss.
+  - **🌋 แดนเถ้าอัคคี** (`ashlands`): **3200×2100**, **Lv45–65**, **44 ordinary monsters plus boss**, walk east from the ruins. Fire bats (normal), lava golems (peaceful), young fire dragons (aggressive), ash dragon boss.
+- Legacy slime forest / wolf valley / magic beach now also have more ordinary monsters (**16/18/17**) and additional varieties of all three behavior types, keeping the existing town and directional return portals intact.
+- Monster behavior: **⚪ Normal** ignores player proximity and does not chase, may retaliate at melee range after being hit; **🟢 Peaceful** wanders passively until attacked, then same-species nearby neighbors within ~265 units become aggressive together; **🔴 Aggressive** actively detects player and chases/attacks inside sight range (~215 units). All three wander short distances with pauses, while chased enemies reset toward their home after exceeding leash range.
+- Enemy labels show type and level, with additional biome-specific colored visuals/emoji. **🧭 แผนที่** button opens compact minimap showing player, monsters, bosses and travel gates, including the three new zones.
+- New zones offer **meaningfully larger monster EXP rewards** for level 25+ progress; e.g. meadow monsters provide ~300/510/720 EXP rather than ~47 in the starter wolf valley, while stronger monsters have increased HP/ATK. This **does not change XP requirements or previous status point rules**.
+- Existing 960×600 view zoom is preserved in larger maps and scrolls to follow the player. Large terrain uses **400×400 procedurally generated off-screen Canvas chunks**, a memory-bounded 27-chunk cache, and only paints chunks inside the camera. Monster AI updates at ~8 Hz and skips distant monsters to keep iPad workload bounded, while existing 30/45/60 FPS options stay intact.
+- Monster respawn retains density on each map after kills (~3–5 s ordinary monsters, 70 s bosses) as long as the player remains in that map and character. The old **40% overall chance of one ground item drop**, 1-minute loot rights, 3-minute expiration, collection and pet systems are preserved.
+- Isolated behavior simulations verified monsters count, entry points, AI type behaviors (including same-species assistance), respawns, map boundaries, and terrain chunk cache. **Actual iPad visual/thermal/touch QA is pending**.
+- Backup: `backup/before-v0-9-6-expanded-maps-monster-behaviors-2026-11-25`.
 
 ### v0.9.5 — Five-tier gear rarity, +7 properties, bank sorting and opt-in auto pickup
 
