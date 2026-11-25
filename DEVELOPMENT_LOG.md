@@ -1,5 +1,13 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.2
+- Backed up v0.9.1 to `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
+- Fixed forge star upgrade: main gear is never lost and stars stay unchanged on failure; matching-name gear material and star crystal are **consumed on both success and failure**.
+- Material selection now dynamically filters by the selected main item's exact base name and excludes the main item's UID.
+- Updated confirmation to show both gear items, success rate and permanent ingredient usage; retains main selection between attempts.
+- Existing enhancement +1–10 behavior unchanged. Suggested future extra stat/property bonuses not added yet.
+- JavaScript syntax and simulated success/failure, matching-name filter, main-identity retention, resource consumption, UI state and warnings checked. Real iPad QA pending.
+
 ## 2026-11-25 — v0.9.1
 - Changed **📦 เก็บของ** from one-at-a-time/hold to **📦 เก็บทั้งหมด**: one tap sweeps all eligible items within 75 world units, with ownership, expiry, and inventory capacity checks.
 - Replaced independent per-item random rolls with a single **40% chance per kill of one item** on ordinary monsters and bosses; weighted tables choose which item drops, with boss rarity advantages. No item 60% of the time.
