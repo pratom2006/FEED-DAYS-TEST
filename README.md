@@ -1,10 +1,25 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9.2
+## Current playable build — Fantasy Realm v0.9.3
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.3 — Combat damage number clarity
+
+- Distinct **floating combat hit numbers** show **source/type** with bright icons after numeric damage and distinct colors:
+  - **⚔️ Normal physical**: cream/white, e.g. `-20 ⚔️`.
+  - **💥 Critical**: larger gold damage, with `CRIT!` above it, e.g. `-30 💥`.
+  - **🔮 Magic attack**: purple, e.g. `-47 🔮`, for actual skills typed `เวทโจมตี`.
+  - **🐺 / 🦊 / 🐎 / 🐉**: aqua pet and mount damage with the actual companion's emoji after the number.
+  - **👹 Monster attacks**: red incoming damage on the player or at the affected pet's location.
+  - **💚 Heal**: green positive numbers; companion healing includes that companion's icon.
+- Hit popups stagger slightly if multiple hits occur near one another to reduce number overlap. Existing EXP text, buff labels and hit effects remain intact.
+- Optional **ℹ️ ตัวเลขโจมตี** button in the world view toggles a Thai explanation of each icon/color.
+- Verified against the previous v0.9.2 backup with deterministic simulated player physical, crit, magic, pet attack, and incoming monster-to-pet hit tests: **damage and HP results were unchanged**. JavaScript parsing passed. Actual iPad visual/touch QA is still pending.
+- No new damage formulas, crit percentages, magic scaling or combat balance rules were introduced.
+- Backup: `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
 
 ### v0.9.2 — Star upgrade material rules and same-name selection
 
