@@ -149,6 +149,7 @@ function fdCastSkill(id,silent=false){
    targets=sk.aoe?close.slice(0,4):[close.find(e=>e.uid===targetEnemy)||close[0]];
  }
  p.mp-=cost;p.skillTimes[id]=now+sk.cd;
+ if(isSupport&&typeof window.fdCombatVfx==='function')window.fdCombatVfx(id,p.x,p.y,p.x,p.y);
  if(sk.type==='รักษา'){
    const heal=Math.round(30+lvl*1.5+p.stats.INT*2.5);
    p.hp=Math.min(maxHP(),p.hp+heal);
@@ -161,7 +162,7 @@ function fdCastSkill(id,silent=false){
    for(const t of targets){
      let dmg=Math.max(1,Math.round((attackPower()*.35+p.stats.INT*1.7+10+lvl*2.8)*sk.power+(sk.type.includes('เวท')&&typeof fd95MagicBonus==='function'?fd95MagicBonus():0)));
      t.hp-=dmg;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(t);pushCombatNumber(t.x,t.y-26,dmg,sk.type.includes('เวท')?'magic':'physical');
-     effects.push({kind:'swing',x:t.x,y:t.y,life:290,max:290,color:'#8ae2ff'});
+     if(typeof window.fdCombatVfx!=='function'||!window.fdCombatVfx(id,p.x,p.y,t.x,t.y))effects.push({kind:'swing',x:t.x,y:t.y,life:290,max:290,color:'#8ae2ff'});
      if(t.hp<=0)killEnemy(t);
    }
  }

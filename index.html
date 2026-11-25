@@ -609,7 +609,7 @@ function attack(skill,silent=false){
   t.hp-=dmg;
   if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(t);
   pushCombatNumber(t.x,t.y-25,dmg,critical?'critical':skill?'magic':'physical');
-  effects.push({kind:'swing',x:t.x,y:t.y,life:250,max:250,color:skill?'#83dcff':'#f6d69b'});
+  if(typeof window.fdCombatVfx!=='function'||!window.fdCombatVfx('basic',p.x,p.y,t.x,t.y))effects.push({kind:'swing',x:t.x,y:t.y,life:250,max:250,color:skill?'#83dcff':'#f6d69b'});
   if(t.hp<=0)killEnemy(t);
   refreshHUD();
   return true;
@@ -1013,13 +1013,13 @@ function drawPlayer(){
    rect(x-11,y-40-bob,22,10,'#b5a281');
    rect(x-1,y-40-bob,4,6,'#e6d39e');
  }
- if(right){
+ if(right&&typeof window.fdPaperDollLayers!=='function'){
    rect(x+23,y-21-bob,6,33,'#d5e9ee');
    rect(x+25,y-25-bob,3,12,'#fff6cf');
    rect(x+16,y+4-bob,20,5,'#b98b5b');
    rect(x+22,y+9-bob,8,10,'#493b39');
  }
- if(left){
+ if(left&&typeof window.fdPaperDollLayers!=='function'){
    rect(x-29,y-18-bob,5,29,'#d4e5e7');
    rect(x-31,y-23-bob,5,10,'#f4e6c6');
    rect(x-35,y+4-bob,17,5,'#bba16e');
@@ -1075,7 +1075,7 @@ function perfVisibleInCamera(x,y,pad=58){
  const sx=x*s+view.x,sy=y*s+view.y;
  return sx>=-pad*s&&sx<=view.cw+pad*s&&sy>=-pad*s&&sy<=view.ch+pad*s;
 }
-function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();if(!(typeof window.fd96DrawLandscape==='function'&&window.fd96DrawLandscape(p.map)))drawGround(p.map);for(const portal of MAP_PORTALS[p.map]||[]){if(perfVisibleInCamera(portal.x,portal.y))drawPortal(portal.x,portal.y,portal.label,portal.color)}if(p.map==='town'){NPCS.forEach(n=>{if(perfVisibleInCamera(n.x,n.y))drawNPC(n)})}else{for(let mob of enemies){if(perfVisibleInCamera(mob.x,mob.y)){if(!(typeof window.fd96DrawEnemy==='function'&&window.fd96DrawEnemy(mob)))drawMonster(mob)}}}fdDrawCompanions();if(typeof v09DrawGroundLoot==='function')v09DrawGroundLoot();drawPlayer();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);if(e.kind==='swing'){ctx.strokeStyle=e.color;ctx.lineWidth=5;ctx.beginPath();const r=25+(1-e.life/e.max)*8;ctx.arc(e.x,e.y-8,r,-1.2,.45);ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#fff8df';ctx.beginPath();ctx.arc(e.x,e.y-8,r-5,-1.1,.3);ctx.stroke()}else if(e.kind==='combatNumber'){drawCombatNumber(e)}else{textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16)}ctx.restore()}}
+function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();if(!(typeof window.fd96DrawLandscape==='function'&&window.fd96DrawLandscape(p.map)))drawGround(p.map);for(const portal of MAP_PORTALS[p.map]||[]){if(perfVisibleInCamera(portal.x,portal.y))drawPortal(portal.x,portal.y,portal.label,portal.color)}if(p.map==='town'){NPCS.forEach(n=>{if(perfVisibleInCamera(n.x,n.y))drawNPC(n)})}else{for(let mob of enemies){if(perfVisibleInCamera(mob.x,mob.y)){if(!(typeof window.fd96DrawEnemy==='function'&&window.fd96DrawEnemy(mob)))drawMonster(mob)}}}fdDrawCompanions();if(typeof v09DrawGroundLoot==='function')v09DrawGroundLoot();if(typeof window.fdDrawGuardAura==='function')window.fdDrawGuardAura();drawPlayer();if(typeof window.fdDrawCombatVfx==='function')window.fdDrawCombatVfx();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);if(e.kind==='swing'){ctx.strokeStyle=e.color;ctx.lineWidth=5;ctx.beginPath();const r=25+(1-e.life/e.max)*8;ctx.arc(e.x,e.y-8,r,-1.2,.45);ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#fff8df';ctx.beginPath();ctx.arc(e.x,e.y-8,r-5,-1.1,.3);ctx.stroke()}else if(e.kind==='combatNumber'){drawCombatNumber(e)}else{textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16)}ctx.restore()}}
 /* Fixed 30 Hz game-state updates; the display can draw at 30/45/60 FPS.
    No heavy rendering while hidden, on menu screens, or behind a pause dialog.
    Accumulated lag is capped to avoid catch-up spirals after a tab switch. */
@@ -1122,10 +1122,11 @@ requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
-<script src="./systems.js?v=100"></script>
+<script src="./systems.js?v=130"></script>
 <script src="./v09.js?v=110"></script>
 <script src="./v095.js?v=95"></script>
 <script src="./v096.js?v=97"></script>
-<script src="./starter-art.js?v=120"></script>
+<script src="./combat-art.js?v=130"></script>
+<script src="./starter-art.js?v=130"></script>
 </body>
 </html>

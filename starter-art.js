@@ -16,9 +16,9 @@ function frameFor(now,armed){
  let dir=state.dir,frame=FRAMES[dir],flip=false,bob=0;
  if(state.action&&now<state.until){
   let seq=FRAMES[state.action];
-  if(state.action==='attack'&&!armed)seq=[3,4,3];
+  if(state.action==='attack')seq=[FRAMES[dir],dir==='left'||dir==='right'?4:FRAMES[dir],FRAMES[dir]];
   const i=Math.min(seq.length-1,Math.floor((now-state.started)/(state.until-state.started)*seq.length));
-  frame=seq[Math.max(0,i)];flip=dir==='left'&&['attack','fall'].includes(state.action);
+  frame=seq[Math.max(0,i)];flip=dir==='left'&&(state.action==='fall'||(state.action==='attack'&&frame===4));
  }else if(now<state.movingUntil){
   const fast=state.speed>190;
   if(dir==='left'||dir==='right'){const seq=fast?FRAMES.run:FRAMES.walk;frame=seq[Math.floor(now/(fast?110:155))%seq.length];flip=dir==='left'}
@@ -32,23 +32,29 @@ function drawSprite(frame,x,y,flip=false,bob=0){
 }
 const oldDraw=drawPlayer;
 drawPlayer=function(){
- if(!male()||!loaded())return oldDraw();
+ if(!male()||!loaded()){
+  if(!p||typeof window.fdPaperDollLayers!=='function')return oldDraw();
+  reset();const now=Date.now(),busy=state.action&&now<state.until,params={x:p.x,y:p.y,dir:state.dir,now,moving:now<state.movingUntil,speed:state.speed,act:busy?state.action:null,t:busy?clamp((now-state.started)/Math.max(1,state.until-state.started),0,1):0,bob:0};
+  window.fdPaperDollLayers('back',params);oldDraw();window.fdPaperDollLayers('front',params);return;
+ }
  reset();const now=Date.now(),x=p.x,y=p.y,head=getEq(p.equip.head),armor=getEq(p.equip.armor),right=getEq(p.equip.right),left=getEq(p.equip.left),arms=getEq(p.equip.arms),feet=getEq(p.equip.feet);
  const strongest=Math.max(0,...Object.values(p.equip).map(uid=>getEq(uid)?.enh||0));
  const visual=frameFor(now,Boolean(right||left)),busy=state.action&&now<state.until;
  ctx.save();circle(x,y+28,18,'#091d3280');
  if(strongest>=7){ctx.globalAlpha=.24+Math.sin(now/190)*.09;circle(x,y-5,32,strongest>=10?'#bd7bff':strongest===9?'#65caff':'#ffdc66');ctx.globalAlpha=1}
+ const layer={x,y,dir:state.dir,now,moving:now<state.movingUntil,speed:state.speed,act:busy?state.action:null,t:busy?clamp((now-state.started)/Math.max(1,state.until-state.started),0,1):0,bob:visual.bob};
+ if(typeof window.fdPaperDollLayers==='function')window.fdPaperDollLayers('back',layer);
  drawSprite(visual.frame,x,y,visual.flip,visual.bob);
  // Keep readable equipment indications; full layered clothing sprites are a separate art pass.
- if(!busy){
+ if(state.action!=='fall'||!busy){
   const by=y-visual.bob;
   if(armor){rect(x-10,by+1,20,13,'#45617e');rect(x-8,by+2,16,3,'#8ca8c1')}
   if(head){rect(x-14,by-37,28,4,'#a28e65');rect(x-9,by-43,18,7,'#746077')}
   if(arms){rect(x-16,by+7,5,6,'#96704d');rect(x+11,by+7,5,6,'#96704d')}
   if(feet){rect(x-10,by+24,8,4,'#a18a68');rect(x+2,by+24,8,4,'#a18a68')}
-  if(right){rect(x+19,by-15,4,27,'#d5e9ee');rect(x+14,by+7,14,4,'#b98b5b');rect(x+19,by+11,4,7,'#493b39')}
-  if(left){rect(x-22,by-8,4,20,'#d4e5e7');rect(x-26,by+8,12,3,'#bba16e')}
+  if(typeof window.fdPaperDollLayers!=='function'){if(right){rect(x+19,by-15,4,27,'#d5e9ee');rect(x+14,by+7,14,4,'#b98b5b');rect(x+19,by+11,4,7,'#493b39')}if(left){rect(x-22,by-8,4,20,'#d4e5e7');rect(x-26,by+8,12,3,'#bba16e')}}
  }
+ if(typeof window.fdPaperDollLayers==='function')window.fdPaperDollLayers('front',layer);
  ctx.restore();
  textLabel(p.name,x,y-51,'#fff5dc',13);textLabel('Lv.'+p.lvl,x,y-66,'#f9df84',11);
 };
@@ -75,11 +81,11 @@ attack=function(skill,silent=false){
  if(state.death&&state.owner===p)return false;
  const target=p&&!skill?(enemies.find(e=>e.uid===targetEnemy&&e.hp>0&&dist(e,p)<105)||enemies.filter(e=>e.hp>0&&dist(e,p)<105).sort((a,b)=>dist(a,p)-dist(b,p))[0]):null;
  const result=oldAttack(skill,silent);
- if(result&&!skill&&male()){reset();if(target)face(target.x-p.x,target.y-p.y);action('attack',320)}
+ if(result&&!skill&&p){reset();if(target)face(target.x-p.x,target.y-p.y);action('attack',320)}
  return result;
 };
 const oldCast=fdCastSkill;
-fdCastSkill=function(id,silent=false){if(state.death&&state.owner===p)return false;const result=oldCast(id,silent);if(result&&male())action('cast',540);return result};
+fdCastSkill=function(id,silent=false){if(state.death&&state.owner===p)return false;const result=oldCast(id,silent);if(result&&p)action('cast',540);return result};
 const oldNumber=pushCombatNumber;
 pushCombatNumber=function(x,y,amount,kind='physical',ownerIcon=''){const result=oldNumber(x,y,amount,kind,ownerIcon);if(kind==='monster'&&male()&&!state.death)action('hurt',260);return result};
 const style=document.createElement('style');style.textContent='.fd-starter-preview{display:inline-block;width:48px;height:56px;background-image:url("./assets/starter-male.png?v=120");background-size:2100% 100%;background-repeat:no-repeat;image-rendering:pixelated;vertical-align:middle}.fd-starter-hud{width:30px;height:35px}.fd-starter-create{width:72px;height:84px}.fd-starter-createbox{display:flex;align-items:center;justify-content:center;gap:12px;min-height:88px;background:#193649;border:1px solid #657c8c;border-radius:10px;padding:7px}';
