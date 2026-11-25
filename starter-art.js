@@ -5,10 +5,12 @@
 const atlas=new Image();atlas.src='./assets/starter-male.png?v=120';
 const femaleAtlas=new Image();femaleAtlas.src='./assets/starter-female.png?v=132';
 const artFor=gender=>gender==='female'?femaleAtlas:atlas;
-const maleWalkHD=new Image();maleWalkHD.src='./assets/player_male_walk_hd.png?v=141';
-const walkHDReady=()=>maleWalkHD.complete&&maleWalkHD.naturalWidth===1024&&maleWalkHD.naturalHeight===640;
+const maleWalkHD=new Image();maleWalkHD.src='./assets/FEED_DAYS_Male_Walk_4x4.png?v=142';
+const walkHDReady=()=>maleWalkHD.complete&&maleWalkHD.naturalWidth===1024&&maleWalkHD.naturalHeight===1024;
 const HD_ROWS={front:0,left:1,right:2,back:3};
-function hdWalkFrame(clock,moving){return moving?Math.floor(Math.max(0,clock)/125)%8:0}
+// Approved 4-frame art: nominal 140ms per frame at 150 world units/sec.
+const HD_FRAME_MS=140,HD_CYCLE_MS=560,HD_REFERENCE_SPEED=150;
+function hdWalkFrame(clock,moving,dir){return moving?Math.floor(Math.max(0,clock)/HD_FRAME_MS)%4:((dir==='left'||dir==='right')?3:0)}
 const FRAMES={front:0,back:1,left:2,right:3,walk:[4,5],run:[6,7],attack:[8,9,10],cast:[11,12,13],hurt:[14,15],fall:[16,17,18],idle:[19,20]};
 const state={owner:null,map:null,dir:'front',movingUntil:0,speed:0,walkClock:0,action:null,started:0,until:0,death:null};
 const loaded=(gender=p?.gender)=>{const art=artFor(gender);return art.complete&&art.naturalWidth===504&&art.naturalHeight===28};
@@ -36,10 +38,12 @@ function drawSprite(frame,x,y,flip=false,bob=0){
  ctx.drawImage(artFor(p?.gender),frame*24,0,24,28,-30,-37,60,70);ctx.restore();
 }
 function drawHDWalk(x,y,dir,clock,moving){
- const col=hdWalkFrame(clock,moving),row=HD_ROWS[dir]??0;
+ const col=hdWalkFrame(clock,moving,dir),row=HD_ROWS[dir]??0;
  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
- // Keep original world footprint. Cell feet are aligned at source y=154.
- ctx.drawImage(maleWalkHD,col*128,row*160,128,160,x-30,y+33-154*75/160,60,75);
+ // Preserve approved 256px cells; visible body is about 70 world units high.
+ // Feet are at source y=240 (241 for rear); preserve the original world foot anchor.
+ const size=84,foot=dir==='back'?241:240;
+ ctx.drawImage(maleWalkHD,col*256,row*256,256,256,x-size/2,y+33-foot*size/256,size,size);
  ctx.restore();
 }
 const oldDraw=drawPlayer;
@@ -89,7 +93,17 @@ step=function(dt){
  if(state.death){if(Date.now()>=state.until){const job=state.death;state.death=null;if(p===job.owner){oldWarp(job.dest,job.options);reset()}}return}
  const owner=p,map=p.map,x=p.x,y=p.y;
  const result=oldStep(dt);
- if(p===owner&&p.map===map&&!state.death){const dx=p.x-x,dy=p.y-y,d=Math.hypot(dx,dy);if(d>.05){const now=Date.now();if(now>=state.movingUntil)state.walkClock=0;else state.walkClock=(state.walkClock+Math.max(0,Math.min(100,dt)))%1000;if(!state.action||now>=state.until)face(dx,dy);state.movingUntil=now+110;state.speed=d*1000/Math.max(1,dt)}}
+ if(p===owner&&p.map===map&&!state.death){
+  const dx=p.x-x,dy=p.y-y,d=Math.hypot(dx,dy),now=Date.now();
+  if(d>.05){
+   if(now>=state.movingUntil)state.walkClock=0;
+   else state.walkClock=(state.walkClock+d*1000/HD_REFERENCE_SPEED)%HD_CYCLE_MS;
+   if(!state.action||now>=state.until)face(dx,dy);
+   state.movingUntil=now+110;state.speed=d*1000/Math.max(1,dt);
+  }else if(p.gender==='male'&&walkHDReady()){
+   state.movingUntil=0;state.walkClock=0;state.speed=0;
+  }
+ }
  else if(!state.death)reset();
  return result;
 };
