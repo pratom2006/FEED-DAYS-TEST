@@ -152,7 +152,7 @@ function fdCastSkill(id,silent=false){
  if(sk.type==='รักษา'){
    const heal=Math.round(30+lvl*1.5+p.stats.INT*2.5);
    p.hp=Math.min(maxHP(),p.hp+heal);
-   effects.push({x:p.x,y:p.y-30,text:'+'+heal,life:800,max:800,color:'#7bffad'});
+   pushCombatNumber(p.x,p.y-30,heal,'heal');
  }else if(sk.type==='บัฟ'){
    p.petBuffUntil=now+Math.min(30000,12000+lvl*100);
    p.petShieldUntil=now+Math.min(30000,12000+lvl*100);
@@ -160,7 +160,7 @@ function fdCastSkill(id,silent=false){
  }else{
    for(const t of targets){
      let dmg=Math.max(1,Math.round((attackPower()*.35+p.stats.INT*1.7+10+lvl*2.8)*sk.power));
-     t.hp-=dmg;effects.push({x:t.x,y:t.y-26,text:'-'+dmg,life:760,max:760,color:'#ffe4aa'});
+     t.hp-=dmg;pushCombatNumber(t.x,t.y-26,dmg,sk.type.includes('เวท')?'magic':'physical');
      effects.push({kind:'swing',x:t.x,y:t.y,life:290,max:290,color:'#8ae2ff'});
      if(t.hp<=0)killEnemy(t);
    }
@@ -265,7 +265,7 @@ function fdTickPets(dt){
    if(wantsHeal&&c.mp>=cost){
      c.mp-=cost;const heal=Math.round(15+fdPetPower(c)*.7);
      p.hp=Math.min(maxHP(),p.hp+heal);
-     effects.push({x:p.x,y:p.y-40,text:'+'+heal,life:760,max:760,color:'#95f8c3'});
+     pushCombatNumber(p.x,p.y-40,heal,'petHeal',(c.icon||'🐾')+'💚');
      c.lastAttack=Date.now()+2500;fdPetGainExp(c,2);refreshHUD();continue;
    }
    if(wantsBuff&&c.mp>=cost){
@@ -275,7 +275,7 @@ function fdTickPets(dt){
    }
    if(c.mp>=cost)c.mp-=cost;
    const damage=Math.max(1,Math.round(fdPetPower(c)*(c.mp>=cost?.95:.65)));
-   foe.hp-=damage;effects.push({x:foe.x,y:foe.y-25,text:'-'+damage,life:670,max:670,color:'#a7f6ef'});
+   foe.hp-=damage;pushCombatNumber(foe.x,foe.y-25,damage,mount?'mount':'pet',c.icon||'🐾');
    c.lastAttack=Date.now()+Math.max(650,1550-c.genes.AGI*24);
    fdPetGainExp(c,3);
    if(foe.hp<=0)killEnemy(foe);
@@ -288,7 +288,9 @@ function fdMobHitsCompanion(mob){
  const c=active[rand(0,active.length-1)];
  const dmg=Math.max(1,mob.atk-Math.floor(fdPetDefense(c)*.4));
  c.hp-=dmg;
- effects.push({x:p.x+(active.indexOf(c)-.5)*52,y:p.y+5,text:'-'+dmg,life:640,max:640,color:'#ff9f9f'});
+ const petSlot=p.activePets.indexOf(c.id),isMount=p.activeMount===c.id;
+ const petX=p.x+(isMount?0:petSlot===0?-44:44),petY=p.y+(isMount?36:22)-20;
+ pushCombatNumber(petX,petY,dmg,'monsterPet');
  if(c.hp<=0){
    c.hp=0;c.knockedUntil=Date.now()+FD_PET_COOLDOWN;
    p.activePets=p.activePets.filter(id=>id!==c.id);
@@ -324,7 +326,7 @@ function fdMountSkill(){
  if(c.mp<15)return toast('MP สัตว์ขี่ไม่เพียงพอ');
  c.mp-=15;c.lastAttack=now+1200;
  const dmg=Math.floor(fdPetPower(c)*1.7);
- t.hp-=dmg;effects.push({x:t.x,y:t.y-35,text:'🐉 -'+dmg,life:780,max:780,color:'#ffe5a2'});
+ t.hp-=dmg;pushCombatNumber(t.x,t.y-35,dmg,'mount',c.icon||'🐾');
  fdPetGainExp(c,4);if(t.hp<=0)killEnemy(t);save();
 }
 function fdCanBreed(a,b){
