@@ -132,6 +132,24 @@ function css(){
  .v09-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.v09-actions button{font-size:12px}
  .v09-dragging{position:fixed;z-index:99999;pointer-events:none;width:51px;height:51px;border:2px solid #ffe0a1;border-radius:8px;background:#3c526cde;display:grid;place-items:center;font-size:29px;transform:translate(-50%,-50%);box-shadow:0 3px 14px #000a}
  #v09PickupBtn{position:absolute;z-index:6;right:164px;bottom:calc(92px + env(safe-area-inset-bottom));border:2px solid #d0c38e;border-radius:40px;background:#4b695bcc;color:#fff;font-size:13px;font-weight:700;padding:9px 10px;touch-action:none;min-width:90px;min-height:55px}
+
+ .v09-window[data-name="pet"]{width:min(1050px,96vw)!important;max-height:88dvh;background:linear-gradient(145deg,#152a3f,#0b1d2c);border:2px solid #bc9b60;font-size:14px}
+ .v09-window[data-name="pet"] .v09-head{background:linear-gradient(90deg,#18394d,#345c70,#18394d);color:#ffe4a8;border-bottom:1px solid #b99b64;font-size:17px}
+ .pc-layout{display:grid;grid-template-columns:minmax(145px,1fr) minmax(250px,2.15fr) minmax(155px,1.05fr);grid-template-areas:"team center nav";gap:10px;align-items:start}
+ .pc-team{grid-area:team}.pc-nav{grid-area:nav}.pc-center{grid-area:center;min-width:0}.pc-team,.pc-nav{display:grid;gap:8px;padding:9px;background:#102739;border:1px solid #466579;border-radius:12px}
+ .pc-team h3,.pc-nav h3{margin:0;text-align:center;color:#f1d49a;padding:7px;border-bottom:1px solid #426b7c;font-size:15px}
+ .pc-slot,.pc-system,.pc-tab{background:linear-gradient(145deg,#25485e,#142c40);border:1px solid #52758b;color:#f3f5f4;border-radius:9px;min-height:44px;padding:9px;text-align:left;touch-action:manipulation;overflow-wrap:anywhere}
+ .pc-slot{display:grid;gap:5px;width:100%}.pc-slot-label{font-size:12px;color:#dfc994}.pc-slot-body{display:flex;align-items:center;gap:8px;min-width:0}.pc-avatar{font-size:27px;flex-shrink:0;background:#142c40;border:1px solid #7198b2;border-radius:8px;padding:5px}.pc-slot small,.pc-system small{display:block;font-size:11px;color:#b5d4df;margin-top:3px}
+ .pc-selected{border-color:#f5cf7e!important;box-shadow:inset 0 0 0 1px #f5cf7e;background:linear-gradient(145deg,#39566b,#2d485a)!important}
+ .pc-system{display:flex;align-items:center;gap:8px;width:100%}.pc-system>span:first-child{font-size:24px}.pc-system>span:last-child{min-width:0}.pc-hatch-status{color:#ffe0a2!important}
+ .pc-center{background:#102739;border:1px solid #648498;border-radius:12px;overflow:hidden}.pc-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:6px;background:#1d394c}.pc-tab{text-align:center;padding:6px 2px;font-size:12px}
+ .pc-current{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid #426579;color:#f5dca9}.pc-current button{margin-left:auto}
+ .pc-main{padding:10px;gap:10px;min-width:0}.pc-main h3{margin:0;color:#f5dca9}.pc-main .button{min-height:40px}.pc-hero{display:flex;align-items:center;gap:14px;padding:14px;background:radial-gradient(ellipse at 25% 30%,#346679,#203b50 60%,#163042);border:1px solid #658d99;border-radius:10px}.pc-portrait{font-size:clamp(45px,7vw,78px);line-height:1.2}.pc-hero h3{margin-bottom:5px}
+ .pc-live{display:grid;gap:9px}.pc-track{height:9px;background:#0c1b29;border-radius:6px;overflow:hidden;margin-top:4px}.pc-track i{display:block;height:100%;border-radius:6px}.pc-vital{font-size:12px}
+ .pc-statgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.pc-statgrid div{background:#203c50;border:1px solid #47697c;border-radius:7px;padding:8px 4px;text-align:center}.pc-statgrid b,.pc-statgrid small{display:block}.pc-chips,.pc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.pc-chips span{border:1px solid #6d8a9a;border-radius:7px;background:#24465a;padding:5px 9px}.pc-actions .button{flex:1 1 105px}
+ .pc-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.pc-items{display:grid;gap:5px;max-height:220px;overflow:auto;margin-top:7px}.pc-main .section{margin:0;min-width:0}.pc-main .input{max-width:100%}
+ @media(max-width:880px){.pc-layout{grid-template-columns:minmax(0,1fr) minmax(0,2fr);grid-template-areas:"team center" "nav center"}.pc-team,.pc-nav{padding:7px}.pc-system small{font-size:11px}}
+ @media(max-width:600px){.v09-window[data-name="pet"]{width:96vw!important;max-height:90dvh}.pc-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"team" "nav" "center"}.pc-team{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.pc-team h3,.pc-team>.pc-system,.pc-team>#pcStarter{grid-column:1/-1}.pc-slot{padding:5px}.pc-slot-body{flex-direction:column;text-align:center;gap:3px}.pc-avatar{font-size:24px}.pc-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.pc-nav h3{grid-column:1/-1}.pc-system{padding:6px;font-size:12px}.pc-system>span:first-child{font-size:20px}.pc-tabs{gap:2px}.pc-tab{font-size:11px}.pc-roster{grid-template-columns:repeat(2,minmax(0,1fr))}}
  @media(max-width:600px){.v09-window{width:min(350px,92vw)!important}.v09-content{padding:7px}#v09PickupBtn{right:90px;bottom:calc(124px + env(safe-area-inset-bottom));font-size:11px;padding:7px;min-width:82px;min-height:47px}}
  `;
  document.head.appendChild(st);
@@ -146,7 +164,7 @@ function clampWindow(node,left,top){
 function v09Window(key,title){
  let node=windowMap.get(key);
  if(!node){
-   const defaults={bag:{x:16,y:70,w:375},equip:{x:405,y:85,w:320},stats:{x:140,y:130,w:300},pet:{x:380,y:100,w:385}};
+   const defaults={bag:{x:16,y:70,w:375},equip:{x:405,y:85,w:320},stats:{x:140,y:130,w:300},pet:{x:16,y:42,w:1050}};
    const config=defaults[key]||defaults.bag;
    node=document.createElement('section');node.className='v09-window';node.dataset.name=key;node.style.width='min('+config.w+'px,94vw)';
    node.style.left=Math.min(config.x,Math.max(2,window.innerWidth-config.w-5))+'px';
@@ -310,7 +328,7 @@ function v09ShowStats(){
 showStats=v09ShowStats;
 function petLootPanel(win){
  const selected=p.companions[fdPetIndex];
- if(!selected||fdPetTab!=='team')return;
+ if(!selected||fdPetTab!=='settings')return;
  const hasSkill=selected.skills?.includes('treasure');
  const panel=document.createElement('div');panel.className='section stack';
  const disabled=hasSkill&&selected.knockedUntil<=Date.now()?'':'disabled';
@@ -321,7 +339,7 @@ function petLootPanel(win){
  '<label>ส่งไอเทมไป<select class="input" data-loot="target" '+disabled+'><option value="player">🎒 กระเป๋าตัวละคร</option><option value="pet">🐾 กระเป๋าสัตว์ตัวนี้</option></select></label>'+
  '<label>ระดับขั้นต่ำ<select class="input" data-loot="rarity" '+disabled+'>'+rarityNames.slice(1).map((name,i)=>'<option value="'+(i+1)+'">'+name+' ขึ้นไป</option>').join('')+'</select></label>'+
  '<b class="tiny">ประเภทที่ให้เก็บ</b><div class="v09-actions">'+['อาวุธ/เกราะ','อุปกรณ์สัตว์','คัมภีร์','ไข่สัตว์','วัสดุ','ยา HP/MP'].map(type=>'<label class="tiny"><input type="checkbox" data-loottype="'+type+'" '+(selected.lootTypes.includes(type)?'checked':'')+' '+disabled+'>'+type+'</label>').join('')+'</div>';
- win.querySelector('.v09-content').appendChild(panel);
+ (win.querySelector('.pc-main')||win.querySelector('.v09-content')).appendChild(panel);
  if(!hasSkill)return;
  panel.querySelector('[data-loot="mode"]').value=selected.lootMode;
  panel.querySelector('[data-loot="target"]').value=selected.lootTarget;
@@ -340,25 +358,80 @@ function petLootPanel(win){
    save();
  });
 }
+/* v1.1: Pet Management Center. Uses existing inventory, pet, breeding and hatchery actions. */
+const PC_TABS=[['team','🏠','ภาพรวม'],['stats','📊','สเตตัส'],['gear','⚔️','อุปกรณ์'],['bag','🎒','กระเป๋า'],['settings','⚙️','ตั้งค่า']];
+const PC_SYSTEMS=[['hatch','🥚','ห้องฟักไข่','ไข่ อาหาร และเวลาฟัก'],['breed','🧬','ผสมพันธุ์','สายเลือดและรุ่นลูก'],['bag','🎒','กระเป๋าสัตว์','ย้ายและจัดการไอเทม'],['settings','⚙️','ตั้งค่าการต่อสู้','ยาอัตโนมัติและเก็บสมบัติ'],['evolve','🌟','วิวัฒนาการ','พัฒนาความแข็งแกร่ง']];
+const PC_SKILLS={bite:'กัด',buff:'บัฟ',magic:'เวทโจมตี',heal:'รักษา',fire:'ไฟ',kick:'เตะ',treasure:'ค้นหาสมบัติ'};
+let pcOwner=null,pcSearch='';
+function pcStatus(c){return !c?'ว่าง':c.knockedUntil>Date.now()?'พักฟื้น':p.activeMount===c.id?(p.riding?'กำลังขี่':'สัตว์ขี่'):p.activePets.includes(c.id)?'กำลังใช้งาน':'อยู่ในคอก'}
+function pcBar(label,current,max,color){return '<div class="pc-vital"><div class="line space"><b>'+label+'</b><span>'+Math.floor(current)+' / '+Math.floor(max)+'</span></div><div class="pc-track"><i style="width:'+clamp(current/Math.max(1,max)*100,0,100)+'%;background:'+color+'"></i></div></div>'}
+function pcSlot(label,c,selected){return '<button class="pc-slot '+(c&&c===selected?'pc-selected':'')+'" '+(c?'data-pc-pet="'+esc(c.id)+'"':'data-pc-view="stable"')+'><span class="pc-slot-label">'+label+'</span><span class="pc-slot-body"><span class="pc-avatar">'+esc(c?.icon||'＋')+'</span><span><b>'+esc(c?.name||'เลือกสัตว์')+'</b><small>'+(c?'Lv.'+c.level+' · '+esc(pcStatus(c)):'เปิดคอกสัตว์')+'</small></span></span></button>'}
+function pcItem(it){return '<span>'+esc(it.icon||'📦')+' '+esc(itemName(it))+' <small>×'+(it.qty||1)+'</small></span>'}
+function pcGearSlot(it){return ['right','left','petWeapon'].includes(it.slot)?'weapon':['armor','petArmor'].includes(it.slot)?'armor':it.slot==='petOrb'?'orb':null}
+function pcContent(c,all){
+ const view=fdPetTab;
+ if(view==='stable'){
+  const q=pcSearch.toLowerCase(),list=all.filter(x=>!q||(x.name+' '+x.species+' '+x.level).toLowerCase().includes(q));
+  return '<h3>🏡 คอกสัตว์ทั้งหมด · '+all.length+' ตัว</h3><input class="input" id="pcSearch" placeholder="ค้นหาชื่อสัตว์ / สายพันธุ์" value="'+esc(pcSearch)+'"><div class="pc-roster">'+list.map(x=>pcSlot('รุ่น '+x.generation,x,c)).join('')+'</div>'+(list.length?'':'<div class="notice">ไม่พบสัตว์ในคอก</div>');
+ }
+ if(view==='breed'){
+  const options=all.map((x,i)=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' Lv.'+x.level+(x.breedReadyAt>Date.now()?' · รอ '+fdRemaining(x.breedReadyAt):'')+'</option>').join('');
+  return '<h3>🧬 ห้องผสมพันธุ์</h3><div class="notice">สายพันธุ์เดียวกัน Lv.3 ขึ้นไป · ข้ามสายพันธุ์ Lv.8 ขึ้นไป · พ่อแม่พัก 5 ชั่วโมงหลังผสมพันธุ์</div><label>พ่อแม่ตัวที่ 1<select class="input" id="pcParentA">'+options+'</select></label><label>พ่อแม่ตัวที่ 2<select class="input" id="pcParentB">'+options+'</select></label><div class="notice" id="pcBreedReason"></div><button class="button gold full" id="pcBreed" '+(all.length<2?'disabled':'')+'>🧬 ผสมพันธุ์</button>';
+ }
+ if(!c)return '<div class="notice">ยังไม่มีสัตว์ในคอก · รับสัตว์เริ่มต้นหรือเปิดห้องฟักไข่</div>';
+ const down=c.knockedUntil>Date.now(),dis=down?'disabled':'',gear=fdPetGear;
+ if(view==='stats')return '<h3>📊 สเตตัส · '+esc(c.name)+'</h3><div class="notice">แต้มคงเหลือ <b>'+(c.sp||0)+'</b></div>'+['STR','VIT','AGI','INT'].map(k=>'<div class="statrow"><b>'+k+' · '+c.genes[k]+'</b><button class="button gold" data-pc-stat="'+k+'" '+(down||!c.sp?'disabled':'')+'>+1</button></div>').join('')+'<div class="section">ATK '+Math.floor(fdPetPower(c))+' · DEF '+Math.floor(fdPetDefense(c))+'</div>';
+ if(view==='gear')return '<h3>⚔️ อุปกรณ์ · '+esc(c.name)+'</h3>'+['weapon','armor','orb'].map((slot,i)=>{const it=gear(c,slot),available=c.bag.filter(x=>x.type==='gear'&&pcGearSlot(x)===slot);return '<div class="section stack"><b>'+['⚔️ อาวุธ','🛡️ เกราะ','🔮 ลูกแก้ว'][i]+'</b><div>'+ (it?pcItem(it):'ว่าง')+'</div>'+(it?'<div class="line" style="flex-wrap:wrap"><button class="button gold" data-pc-enhance="'+slot+'" '+dis+'>ตีบวก</button><button class="button ghost" data-pc-unequip="'+slot+'" '+dis+'>ถอด</button></div>':'')+'<select class="input" data-pc-gearselect="'+slot+'" '+dis+'><option value="">เลือกของจากกระเป๋าสัตว์</option>'+available.map(x=>'<option value="'+esc(x.uid)+'">'+esc(itemName(x))+'</option>').join('')+'</select><button class="button ghost" data-pc-equip="'+slot+'" '+(down||!available.length?'disabled':'')+'>สวมใส่</button></div>'}).join('');
+ if(view==='bag'){
+  if(down)return '<div class="notice">🔒 กระเป๋าถูกล็อกระหว่างพักฟื้น '+fdRemaining(c.knockedUntil)+'</div>';
+  return '<h3>🎒 กระเป๋า · '+esc(c.name)+'</h3><div class="section"><b>ของสัตว์ '+c.bag.length+'/24 ช่อง</b><div class="pc-items">'+(c.bag.map(it=>'<div class="fd-item">'+pcItem(it)+'<button class="button ghost sm" data-pc-take="'+esc(it.uid)+'">รับคืน</button></div>').join('')||'<div class="dim">กระเป๋าว่าง</div>')+'</div></div><div class="section"><b>ของตัวละคร '+p.items.length+'/80 ช่อง</b><div class="pc-items">'+(p.items.map(it=>'<div class="fd-item">'+pcItem(it)+'<button class="button ghost sm" data-pc-give="'+esc(it.uid)+'">ให้สัตว์</button></div>').join('')||'<div class="dim">กระเป๋าว่าง</div>')+'</div></div><div class="notice">ย้ายทั้งกอง · อุปกรณ์สัตว์อยู่ในเมนูอุปกรณ์</div>';
+ }
+ if(view==='settings')return '<h3>⚙️ ตั้งค่า · '+esc(c.name)+'</h3><div class="section stack"><b>🧪 ใช้ยาอัตโนมัติ</b>'+['HP','MP'].map(k=>'<label class="line" style="flex-wrap:wrap"><input id="pcAuto'+k+'" type="checkbox" '+(c['auto'+k]?'checked':'')+' '+dis+'> ใช้ยา '+k+' เมื่อ ≤ <input class="input" type="number" min="0" max="100" id="pcThreshold'+k+'" value="'+c[k.toLowerCase()+'Threshold']+'" style="width:75px" '+dis+'>%</label>').join('')+'<button class="button gold" id="pcSaveSettings" '+dis+'>บันทึกการใช้ยา</button></div>'+(p.activeMount===c.id?'<div class="section stack"><b>🐎 การควบคุมสัตว์ขี่</b><button class="button ghost" id="pcMountMode" '+dis+'>'+ (p.mountMode==='auto'?'Auto · โจมตีอัตโนมัติ':'Manual · สั่งโจมตีเอง')+'</button></div>':'');
+ if(view==='evolve')return '<h3>🌟 ห้องวิวัฒนาการ</h3><div class="section stack"><b>'+esc(c.name)+' · ขั้น +'+c.evolution+'</b><div>ขั้นถัดไป +'+(c.evolution+1)+'</div><div>วัสดุพัฒนา '+(3+c.evolution)+' ชิ้น · '+(50+c.evolution*25)+' เหรียญ</div><button class="button gold" id="pcEvolve" '+dis+'>พัฒนาสัตว์ +1</button></div>';
+ return '<div class="pc-hero"><span class="pc-portrait">'+esc(c.icon||'🐾')+'</span><div><h3>'+esc(c.name)+' · Lv.'+c.level+'</h3><div>'+esc(pcStatus(c))+' · รุ่น '+c.generation+' · '+'⭐'.repeat(clamp(c.rarity||1,1,5))+'</div><small>'+ (fdIsRideable(c)?'สามารถใช้เป็นสัตว์ขี่':'สัตว์เลี้ยง')+' · วิวัฒนาการ +'+c.evolution+'</small></div></div><div class="pc-live">'+pcBar('❤️ HP',c.hp,fdPetMaxHP(c),'#e16a66')+pcBar('💧 MP',c.mp,fdPetMaxMP(c),'#63a9ed')+pcBar('⭐ EXP',c.xp,Math.ceil(25*Math.pow(c.level,1.3)),'#73d29b')+'</div><div class="pc-statgrid">'+['STR','VIT','AGI','INT'].map(k=>'<div><small>'+k+'</small><b>'+c.genes[k]+'</b></div>').join('')+'</div><div class="section"><b>⚡ สกิล</b><div class="pc-chips">'+c.skills.map(k=>'<span>'+esc(PC_SKILLS[k]||k)+'</span>').join('')+'</div></div><div class="section stack"><b>จัดทีม</b><div class="pc-actions">'+[0,1,'mount'].filter(k=>k!=='mount'||fdIsRideable(c)).map(k=>'<button class="button '+((k==='mount'?p.activeMount:p.activePets[k])===c.id?'selected':'gold')+'" data-pc-slot="'+k+'" '+dis+'>'+ (k==='mount'?'🐎 สัตว์ขี่':'🐾 สัตว์เลี้ยง '+(k+1))+((k==='mount'?p.activeMount:p.activePets[k])===c.id?' ✓':'')+'</button>').join('')+'</div>'+(p.activePets.includes(c.id)||p.activeMount===c.id?'<button class="button ghost" id="pcRemove" '+dis+'>ถอดออกจากทีม</button>':'')+(p.activeMount===c.id?'<button class="button gold" id="pcRide" '+dis+'>'+(p.riding?'ลงจากสัตว์ขี่':'ขึ้นขี่')+'</button>':'')+'</div>'+(down?'<div class="notice">💤 พักฟื้น '+fdRemaining(c.knockedUntil)+'</div>':'')+(c.lineage?.length?'<div class="tiny dim">บรรพบุรุษ: '+c.lineage.map(x=>esc(x.name)).join(' · ')+'</div>':'');
+}
 fdShowPet=function(){
  if(!p)return;
- const savedWalk=walkTarget,savedMove={...moveDir};
- originals.fdShowPet();
- walkTarget=savedWalk;moveDir=savedMove;
- const body=$('modalBody');
- const win=v09Window('pet','🐾 สัตว์เลี้ยง · สัตว์ขี่ · ผสมพันธุ์');
- const content=win.querySelector('.v09-content');
- content.replaceChildren(...Array.from(body.childNodes));
- $('overlay').classList.add('hide');
- ui=null;
- // Replace only pet-specific equipment buttons with storage-safe behavior.
- content.querySelectorAll('[data-unequip]').forEach(button=>button.onclick=()=>{
-   const c=p.companions[fdPetIndex];
-   v09UnequipPet(c,button.dataset.unequip);
- });
- petLootPanel(win);
+ fdInit();fdWakePets();
+ if(pcOwner!==p){pcOwner=p;pcSearch='';fdPetTab='team';fdPetIndex=p.companions.length?clamp(fdPetIndex,0,p.companions.length-1):0}
+ const all=p.companions,c=all[fdPetIndex]||all[0]||null;
+ if(c)fdPetIndex=all.indexOf(c);
+ if(![...PC_TABS.map(x=>x[0]),'stable','breed','evolve'].includes(fdPetTab))fdPetTab='team';
+ const win=v09Window('pet','🐾 ศูนย์จัดการสัตว์เลี้ยง');
+ win.style.zIndex=String(++highestZ);
+ const content=win.querySelector('.v09-content'),oldScroll=content.scrollTop;
+ const tabs=PC_TABS.map(([key,icon,label])=>'<button class="pc-tab '+(fdPetTab===key?'pc-selected':'')+'" data-pc-view="'+key+'">'+icon+' '+label+'</button>').join('');
+ const systems=PC_SYSTEMS.map(([key,icon,label,desc])=>'<button class="pc-system '+(fdPetTab===key?'pc-selected':'')+'" data-pc-view="'+key+'"><span>'+icon+'</span><span><b>'+label+'</b><small>'+desc+'</small>'+(key==='hatch'&&p.hatchJob?'<small class="pc-hatch-status">'+(Date.now()>=p.hatchJob.readyAt?'พร้อมรับสัตว์':'กำลังฟัก · '+fdRemaining(p.hatchJob.readyAt))+'</small>':'')+'</span></button>').join('');
+ content.innerHTML='<div class="pc-layout"><aside class="pc-team"><h3>🐾 ทีมใช้งาน</h3>'+pcSlot('สัตว์เลี้ยง 1',fdPetById(p.activePets[0]),c)+pcSlot('สัตว์เลี้ยง 2',fdPetById(p.activePets[1]),c)+pcSlot('สัตว์ขี่',fdPetById(p.activeMount),c)+'<button class="pc-system" data-pc-view="stable">🏡 คอกสัตว์ทั้งหมด ('+all.length+')</button>'+(!p.starterPetsClaimed?'<button class="button gold full" id="pcStarter">🎁 รับสัตว์เริ่มต้น</button>':'')+'</aside><aside class="pc-nav"><h3>ระบบสัตว์เลี้ยง</h3>'+systems+'</aside><section class="pc-center"><div class="pc-tabs">'+tabs+'</div>'+(c?'<div class="pc-current">'+esc(c.icon)+' <b>'+esc(c.name)+'</b> · Lv.'+c.level+' <button class="button ghost sm" data-pc-view="stable">เปลี่ยนสัตว์</button></div>':'')+'<div class="pc-main stack">'+pcContent(c,all)+'</div></section></div>';
+ content.scrollTop=oldScroll;
+ const find=id=>content.querySelector('#'+id),on=(id,fn)=>{const el=find(id);if(el)el.onclick=fn};
+ const go=view=>{if(view==='hatch'){fdShowHatch();return}fdPetTab=view;content.scrollTop=0;fdShowPet()};
+ content.querySelectorAll('[data-pc-view]').forEach(b=>b.onclick=()=>go(b.dataset.pcView));
+ content.querySelectorAll('[data-pc-pet]').forEach(b=>b.onclick=()=>{const i=p.companions.findIndex(x=>x.id===b.dataset.pcPet);if(i>=0){fdPetIndex=i;go('team')}});
+ const search=find('pcSearch');if(search)search.oninput=()=>{pcSearch=search.value;const q=pcSearch.toLowerCase();const roster=content.querySelector('.pc-roster');roster.innerHTML=all.filter(x=>!q||(x.name+' '+x.species+' '+x.level).toLowerCase().includes(q)).map(x=>pcSlot('รุ่น '+x.generation,x,c)).join('');roster.querySelectorAll('[data-pc-pet]').forEach(b=>b.onclick=()=>{fdPetIndex=all.findIndex(x=>x.id===b.dataset.pcPet);go('team')})};
+ on('pcStarter',fdStarterPets);
+ const valid=()=>p===pcOwner&&c&&p.companions.includes(c)&&c.knockedUntil<=Date.now();
+ content.querySelectorAll('[data-pc-slot]').forEach(b=>b.onclick=()=>{if(valid())fdSetPet(b.dataset.pcSlot==='mount'?'mount':Number(b.dataset.pcSlot),c.id)});
+ on('pcRemove',()=>{if(!valid())return;const slot=p.activePets.indexOf(c.id);if(p.activeMount===c.id)fdSetPet('mount',c.id);else if(slot>=0)fdSetPet(slot,c.id)});
+ on('pcRide',()=>{if(valid()&&p.activeMount===c.id){p.riding=!p.riding;save();fdShowPet()}});
+ content.querySelectorAll('[data-pc-stat]').forEach(b=>b.onclick=()=>{if(!valid()||!c.sp||!['STR','VIT','AGI','INT'].includes(b.dataset.pcStat))return;c.sp--;c.genes[b.dataset.pcStat]++;c.hp=Math.min(fdPetMaxHP(c),c.hp);c.mp=Math.min(fdPetMaxMP(c),c.mp);save();fdShowPet()});
+ content.querySelectorAll('[data-pc-enhance]').forEach(b=>b.onclick=()=>{if(valid())fdEnhancePetGear(c,b.dataset.pcEnhance)});
+ content.querySelectorAll('[data-pc-unequip]').forEach(b=>b.onclick=()=>{if(valid())v09UnequipPet(c,b.dataset.pcUnequip)});
+ content.querySelectorAll('[data-pc-equip]').forEach(b=>b.onclick=()=>{if(!valid())return;const slot=b.dataset.pcEquip,uid=content.querySelector('[data-pc-gearselect="'+slot+'"]').value;const i=c.bag.findIndex(x=>x.uid===uid);if(i>=0)fdEquipPet(c,slot,i);else toast('เลือกอุปกรณ์ก่อน')});
+ content.querySelectorAll('[data-pc-take]').forEach(b=>b.onclick=()=>{if(valid()){const i=c.bag.findIndex(x=>x.uid===b.dataset.pcTake);if(i>=0)fdTransferItem(c,i,false)}});
+ content.querySelectorAll('[data-pc-give]').forEach(b=>b.onclick=()=>{if(valid()){const i=p.items.findIndex(x=>x.uid===b.dataset.pcGive);if(i>=0)fdTransferItem(c,i,true)}});
+ on('pcSaveSettings',()=>{if(!valid())return;for(const k of ['HP','MP']){c['auto'+k]=find('pcAuto'+k).checked;c[k.toLowerCase()+'Threshold']=clamp(Number(find('pcThreshold'+k).value)||0,0,100)}save();fdShowPet();toast('บันทึกการใช้ยาแล้ว')});
+ on('pcMountMode',()=>{if(valid()&&p.activeMount===c.id){p.mountMode=p.mountMode==='auto'?'manual':'auto';save();fdUpdateHotbar();fdShowPet()}});
+ on('pcEvolve',()=>{if(valid())fdEvolvePet(c)});
+ if(fdPetTab==='settings'&&c)petLootPanel(win);
+ const a=find('pcParentA'),b=find('pcParentB');if(a&&b){if(all.length>1)b.selectedIndex=1;const update=()=>{const reason=fdCanBreed(fdPetById(a.value),fdPetById(b.value));find('pcBreedReason').textContent=reason||'พร้อมผสมพันธุ์';find('pcBreed').disabled=Boolean(reason)};a.onchange=b.onchange=update;update();on('pcBreed',()=>fdBreed(a.value,b.value))}
 };
 showPet=fdShowPet;
+setInterval(()=>{
+ const win=windowMap.get('pet');if(!p||p!==pcOwner||!win||win.style.display==='none')return;
+ const status=win.querySelector('.pc-hatch-status');if(status&&p.hatchJob)status.textContent=Date.now()>=p.hatchJob.readyAt?'พร้อมรับสัตว์':'กำลังฟัก · '+fdRemaining(p.hatchJob.readyAt);
+ const c=p.companions[fdPetIndex],live=win.querySelector('.pc-live');if(c&&live)live.innerHTML=pcBar('❤️ HP',c.hp,fdPetMaxHP(c),'#e16a66')+pcBar('💧 MP',c.mp,fdPetMaxMP(c),'#63a9ed')+pcBar('⭐ EXP',c.xp,Math.ceil(25*Math.pow(c.level,1.3)),'#73d29b');
+},1000);
 function v09Refresh(){
  for(const [key,node] of windowMap){
    if(node.style.display==='none')continue;
