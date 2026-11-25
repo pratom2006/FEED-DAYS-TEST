@@ -1,5 +1,12 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.3
+- Backed up v0.9.2 to `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
+- Added styled floating hit values: normal ⚔️, crit 💥 + CRIT! gold banner, skill magic 🔮 purple, per-species pet/mount icons in aqua, monster 👹 incoming red, and green 💚 healing. Pet hit location aligns with the actual companion position.
+- Added compact toggleable Thai in-world legend under **ℹ️ ตัวเลขโจมตี**. Simultaneous hit labels are lightly staggered.
+- No damage formula or combat-balance changes. Deterministic head-to-head simulation against v0.9.2 produced matching HP values for physical, crit, spell, pet and monster-hit-pet paths. JavaScript syntax checks passed.
+- Real iPad visual and multi-touch QA pending.
+
 ## 2026-11-25 — v0.9.2
 - Backed up v0.9.1 to `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
 - Fixed forge star upgrade: main gear is never lost and stars stay unchanged on failure; matching-name gear material and star crystal are **consumed on both success and failure**.
