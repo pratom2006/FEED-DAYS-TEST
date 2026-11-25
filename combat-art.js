@@ -6,7 +6,7 @@ const COLORS={basic:['#ffe6ac','#e6af58'],slash:['#eaffff','#75d8fc'],fire:['#ff
 const DURATION={basic:280,slash:420,fire:650,ice:680,thunder:530,wind:750,heal:900,guard:900,poison:850,roar:680,wave:750};
 let active=[],owner=null,map=null;
 function sync(){if(owner!==p||map!==p?.map){active=[];owner=p;map=p?.map}}
-function enhancement(e){return e>=10?'#c584ff':e>=9?'#60d7ff':e>=8?'#ffb94e':e>=7?'#ffe17a':e>=4?'#b8eaff':null}
+function enhancement(e){return e>=10?'#ff354c':e>=9?'#60d7ff':e>=8?'#ffb94e':e>=7?'#ffe17a':e>=4?'#b8eaff':null}
 function weaponType(it){const n=String(it?.name||'');return /ธนู|bow/i.test(n)?'bow':/ไม้เท้า|คทา|staff/i.test(n)?'staff':/โล่|shield/i.test(n)?'shield':/หอก|spear/i.test(n)?'spear':/ขวาน|axe/i.test(n)?'axe':/มีด|dagger/i.test(n)?'dagger':/ไม้|wood/i.test(n)?'wood':'sword'}
 function pose(dir,hand,now,moving,speed,action,progress){
  const right=hand==='right',sign=right?1:-1,walk=Math.sin(now/(speed>190?80:120));
@@ -32,6 +32,13 @@ function drawWeapon(it,hand,x,y,dir,now,moving,speed,act,t,bob=0){
  const length=type==='dagger'?19:type==='spear'?49:type==='staff'?41:32;
  ctx.save();ctx.translate(Math.round(x+q.x),Math.round(y+q.y-bob));ctx.rotate(q.angle);ctx.lineJoin='round';ctx.lineCap='round';
  if(glow){ctx.shadowColor=glow;ctx.shadowBlur=eco?0:enh>=7?10:5;ctx.globalAlpha=.30+.12*Math.sin(now/170);line([[0,4],[0,-length]],glow,enh>=7?9:5);ctx.globalAlpha=1}
+ if(enh>=10){
+  ctx.shadowBlur=0;ctx.globalAlpha=.85;
+  line([[0,6],[0,-length]],'#190b13',12);
+  line([[-3,3],[-3,-length+2]],'#a80e27',3);
+  line([[3,3],[3,-length+2]],'#ff354c',2);
+  ctx.globalAlpha=1;
+ }
  const blade=wood?'#b3824d':rarity,edge=wood?'#f0c385':'#f4faff';
  if(type==='shield'){poly([[-10,-12],[10,-12],[11,0],[0,12],[-11,0]],'#3a637e','#142334',2);poly([[-7,-9],[7,-9],[6,0],[0,8],[-6,0]],rarity);line([[0,-7],[0,5]],'#fff4c6',2)}
  else if(type==='bow'){ctx.beginPath();ctx.ellipse(0,-12,10,22,0,-Math.PI/2,Math.PI/2);ctx.strokeStyle='#c69558';ctx.lineWidth=4;ctx.stroke();line([[0,-34],[0,10]],'#dfe9df',1)}
@@ -39,7 +46,10 @@ function drawWeapon(it,hand,x,y,dir,now,moving,speed,act,t,bob=0){
  else if(type==='axe'){line([[0,12],[0,-29]],'#96643e',4);poly([[0,-30],[14,-35],[18,-25],[12,-17],[0,-22]],blade,'#1e303e',2)}
  else {poly([[-4,-4],[-4,-length+8],[0,-length],[5,-length+8],[4,-4]],blade,'#222c39',1.8);line([[0,-length+5],[0,-6]],edge,1.5);line([[-8,-3],[8,-3]],wood?'#85532d':'#d8aa62',4);line([[0,0],[0,10]],'#48302b',5);line([[0,1],[0,8]],'#ad8252',2);dot(0,11,2.5,'#d1b074')}
  ctx.shadowBlur=0;
- if(glow&&enh>=7){const n=eco?2:5;for(let i=0;i<n;i++){const z=(now/650+i/n)%1;spark(Math.sin(i*2.7+now/420)*7,-length*z,1.5+z*2,glow)}}
+ if(glow&&enh>=7){const n=eco?2:5;for(let i=0;i<n;i++){const z=(now/650+i/n)%1;const px=Math.sin(i*2.7+now/420)*7,py=-length*z;
+  if(enh>=10){dot(px,py,3+z*2,'#170b13');spark(px,py,1.5+z*2,i%2?'#ff354c':'#a80e27')}
+  else spark(px,py,1.5+z*2,glow)
+ }} 
  ctx.restore();
 }
 function layers(phase,params){
@@ -102,6 +112,18 @@ function renderOne(e,t){
 }
 function draw(){if(!p)return;sync();const now=Date.now();active=active.filter(e=>now-e.start<e.duration);for(const e of active){if(perfVisibleInCamera(e.tx,e.ty,135)||perfVisibleInCamera(e.x,e.y,135))renderOne(e,clamp((now-e.start)/e.duration,0,1))}}
 function guard(){if(!p||!(p.petShieldUntil>Date.now()))return;const a=.2+.1*Math.sin(Date.now()/230);ctx.save();ctx.globalAlpha=a;ring(p.x,p.y-4,38,'#8bd7ff',2);arc(p.x,p.y+25,26,9,0,Math.PI*2,'#ffdc8a',2);ctx.restore()}
+function redBlackAura(x,y,now){
+ const eco=perfMode==='eco',n=eco?4:8;
+ ctx.save();ctx.globalAlpha=.48;dot(x,y-5,32,'#190b13');
+ ctx.globalAlpha=.65;arc(x,y+20,29,12,0,Math.PI*2,'#d51c37',3);
+ for(let i=0;i<n;i++){const z=(now/1050+i/n)%1,a=i*2.39996+now/900;
+  const px=x+Math.cos(a)*(25+z*10),py=y+16-z*53+Math.sin(a)*8;
+  ctx.globalAlpha=(1-z)*.85;dot(px,py,4+z*5,'#190b13');
+  spark(px,py,2.5,i%2?'#ff354c':'#b10d28');
+ }
+ ctx.restore();
+}
+window.fdRedBlackAura=redBlackAura;
 window.fdCombatVfx=enqueue;
 window.fdDrawCombatVfx=draw;
 window.fdDrawGuardAura=guard;

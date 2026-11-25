@@ -41,7 +41,8 @@ drawPlayer=function(){
  const strongest=Math.max(0,...Object.values(p.equip).map(uid=>getEq(uid)?.enh||0));
  const visual=frameFor(now,Boolean(right||left)),busy=state.action&&now<state.until;
  ctx.save();circle(x,y+28,18,'#091d3280');
- if(strongest>=7){ctx.globalAlpha=.24+Math.sin(now/190)*.09;circle(x,y-5,32,strongest>=10?'#bd7bff':strongest===9?'#65caff':'#ffdc66');ctx.globalAlpha=1}
+ if(strongest>=10&&typeof window.fdRedBlackAura==='function')window.fdRedBlackAura(x,y,now);
+ else if(strongest>=7){ctx.globalAlpha=.24+Math.sin(now/190)*.09;circle(x,y-5,32,strongest>=10?'#ff354c':strongest===9?'#65caff':'#ffdc66');ctx.globalAlpha=1}
  const layer={x,y,dir:state.dir,now,moving:now<state.movingUntil,speed:state.speed,act:busy?state.action:null,t:busy?clamp((now-state.started)/Math.max(1,state.until-state.started),0,1):0,bob:visual.bob};
  if(typeof window.fdPaperDollLayers==='function')window.fdPaperDollLayers('back',layer);
  drawSprite(visual.frame,x,y,visual.flip,visual.bob);

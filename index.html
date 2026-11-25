@@ -982,8 +982,9 @@ function drawPlayer(){
  const strongest=Math.max(0,...Object.values(p.equip).map(uid=>(getEq(uid)?.enh||0)));
  ctx.save();
  circle(x,y+21,21,'#091d3280');
- if(strongest>=7){
-   let col=strongest===10?'#bd7bff':strongest===9?'#65caff':'#ffdc66';
+ if(strongest>=10&&typeof window.fdRedBlackAura==='function')window.fdRedBlackAura(x,y,Date.now());
+ else if(strongest>=7){
+   let col=strongest>=10?'#ff354c':strongest===9?'#65caff':'#ffdc66';
    ctx.globalAlpha=.25+Math.sin(Date.now()/190)*.1;
    circle(x,y-11,32,col);
    ctx.globalAlpha=1;
@@ -1126,7 +1127,7 @@ load();toggleMode('login');
 <script src="./v09.js?v=110"></script>
 <script src="./v095.js?v=95"></script>
 <script src="./v096.js?v=97"></script>
-<script src="./combat-art.js?v=130"></script>
-<script src="./starter-art.js?v=130"></script>
+<script src="./combat-art.js?v=131"></script>
+<script src="./starter-art.js?v=131"></script>
 </body>
 </html>
