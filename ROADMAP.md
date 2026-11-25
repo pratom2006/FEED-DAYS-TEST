@@ -1,11 +1,13 @@
 # FEED DAYS — Planned milestones
 
-## Implemented prototype — v0.9.4
+## Implemented prototype — v0.9.5
 - Local browser RPG with top-down pixel world, controls, NPCs, quests, maps and monster battles.
 - Scroll-name/category-before-use; discovered skills in a 6-slot hotbar, duplication XP, no preset max tier.
 - Playable pet/mount core: two AI companions + mount, manual mount attack toggle, independent potions, companion bag and equipment, enhancement, breeding cooldown 5h and 10m incapacitation.
 - Lightweight boss fights and scroll/egg drops.
 - Draggable multi-window bag, player equipment and pet management. Hold-drag manual slot order; independent equipment slots and rare-item confirmation.
+- Five gear rarity tiers with color-coded labels, actual rarity ATK/DEF benefits, +7 item properties that scale again at +9/+10, and rarity-weighted player/pet gear loot.
+- Explicit sort buttons for personal bank, shared bank and optional inventory. Per-character ☑ Auto Pickup for eligible nearby ground loot, independent of treasure pet rules.
 - iPad performance settings (Eco 30 FPS, Balanced 45 FPS, High 60 FPS), adaptive Canvas resolution, fixed-step 30Hz game logic, offscreen drawing culling and observed FPS display.
 - Distinct real-time floating hit numbers for player physical/critical/magic, companion and mount attacks with species icons, monster incoming damage, and healing. Optional Thai in-game legend; original damage formulas unchanged.
 - Forge star-upgrade material dropdown shows only identical-name equipment; every attempt consumes one matching gear plus one star crystal, while failure preserves main gear and its stars.
@@ -13,6 +15,7 @@
 
 ## Next: stability and gameplay polish
 - Real-device iPad smoke tests: save migrations, Home Screen launch, multi-touch, 6-slot hotbar spacing, floating window drag and item long-press, pet windows, offline resume, ground loot taps and pickup button.
+- Validate v0.9.5 gear rarity labels, +7 trait progression, both bank sort buttons, explicit inventory sort and auto pickup checkbox on a real iPad. Confirm old +7 gear/save migration.
 - Verify v0.9.4 heat, battery usage and smoothness on iPad in Eco/Balanced mode over 10–20 minutes, including full-screen / screen lock / app switching. This remains a physical-device test.
 - Next: v0.9.5 map chunks and map streaming, then v0.9.6 spatially filtered monster updates for a larger world, before genuine multiplayer server architecture.
 - Verify v0.9.3 damage-number legibility on a real iPad at multiple text sizes and different numbers of pets on screen.
