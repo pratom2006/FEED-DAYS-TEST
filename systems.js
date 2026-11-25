@@ -160,7 +160,7 @@ function fdCastSkill(id,silent=false){
  }else{
    for(const t of targets){
      let dmg=Math.max(1,Math.round((attackPower()*.35+p.stats.INT*1.7+10+lvl*2.8)*sk.power+(sk.type.includes('เวท')&&typeof fd95MagicBonus==='function'?fd95MagicBonus():0)));
-     t.hp-=dmg;pushCombatNumber(t.x,t.y-26,dmg,sk.type.includes('เวท')?'magic':'physical');
+     t.hp-=dmg;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(t);pushCombatNumber(t.x,t.y-26,dmg,sk.type.includes('เวท')?'magic':'physical');
      effects.push({kind:'swing',x:t.x,y:t.y,life:290,max:290,color:'#8ae2ff'});
      if(t.hp<=0)killEnemy(t);
    }
@@ -275,7 +275,7 @@ function fdTickPets(dt){
    }
    if(c.mp>=cost)c.mp-=cost;
    const damage=Math.max(1,Math.round(fdPetPower(c)*(c.mp>=cost?.95:.65)));
-   foe.hp-=damage;pushCombatNumber(foe.x,foe.y-25,damage,mount?'mount':'pet',c.icon||'🐾');
+   foe.hp-=damage;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(foe);pushCombatNumber(foe.x,foe.y-25,damage,mount?'mount':'pet',c.icon||'🐾');
    c.lastAttack=Date.now()+Math.max(650,1550-c.genes.AGI*24);
    fdPetGainExp(c,3);
    if(foe.hp<=0)killEnemy(foe);
@@ -326,7 +326,7 @@ function fdMountSkill(){
  if(c.mp<15)return toast('MP สัตว์ขี่ไม่เพียงพอ');
  c.mp-=15;c.lastAttack=now+1200;
  const dmg=Math.floor(fdPetPower(c)*1.7);
- t.hp-=dmg;pushCombatNumber(t.x,t.y-35,dmg,'mount',c.icon||'🐾');
+ t.hp-=dmg;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(t);pushCombatNumber(t.x,t.y-35,dmg,'mount',c.icon||'🐾');
  fdPetGainExp(c,4);if(t.hp<=0)killEnemy(t);save();
 }
 function fdCanBreed(a,b){
