@@ -2,7 +2,7 @@
 'use strict';
 const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,dropChance:0.40};
 // Absolute egg probability per kill; unused egg weight becomes upgrade material.
-const EGG_DROP={normal:.002,peaceful:.0035,aggressive:.005,boss:.03};
+const EGG_DROP={normal:.025,peaceful:.03,aggressive:.035,boss:.075};
 const rarityNames=['','ทั่วไป','พิเศษ','หายาก','มหากาพย์','ตำนาน'];
 const originals={fdInit,fdPetGear,fdShowPet,showScreen};
 let currentUid=null,highestZ=40,lastPetPickup=0,lastAutoPickup=0,lastSweep=0,pendingLootId=null;
