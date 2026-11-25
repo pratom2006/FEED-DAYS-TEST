@@ -1,6 +1,8 @@
 (function v09Feature(){
 'use strict';
 const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,dropChance:0.40};
+// Absolute egg probability per kill; unused egg weight becomes upgrade material.
+const EGG_DROP={normal:.002,peaceful:.0035,aggressive:.005,boss:.03};
 const rarityNames=['','ทั่วไป','พิเศษ','หายาก','มหากาพย์','ตำนาน'];
 const originals={fdInit,fdPetGear,fdShowPet,showScreen};
 let currentUid=null,highestZ=40,lastPetPickup=0,lastAutoPickup=0,lastSweep=0,pendingLootId=null;
@@ -392,15 +394,18 @@ function v09DropMonsterLoot(mon){
  if(Math.random()>=RULES.dropChance)return false;
  const roll=Math.random();
  const boss=Boolean(mon.boss);
+ const eggWeight=(boss?EGG_DROP.boss:(EGG_DROP[mon.mood]??EGG_DROP.normal))/RULES.dropChance;
  let item;
  if(boss){
    if(roll<.36){
      const ids={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
      const id=Math.random()<.7?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
      item={...fdMakeScroll(id),rarity:4,qty:1};
-   }else if(roll<.65){
+   }else if(roll<.36+eggWeight){
      const sp={left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf';
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:4,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
+   }else if(roll<.65){
+     item={name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1};
    }else if(roll<.89){
      item={...(Math.random()<.55?SHOP[rand(0,5)]:FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)]),rarity:4,qty:1};
    }else if(roll<.97){
@@ -419,9 +424,11 @@ function v09DropMonsterLoot(mon){
      const ids={left:['slash','fire','heal'],right:['roar','thunder','wind'],bottom:['wave','ice','guard']}[p.map]||['slash'];
      const id=Math.random()<.6?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
      item={...fdMakeScroll(id),rarity:2,qty:1};
-   }else if(roll<.96){
+   }else if(roll<.87+eggWeight){
      const sp=['wolf','fox','horse','slime','crab'][rand(0,4)];
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
+   }else if(roll<.96){
+     item={name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1};
    }else{
      item={...(Math.random()<.7?SHOP[rand(0,5)]:FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)]),rarity:2,qty:1};
    }
