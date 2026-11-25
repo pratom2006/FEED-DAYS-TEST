@@ -1,5 +1,12 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.6
+- Created backup: `backup/before-v0-9-6-expanded-maps-monster-behaviors-2026-11-25`.
+- New `v096.js`: three large scrolling zones linked to original east wolf-valley gate: meadow Lv18–32 (2300×1500), ancient ruins Lv30–48 (2880×1800), ashlands Lv45–65 (3200×2100). Added level-appropriate 3-species rosters and bosses to each, better XP for Lv25+.
+- Expanded old field populations to 16–18 and added 3 AI types across old/new maps: normal (never chases), peaceful (same-species allies defend if hit), aggressive (automatic aggro in sight). Monsters wander with idle periods, leashes, spatial AI throttling and map-specific respawns.
+- Added visible enemy mood/level labels and a toggleable minimap with player/monster/gate positions. Procedural terrain chunks drawn only in camera with bounded caching; updated world-scaled movement, fixed camera zoom, click-to-walk, ground item positions, enemy hit alerts and spawn.
+- Verified isolated JS zone counts, connected portals, normal/peaceful/aggressive behavior, respawn callbacks and terrain caching. Real iPad field-play testing remains necessary.
+
 ## 2026-11-25 — v0.9.5
 - Backed up v0.9.4 to `backup/before-v0-9-5-rarity-affixes-bank-sort-auto-pickup-2026-11-25`.
 - Added `v095.js` gear rarity and enhancement-property extension. Five tier colors/names and equipped rarity bonuses; trait at successful +7 that persists (including legacy ≥+7); trait scales at +9 and +10 for player and pet gear.
