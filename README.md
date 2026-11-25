@@ -1,10 +1,21 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9.4
+## Current playable build — Fantasy Realm v0.9.5
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.5 — Five-tier gear rarity, +7 properties, bank sorting and opt-in auto pickup
+
+- Gear now has **five visible tiers** (⚪ Common/ทั่วไป, 🟢 Uncommon/พิเศษ, 🔵 Rare/หายาก, 🟣 Epic/มหากาพย์, 🟡 Legendary/ตำนาน). Colored gear names, bag-slot outlines, equipment details and tooltips expose rarity. Existing items without rarity retain **tier 1**, with no rerolls on old saves.
+- Rarity increases equipped gear's original ATK/DEF by an additive tier-scaled bonus; existing enhancement and star levels remain intact. New player equipment can drop alongside pet gear, with boss loot weighted toward higher rarities. The **overall 40% per-kill one-item drop chance remains unchanged**; the additional rarity roll happens only after equipment was chosen as the item.
+- At **successful +7 enhancement**, each piece of equipment permanently receives **one deterministic, UID-stable property** matching its gear slot. Depending on slot/property: ATK, DEF, max HP, max MP, physical crit chance, or **actual magic-skill damage**. Trait strength automatically increases at **+9** and **+10**; its identity does not reroll when viewing the item or upgrading. Existing saved gear already ≥+7 receives a compatible property once, saved without losing old upgrades.
+- The forge's existing +8/+9/+10 failure-destroys-item risk and star-upgrade behavior remain unchanged. Pet gear rarity and appropriate attack/defense/HP/MP bonuses are applied to the **pet**, not to the player.
+- NPC **personal bank and account shared bank** now provide explicit **🧹 จัดเรียงคลังอัตโนมัติ**. Sorts highest rarity first, then item class/name/upgrade. No items, UID, enhancements, stars or properties are discarded. The bag also has an explicit sort button; **manual bag order remains untouched until the player taps it**.
+- Character world UI has a **☑ Auto Pickup** checkbox, independent of treasure-skilled pet auto pickup. When enabled, the player automatically collects **all nearby eligible ground items within 75 world units** roughly every 700 ms (only if items are present). It obeys the owner's 1-minute pickup priority, 3-minute expiry, available inventory space, and map restrictions. Default **off**, persisted in the character's existing local save. Manual 📦 Collect All remains available.
+- Tests: isolated JS rarity/traits/legacy migration/sorting checks passed; auto-pickup on/off, ownership, range, bag-full and expiry checks passed; syntax verified. **Actual iPad/touch/browser UI tests remain pending**. Not online multiplayer/server yet.
+- Backup: `backup/before-v0-9-5-rarity-affixes-bank-sort-auto-pickup-2026-11-25`.
 
 ### v0.9.4 — Performance Foundation / iPad power-saving controls
 
