@@ -34,6 +34,14 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Pets do not disappear/merge upon breeding; no guaranteed upgrades every generation.
 - Current prototype requires both parents Lv.3 for same species, Lv.8 for cross-species and uses basic inheritance. Recessive/ancestral allele simulation and advanced special species recipes are a future milestone.
 
+## Star upgrades — v0.9.2 implemented
+- Open the NPC forge's **🌟 เพิ่มดาว** tab. Choose **main equipment** first. Second dropdown filters to *other distinct item IDs* having the **exact same base name** as main, excluding other names and the main item.
+- Each star upgrade attempt always consumes **one matching gear item plus one star crystal**, regardless of outcome. Success increases main stars by 1; failure leaves main equipment alive and its enhancement/stars unchanged.
+- The confirmation dialog names both items, shows probability and explicitly warns material consumption on failure. Main selection stays in the UI after attempting.
+- Only unequipped, player-inventory gear is selectable in this forge as currently designed. Equipped gear resides in separate slots and must be unequipped into available bag space first.
+- Weapon enhancement already contributes to ATK/DEF in the original formulas. Additional new stat bonuses and custom weapon properties are a future design proposal, **not implemented yet**.
+- UI/logic simulations for same-name options, missing material, star success/failure, material/crystal consumption, main identity, and confirmation passed. Actual iPad visual/touch QA is still required.
+
 ## Loot rules — v0.9 local prototype
 - **Latest v0.9.1 decision:** tap the **📦 เก็บทั้งหมด (Collect all)** button **once** to collect every eligible item in a radius of **75 world units**. No hold is necessary. Tapping a specific ground drop still picks that single item (or walks toward it). Respect ownership, expiration and bag capacity.
 - Defeating any monster **or boss** now has **40% chance to drop one ground item** (60% none). On success, use weighted tables with stronger boss rarity. Money and EXP stay automatic. This supersedes v0.9's independent per-item rolls.
@@ -48,7 +56,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Player-to-player free trade, escrow-confirmed trades, markets for scrolls, pet gear and other items; no forced scroll soulbinding.
 - Server-side accounts, database, anti-cheat, persistence, marketplace and multiplayer on Railway/GitHub remain future work; do not claim a deployed server or functioning player-to-player economy.
 
-## Current implementation status: v0.9.1 (code in main)
+## Current implementation status: v0.9.2 (code in main)
 - `index.html`: original game world/HUD/menus, v0.7 pixel-art map, 3 paired directional portals, local login, 6 character slots, combat, inventory, forge and NPCs.
 - `v09.js`: draggable multi-window interface (bag, equipped items, stats, pets), hold-to-drag 80-slot storage, no scroll reset, separated equipped player/pet gear, confirmation for dropping/selling rare gear, manual ground pickup (tap and hold), item ground drop with local 1-minute owner priority and 3-minute expiry, and fox treasure-hunter auto pickup with filters and destination.
 - `systems.js`: skill-scroll discovery / duplicates / six-slot hotbar; sample 10 skill types; monster and boss scroll/egg drops; two AI combat pets + mount with auto/manual skill; pet HP/MP potions; inventory transfer and lock; equipment and enhance; stat points and evolution; breeding with inherited genes and 5h parental cooldown.
@@ -58,6 +66,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Backup before v0.8: `backup/before-skill-pet-breeding-systems-v0-8-2026-11-25`.
 - Backup before v0.9: `backup/before-v0-9-floating-inventory-ground-loot-2026-11-25`.
 - Backup before v0.9.1: `backup/before-pickup-all-and-drop-rate-40-percent-2026-11-25`.
+- Backup before v0.9.2: `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
 
 ## Engineering norms
 - Always backup main first. Preserve maps, graphics, UI, existing saves, all existing game mechanics unless explicitly approved.
