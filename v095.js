@@ -187,8 +187,6 @@ function setupAutoPickup(){
  });
 }
 setupAutoPickup();
-const nativeGetEq=getEq;
-getEq=function(uid){return nativeGetEq(uid)};
 window.fd95RarityName=it=>rank(it).name;
 window.fd95Tier=rank;
 window.fd95TraitText=traitText;
