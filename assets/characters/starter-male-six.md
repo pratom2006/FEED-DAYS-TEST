@@ -1,0 +1,4 @@
+# Six-direction starter male preview — v1.4.2
+Owner-approved walking art: E, SE, S, SW, W, N. NE and NW remain on the legacy renderer pending approval.
+Atlas 384x576 WebP with alpha, six rows of four 96x96 cells; row order E, SE, S, SW, W, N. Original approved sequence preserved; SE uses the approved 1-4-3-2 sequence and SW its mirrored equivalent. Source art resized and feet aligned; no new art generated. 150 ms/frame (600 ms per loop), using the approved preview tempo.
+The existing east idle asset is used for E and mirrored for W. Other idle directions, mounted and female characters retain existing pixel-art renderer. Existing weapon overlays, shadow, aura, name and level retained; armor and head art layering is not yet available for chibi. No changes to stats, speed, saves or gameplay. Test on iPad before expanding.
