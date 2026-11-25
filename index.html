@@ -153,13 +153,27 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
  color:#fff;font-size:12px;line-height:1.75;box-shadow:0 4px 16px #0009;pointer-events:auto}
 #damageLegend b{color:#ffe2a3}
 @media(max-width:560px){#damageLegend{width:169px;font-size:11px;line-height:1.6}#damageLegendToggle{font-size:11px}}
+
+/* FEED DAYS v0.9.4: touch-friendly performance settings, off the game controls. */
+#perfToggle{position:absolute;top:calc(9px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));
+ z-index:7;padding:7px 10px;min-height:34px;border:1px solid #7e9b9e;border-radius:9px;
+ background:#0b2734e6;color:#effff8;font-size:12px;touch-action:manipulation}
+#perfPanel{position:absolute;top:calc(51px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));
+ z-index:7;width:245px;max-width:min(245px,85vw);border:1px solid #8aa8ac;border-radius:11px;
+ padding:11px;color:#eef8f5;background:#112a3cf2;box-shadow:0 5px 17px #0019;
+ font-size:12px;line-height:1.55;touch-action:manipulation}
+#perfPanel .perf-heading{font-weight:700;color:#f9e7ad;margin-bottom:6px}
+#perfPanel select{width:100%;min-height:42px;padding:7px;border-radius:8px;
+ background:#203c4f;color:white;border:1px solid #8eacb6;font-size:14px}
+#perfPanel .perf-metric{margin-top:9px;background:#0b1f2d;border-radius:7px;padding:7px;color:#ddf0f5}
+#perfPanel .perf-tip{margin-top:7px;color:#bfd2d8;font-size:11px}
 </style>
 </head>
 <body>
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.9.3</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.9.4</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -174,7 +188,19 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
 </section>
 <section id="game" class="hide">
  <div id="topbar"><div class="hudPlayer"><div class="avatar" id="hudAvatar">🧑</div><div class="bars"><div class="barlabel"><b id="hudName">-</b><b id="hudLevel">Lv.1</b></div><div class="bar"><div id="hpbar" class="fill hp"></div></div><div class="barlabel"><span id="hpnum">HP</span><span id="mpnum">MP</span></div><div class="bar" style="height:8px"><div id="mpbar" class="fill mp"></div></div><div class="barlabel"><span>EXP</span><span id="expnum">0%</span></div><div class="bar" style="height:7px"><div id="xpbar" class="fill xp"></div></div></div></div><div class="hudActions"><span class="coin" id="moneyhud">🪙 0</span><button class="button sm ghost" id="potionQuick">🧪 HP</button><button class="button sm ghost" id="exitGameBtn">🚪 ออกเกม</button></div></div>
- <div id="worldWrap"><canvas id="world" width="960" height="600"></canvas><button id="fullscreenBtn" type="button" aria-label="ขยายเกมเต็มหน้าจอ" title="เต็มหน้าจอ">⛶</button><div class="mapBadge" id="mapName">เมืองเริ่มต้น</div><div class="hint" id="gameHint">แตะแผนที่เพื่อเดิน · เดินไปหา NPC เพื่อพูดคุย</div><button id="damageLegendToggle" type="button" aria-controls="damageLegend" aria-expanded="false">ℹ️ ตัวเลขโจมตี</button><div id="damageLegend" class="hide"><b>ความหมายของตัวเลข</b><div style="color:#fff4d5">⚔️ ปกติ (สีขาว)</div><div style="color:#ffd052">💥 CRIT! (สีทอง)</div><div style="color:#bfa8ff">🔮 เวท (สีม่วง)</div><div style="color:#79f0e0">🐺 🦊 🐉 สัตว์เลี้ยง / สัตว์ขี่</div><div style="color:#ff7777">👹 มอนสเตอร์โจมตี (สีแดง)</div><div style="color:#80ffac">💚 ฟื้นฟู HP (สีเขียว)</div><div class="dim tiny">สัญลักษณ์จะแสดงต่อท้ายตัวเลข</div></div><div class="touchPad" id="joy"><div class="stick" id="stick"></div></div><div class="fightButtons"><button id="skillBtn" class="fightBtn skill">✨ สกิล</button><button id="attackBtn" class="fightBtn">⚔️<br>โจมตี</button></div></div>
+ <div id="worldWrap"><canvas id="world" width="960" height="600"></canvas>
+<button id="perfToggle" type="button" aria-controls="perfPanel" aria-expanded="false">🌿 ประหยัดเครื่อง</button>
+<div id="perfPanel" class="hide" role="group" aria-label="ตั้งค่าประสิทธิภาพเกม">
+ <div class="perf-heading">⚙️ ประสิทธิภาพ FEED DAYS</div>
+ <label for="perfModeSelect">โหมดการแสดงผล</label>
+ <select id="perfModeSelect">
+  <option value="eco">🌿 ประหยัด — 30 FPS</option>
+  <option value="balanced">⚖️ สมดุล — 45 FPS</option>
+  <option value="high">🔥 ลื่นไหล — 60 FPS</option>
+ </select>
+ <div class="perf-metric" id="perfStats" aria-live="off">FPS จริง: -- · วาดภาพ: -- ms</div>
+ <div class="perf-tip">FPS เป็นค่าที่วัดจากการวาดภาพ ไม่ใช่อุณหภูมิของเครื่อง · ลดความละเอียดภาพในโหมดประหยัด</div>
+</div><button id="fullscreenBtn" type="button" aria-label="ขยายเกมเต็มหน้าจอ" title="เต็มหน้าจอ">⛶</button><div class="mapBadge" id="mapName">เมืองเริ่มต้น</div><div class="hint" id="gameHint">แตะแผนที่เพื่อเดิน · เดินไปหา NPC เพื่อพูดคุย</div><button id="damageLegendToggle" type="button" aria-controls="damageLegend" aria-expanded="false">ℹ️ ตัวเลขโจมตี</button><div id="damageLegend" class="hide"><b>ความหมายของตัวเลข</b><div style="color:#fff4d5">⚔️ ปกติ (สีขาว)</div><div style="color:#ffd052">💥 CRIT! (สีทอง)</div><div style="color:#bfa8ff">🔮 เวท (สีม่วง)</div><div style="color:#79f0e0">🐺 🦊 🐉 สัตว์เลี้ยง / สัตว์ขี่</div><div style="color:#ff7777">👹 มอนสเตอร์โจมตี (สีแดง)</div><div style="color:#80ffac">💚 ฟื้นฟู HP (สีเขียว)</div><div class="dim tiny">สัญลักษณ์จะแสดงต่อท้ายตัวเลข</div></div><div class="touchPad" id="joy"><div class="stick" id="stick"></div></div><div class="fightButtons"><button id="skillBtn" class="fightBtn skill">✨ สกิล</button><button id="attackBtn" class="fightBtn">⚔️<br>โจมตี</button></div></div>
  <div id="bottom"><button data-window="bag" class="button ghost"><span>🎒</span>กระเป๋า</button><button data-window="equip" class="button ghost"><span>🛡️</span>อุปกรณ์</button><button data-window="stats" class="button ghost"><span>💪</span>สเตตัส</button><button data-window="skills" class="button ghost"><span>📜</span>สกิล</button><button data-window="quest" class="button ghost"><span>📋</span>ภารกิจ</button><button data-window="pet" class="button ghost"><span>🐾</span>สัตว์เลี้ยง</button><button data-window="guide" class="button ghost"><span>🗺️</span>คู่มือ</button></div>
  <div id="reenterOverlay" class="hide" role="dialog" aria-modal="true" aria-labelledby="reenterTitle">
    <div class="reenterPanel">
@@ -208,6 +234,41 @@ let db={accounts:{}},accountId=null,selectedSlot=-1,p=null,mode='login',ui=null,
 let enemies=[],effects=[],lastFrame=0,tick=0,attackTime=0,portalLock=0,walkTarget=null,moveDir={x:0,y:0},joyPointer=null,toastTimer=null;
 let heldAttackPointer=null,lastAttackPointerDown=0,lastSkillPointerDown=0;
 let gamePaused=false,fullscreenManaged=false,exitInProgress=false;
+/* FEED DAYS v0.9.4: graphics mode is device-local; player saves remain untouched. */
+const PERF_STORE='feed_days_performance_v1';
+const PERF_MODES=Object.freeze({
+ eco:{fps:30,dpr:1},
+ balanced:{fps:45,dpr:1.35},
+ high:{fps:60,dpr:2}
+});
+let perfMode='balanced';
+try{
+ const chosen=localStorage.getItem(PERF_STORE);
+ if(Object.prototype.hasOwnProperty.call(PERF_MODES,chosen))perfMode=chosen;
+}catch(e){}
+const perfConfig=()=>PERF_MODES[perfMode];
+const PERF_SIM_STEP=1000/30; // Gameplay update independent from the graphics FPS.
+let perfLastTime=0,perfLastRender=0,perfSimAccumulator=0,perfRenderAccumulator=0;
+let perfForceRender=true,perfStatsSince=0,perfDrawn=0,perfDrawTime=0,perfPausedDrawn=false;
+function perfResetFrameClock(){
+ perfLastTime=0;perfLastRender=0;perfSimAccumulator=0;perfRenderAccumulator=0;
+ perfForceRender=true;perfPausedDrawn=false;perfStatsSince=0;perfDrawn=0;perfDrawTime=0;
+}
+function setPerfMode(next){
+ if(!Object.prototype.hasOwnProperty.call(PERF_MODES,next))return;
+ perfMode=next;
+ try{localStorage.setItem(PERF_STORE,perfMode)}catch(e){}
+ $('perfModeSelect').value=perfMode;
+ $('perfToggle').textContent=perfMode==='eco'?'🌿 ประหยัด 30':perfMode==='high'?'🔥 ลื่น 60':'⚖️ สมดุล 45';
+ resizeCanvas();perfResetFrameClock();
+}
+$('perfModeSelect').value=perfMode;
+$('perfToggle').textContent=perfMode==='eco'?'🌿 ประหยัด 30':perfMode==='high'?'🔥 ลื่น 60':'⚖️ สมดุล 45';
+$('perfModeSelect').addEventListener('change',e=>setPerfMode(e.target.value));
+$('perfToggle').addEventListener('click',()=>{
+ const panel=$('perfPanel'),opened=panel.classList.toggle('hide')===false;
+ $('perfToggle').setAttribute('aria-expanded',String(opened));
+});
 const WORLD={w:960,h:600}, canvas=$('world'),ctx=canvas.getContext('2d');
 const NPCS=[{id:'shop',name:'ร้านค้า',icon:'🛒',x:260,y:173,color:'#cfa66b'}, {id:'forge',name:'ช่างตีเหล็ก',icon:'🔨',x:711,y:174,color:'#d98e64'}, {id:'bank',name:'คลังเก็บของ',icon:'🏦',x:249,y:397,color:'#76b4d8'}, {id:'quest',name:'ภารกิจ',icon:'📜',x:704,y:394,color:'#b3a2e3'}, {id:'promote',name:'เลื่อนขั้น',icon:'🌟',x:481,y:215,color:'#f2ce7d'}];
 const MAPS={town:{name:'🏰 เมืองรุ่งอรุณ',color:'#52895b'},left:{name:'🌲 ป่าสไลม์',color:'#3a7652'},right:{name:'🪨 หุบเขาหมาป่า',color:'#697f65'},bottom:{name:'🌊 ชายหาดเวทมนตร์',color:'#638f9c'}};
@@ -410,7 +471,20 @@ function warp(dest,options={}){
   portalLock=Date.now()+1450;
   spawnEnemies();save();refreshHUD();toast('เดินทางไป '+MAPS[dest].name);
 }
-function resizeCanvas(){let r=$('worldWrap').getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);view.cw=Math.max(1,r.width);view.ch=Math.max(1,r.height);canvas.width=Math.ceil(r.width*dpr);canvas.height=Math.ceil(r.height*dpr);const s=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);view.scale=s;view.dpr=dpr}
+function resizeCanvas(){
+ const r=$('worldWrap').getBoundingClientRect();
+ const width=Math.max(1,r.width),height=Math.max(1,r.height);
+ const naturalDpr=Math.min(2,window.devicePixelRatio||1);
+ // Cap Canvas pixels on larger displays to prevent unbounded GPU allocation.
+ const maxPixels=2800000,capDpr=Math.sqrt(maxPixels/(width*height));
+ const dpr=Math.max(.5,Math.min(naturalDpr,perfConfig().dpr,capDpr));
+ view.cw=width;view.ch=height;
+ const backingWidth=Math.ceil(width*dpr),backingHeight=Math.ceil(height*dpr);
+ if(canvas.width!==backingWidth)canvas.width=backingWidth;
+ if(canvas.height!==backingHeight)canvas.height=backingHeight;
+ view.scale=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);
+ view.dpr=dpr;perfForceRender=true;
+}
 window.addEventListener('resize',resizeCanvas);resizeCanvas();
 
 const fullscreenBtn=$('fullscreenBtn');
@@ -984,7 +1058,49 @@ function drawMonster(e){
  if(e.boss){ctx.strokeStyle='#f7ca7b';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,32,0,Math.PI*2);ctx.stroke()}textLabel(e.bossTitle||e.name,x,y-49,'#fff1d4',11);
 }
 function render(){if(!p)return;const dpr=view.dpr||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,view.cw,view.ch);setViewport();drawGround(p.map);for(const portal of MAP_PORTALS[p.map]||[])drawPortal(portal.x,portal.y,portal.label,portal.color);if(p.map==='town'){NPCS.forEach(drawNPC)}else{for(let mob of enemies)drawMonster(mob)}fdDrawCompanions();if(typeof v09DrawGroundLoot==='function')v09DrawGroundLoot();drawPlayer();if(walkTarget){ctx.strokeStyle='#ffffff99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(walkTarget.x,walkTarget.y,8,0,Math.PI*2);ctx.stroke()}for(let e of effects){ctx.save();ctx.globalAlpha=clamp(e.life/e.max,0,1);if(e.kind==='swing'){ctx.strokeStyle=e.color;ctx.lineWidth=5;ctx.beginPath();const r=25+(1-e.life/e.max)*8;ctx.arc(e.x,e.y-8,r,-1.2,.45);ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#fff8df';ctx.beginPath();ctx.arc(e.x,e.y-8,r-5,-1.1,.3);ctx.stroke()}else if(e.kind==='combatNumber'){drawCombatNumber(e)}else{textLabel(e.text,e.x,e.y-(1-e.life/e.max)*27,e.color,16)}ctx.restore()}}
-function loop(t){let dt=Math.min(50,t-(lastFrame||t));lastFrame=t;if(p){if(!gamePaused)step(dt);render()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+/* Fixed 30 Hz game-state updates; the display can draw at 30/45/60 FPS.
+   No heavy rendering while hidden, on menu screens, or behind a pause dialog.
+   Accumulated lag is capped to avoid catch-up spirals after a tab switch. */
+function loop(t){
+ requestAnimationFrame(loop);
+ if(!p||document.hidden||$('game').classList.contains('hide')){
+   perfResetFrameClock();
+   return;
+ }
+ const elapsed=perfLastTime?Math.max(0,Math.min(100,t-perfLastTime)):0;
+ perfLastTime=t;
+ const blocked=gamePaused||(ui&&ui!=='📜 สกิล');
+ if(blocked){
+   perfSimAccumulator=0;perfRenderAccumulator=0;
+   if(perfPausedDrawn&&!perfForceRender)return;
+ }else{
+   perfPausedDrawn=false;
+   perfSimAccumulator=Math.min(PERF_SIM_STEP*3,perfSimAccumulator+elapsed);
+   let steps=0;
+   while(perfSimAccumulator>=PERF_SIM_STEP&&steps<3){
+     step(PERF_SIM_STEP);perfSimAccumulator-=PERF_SIM_STEP;steps++;
+   }
+   perfRenderAccumulator=Math.min(100,perfRenderAccumulator+elapsed);
+ }
+ const renderInterval=1000/perfConfig().fps;
+ if(!perfForceRender&&!blocked&&perfRenderAccumulator<renderInterval-.4)return;
+ if(!perfForceRender&&!blocked)perfRenderAccumulator=Math.max(0,perfRenderAccumulator-renderInterval);
+ else perfRenderAccumulator=0;
+ perfForceRender=false;perfPausedDrawn=Boolean(blocked);
+ const start=performance.now();
+ render();
+ perfDrawTime+=performance.now()-start;perfDrawn++;
+ if(!perfStatsSince)perfStatsSince=t;
+ if(t-perfStatsSince>=1000){
+   const span=t-perfStatsSince;
+   const fps=Math.round(perfDrawn*1000/span);
+   const drawMs=perfDrawn?(perfDrawTime/perfDrawn).toFixed(1):'0.0';
+   $('perfStats').textContent='FPS จริง: '+fps+' / เป้า '+perfConfig().fps+
+      ' · วาดภาพ: '+drawMs+' ms/เฟรม · ความละเอียด '+view.dpr.toFixed(2)+'×';
+   perfStatsSince=t;perfDrawn=0;perfDrawTime=0;
+ }
+}
+requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
