@@ -34,6 +34,15 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Pets do not disappear/merge upon breeding; no guaranteed upgrades every generation.
 - Current prototype requires both parents Lv.3 for same species, Lv.8 for cross-species and uses basic inheritance. Recessive/ancestral allele simulation and advanced special species recipes are a future milestone.
 
+## Gear and storage improvements — v0.9.5 implemented
+- Added separate `v095.js` extension loaded after `systems.js` and `v09.js`; preserves all older main game code and player data. Old gear without rarity remains tier 1.
+- Five tier gear rarity: ⚪ทั่วไป (1), 🟢พิเศษ (2), 🔵หายาก (3), 🟣มหากาพย์ (4), 🟡ตำนาน (5). Gear rarity names/colors show in name, inventory slot, tooltip, equipment, bank and shops. Equipped base ATK/DEF gain additive rarity bonuses without resetting existing + enhancement/stars. Pet gear similarly boosts only its companion.
+- A piece of equipment receives a deterministic permanent property on **successful enhancement to +7**, and older +7 or higher gear gets one upon loading. Depending on gear slot: flat ATK/DEF/HP/MP, crit chance or magic skill damage. Trait improves at +9 and +10 but does not reroll; forge's original risk of item destruction when failing +8/+9/+10 is unchanged. Player traits affect actual damage and HP/MP, pet traits affect pets.
+- New regular and boss item drops can include player or pet equipment with tier-weighted rarity, but **overall item drop remains 40% chance of one item per defeated mob/boss**. Boss tier distribution is better than normal mobs.
+- NPC personal bank and shared bank offer explicit auto sort by rarity, type, name then enhancement/stars. Player's manually arranged 80-slot bag also has a separate explicit sort action. No passive rearrangement of manual inventory slots.
+- Character **☑ Auto Pickup** setting saves locally per character (default OFF). Enabled player collects every nearby eligible item within 75 units at roughly 700ms polling. No pickup through full bag, rights lock, expiry or distant loot; no chat/server required. Pet treasure auto-pickup remains independent, using its existing filters and chosen destination.
+- QA: JavaScript source parsed, simulated tier bonuses/trait persistence/old +7 migration/personal and shared bank sorting/bag UID preservation passed; simulated pickup on/off, owner lock/expiry, range, and full bag passed. Real iPad UI/thermal QA pending.
+
 ## Performance Foundation — v0.9.4 implemented
 - Performance control accessible from **🌿/⚖️/🔥 top-left button within world**, with Eco 30 FPS, Balanced 45 FPS (default), High 60 FPS target. Device-local preference stored at `feed_days_performance_v1`, independent of character localStorage key.
 - Independently run gameplay at fixed 30 Hz and draw at 30/45/60 FPS target, maintaining time-based movement and attack cooldowns. Cap backlog to 3 updates following stalls to reduce stutter, rather than simulating hundreds of updates after long background pauses.
@@ -70,7 +79,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Player-to-player free trade, escrow-confirmed trades, markets for scrolls, pet gear and other items; no forced scroll soulbinding.
 - Server-side accounts, database, anti-cheat, persistence, marketplace and multiplayer on Railway/GitHub remain future work; do not claim a deployed server or functioning player-to-player economy.
 
-## Current implementation status: v0.9.4 (code in main)
+## Current implementation status: v0.9.5 (code in main)
 - `index.html`: original game world/HUD/menus, v0.7 pixel-art map, 3 paired directional portals, local login, 6 character slots, combat, inventory, forge and NPCs.
 - `v09.js`: draggable multi-window interface (bag, equipped items, stats, pets), hold-to-drag 80-slot storage, no scroll reset, separated equipped player/pet gear, confirmation for dropping/selling rare gear, manual ground pickup (tap and hold), item ground drop with local 1-minute owner priority and 3-minute expiry, and fox treasure-hunter auto pickup with filters and destination.
 - `systems.js`: skill-scroll discovery / duplicates / six-slot hotbar; sample 10 skill types; monster and boss scroll/egg drops; two AI combat pets + mount with auto/manual skill; pet HP/MP potions; inventory transfer and lock; equipment and enhance; stat points and evolution; breeding with inherited genes and 5h parental cooldown.
@@ -83,6 +92,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Backup before v0.9.2: `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
 - Backup before v0.9.3: `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
 - Backup before v0.9.4: `backup/before-v0-9-4-performance-foundation-2026-11-25`.
+- Backup before v0.9.5: `backup/before-v0-9-5-rarity-affixes-bank-sort-auto-pickup-2026-11-25`.
 
 ## Engineering norms
 - Always backup main first. Preserve maps, graphics, UI, existing saves, all existing game mechanics unless explicitly approved.
