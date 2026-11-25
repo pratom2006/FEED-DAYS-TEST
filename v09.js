@@ -1,9 +1,9 @@
 (function v09Feature(){
 'use strict';
 const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420,dropChance:0.40};
-const rarityNames=['','ทั่วไป','Uncommon','Rare','Epic','Legendary'];
+const rarityNames=['','ทั่วไป','พิเศษ','หายาก','มหากาพย์','ตำนาน'];
 const originals={fdInit,fdPetGear,fdShowPet,showScreen};
-let currentUid=null,highestZ=40,lastPetPickup=0,lastSweep=0,pendingLootId=null;
+let currentUid=null,highestZ=40,lastPetPickup=0,lastAutoPickup=0,lastSweep=0,pendingLootId=null;
 let v09LastTickInit=0,v09LastTickPlayer=null;
 const windowMap=new Map();
 const here=()=>Boolean(p&&$('game')&&!$('game').classList.contains('hide'));
@@ -177,7 +177,11 @@ function v09Detail(){
  const it=bagSelectedItem();
  if(!it){detail.innerHTML='แตะไอเทมเพื่อดูรายละเอียด · กดค้าง 0.4 วินาทีแล้วลากเพื่อจัดเรียง';return}
  let info=it.type==='skillScroll'?'ประเภท: '+(FD_SKILLS[it.skill]?.type||'สกิล')+' · ใช้คัมภีร์แล้วจึงเห็นพลังสกิล':(it.desc||it.type);
- detail.innerHTML='<b>'+esc(it.icon||'📦')+' '+safeItemName(it)+'</b><div class="dim tiny">'+esc(info)+' · จำนวน '+(it.qty||1)+'</div><div class="v09-actions">'+
+ detail.innerHTML='<b>'+esc(it.icon||'📦')+' '+safeItemName(it)+'</b><div class="dim tiny">'+esc(info)+' · จำนวน '+(it.qty||1)+'</div>'+
+ (it.type==='gear'&&typeof fd95BonusText==='function'?'<div class="tiny" style="margin-top:6px;color:'+(typeof fd95Tier==='function'?fd95Tier(it).color:'#f7e5ba')+'">'+
+ 'ความหายาก: '+esc(fd95RarityName(it))+' · '+esc(fd95BonusText(it)||'ยังไม่มีโบนัสเพิ่มเติม')+'</div>'+
+ '<div class="tiny" style="margin-top:4px;color:#f5d59b">'+esc(fd95TraitText(it)||'ตีบวกถึง +7 เพื่อเปิดคุณสมบัติพิเศษ')+'</div>':'')+
+ '<div class="v09-actions">'+
  (it.type==='gear'?'<button class="button gold sm" data-act="equip">⚔️ สวมใส่</button>':'')+
  (it.type?.startsWith('potion')?'<button class="button gold sm" data-act="use">🧪 ใช้ยา</button>':'')+
  (it.type==='skillScroll'?'<button class="button gold sm" data-act="scroll">📜 ใช้คัมภีร์</button>':'')+
@@ -259,12 +263,18 @@ function v09ShowBag(){
  const holder=win.querySelector('.v09-content'),prior=holder.querySelector('.v09-bag-scroll')?.scrollTop||0;
  const bySlot=new Map(p.items.map(it=>[it.bagSlot,it]));
  holder.innerHTML='<div class="line space"><b>'+p.items.length+'/80 ช่อง</b><span class="coin">🪙 '+p.coins.toLocaleString('th-TH')+'</span></div>'+
+ '<button type="button" class="button sm ghost" id="fd95SortBag">🧹 จัดเรียงกระเป๋าตามความหายาก</button>'+
  '<p class="dim tiny" style="margin:5px 0">แตะดูของ · กดค้างแล้วลากเพื่อย้ายหรือสลับ · ปัดเลื่อนรายการได้</p>'+
  '<div class="v09-bag-scroll"><div class="v09-grid">'+
- Array.from({length:80},(_,i)=>{const it=bySlot.get(i);return '<button type="button" class="v09-cell" data-slot="'+i+'" '+(it?'data-uid="'+esc(it.uid)+'"':'')+'>'+(it?esc(it.icon||ITEM_ICONS[it.type]||'📦')+'<small>'+(it.qty>1?'×'+it.qty:'')+(it.enh?' +'+it.enh:'')+'</small>':'·')+'</button>'}).join('')+
+ Array.from({length:80},(_,i)=>{const it=bySlot.get(i),rarity=it?.type==='gear'&&typeof fd95Tier==='function'?fd95Tier(it):null;
+ return '<button type="button" class="v09-cell" data-slot="'+i+'" '+(it?'data-uid="'+esc(it.uid)+'"':'')+
+ (rarity?' style="border-color:'+rarity.color+'" title="'+esc(itemName(it))+'"':'')+'>'+
+ (it?esc(it.icon||ITEM_ICONS[it.type]||'📦')+'<small>'+(it.qty>1?'×'+it.qty:'')+(it.enh?' +'+it.enh:'')+'</small>':'·')+'</button>'}).join('')+
  '</div></div><div class="v09-bag-detail"></div>';
  const viewport=holder.querySelector('.v09-bag-scroll');viewport.scrollTop=prior;
  v09BindBagCells(win,viewport);v09Detail();
+ const sortBtn=holder.querySelector('#fd95SortBag');
+ if(sortBtn)sortBtn.onclick=()=>{if(typeof fd95SortBag==='function')fd95SortBag()};
 }
 showBag=v09ShowBag;
 function v09ShowEquip(){
@@ -272,7 +282,9 @@ function v09ShowEquip(){
  const win=v09Window('equip','🛡️ อุปกรณ์ที่สวมอยู่');
  const row=Object.entries(SLOTS).map(([slot,label])=>{
    const it=p.equippedItems[slot];
-   return '<div class="line space" style="margin:7px 0;gap:6px"><span>'+esc(label)+'<br><b>'+(it?safeItemName(it):'ว่าง')+'</b></span>'+
+   return '<div class="line space" style="margin:7px 0;gap:6px"><span>'+esc(label)+'<br><b style="color:'+(it&&typeof fd95Tier==='function'?fd95Tier(it).color:'#f0f0f0')+'">'+(it?safeItemName(it):'ว่าง')+'</b>'+
+ (it&&typeof fd95TraitText==='function'?'<div class="tiny dim">'+esc(fd95BonusText(it)||'')+'<div>'+esc(fd95TraitText(it)||'')+'</div></div>':'')+
+ '</span>'+
      (it?'<button type="button" class="button sm ghost" data-unequip="'+slot+'">ถอด</button>':'')+'</div>';
  }).join('');
  win.querySelector('.v09-content').innerHTML='<div class="section"><b>'+esc(p.name)+'</b> Lv.'+p.lvl+'<p class="dim tiny">สวมใส่แล้วไม่กินช่องกระเป๋า · ถอดต้องมีช่องว่าง</p><p>ATK '+attackPower()+' · DEF '+defense()+'</p></div><div class="section">'+row+'</div>';
@@ -390,7 +402,7 @@ function v09DropMonsterLoot(mon){
      const sp={left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf';
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:4,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
    }else if(roll<.89){
-     item={...FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)],rarity:4,qty:1};
+     item={...(Math.random()<.55?SHOP[rand(0,5)]:FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)]),rarity:4,qty:1};
    }else if(roll<.97){
      item={...SHOP[9],rarity:3,qty:1};
    }else{
@@ -411,9 +423,10 @@ function v09DropMonsterLoot(mon){
      const sp=['wolf','fox','horse','slime','crab'][rand(0,4)];
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
    }else{
-     item={...FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)],rarity:2,qty:1};
+     item={...(Math.random()<.7?SHOP[rand(0,5)]:FD_PET_GEAR[rand(0,FD_PET_GEAR.length-1)]),rarity:2,qty:1};
    }
  }
+ if(item.type==='gear'&&typeof fd95RollRarity==='function')item.rarity=fd95RollRarity(boss);
  return Boolean(v09SpawnGround(item,mon.x,mon.y,'monster'));
 }
 function v09KillEnemy(mon){
@@ -457,7 +470,7 @@ function v09Pickup(drop,targetPet,quiet,deferSync=false){
  if(!quiet)toast('📦 เก็บ '+drop.item.name+' สำเร็จ');
  return true;
 }
-function v09CollectAll(){
+function v09CollectAll(quiet=false){
  // One tap collects every eligible drop in pickup range. Locked/out-of-range
  // drops stay on the ground, and bag-full drops are never consumed.
  if(!p||gamePaused||ui)return 0;
@@ -470,10 +483,12 @@ function v09CollectAll(){
    if(v09Pickup(drop,null,true,true)){collected++}
    else{full=true}
  }
- if(collected){save();v09Refresh();toast('📦 เก็บได้ '+collected+' ชิ้น'+(full?' · กระเป๋าเต็ม ยังมีของเหลือบนพื้น':' สำเร็จ'))}
- else if(full){toast('🎒 กระเป๋าเต็ม เก็บของเพิ่มไม่ได้')}
- else if(locked){toast('🔒 ของที่อยู่ใกล้ยังเป็นสิทธิ์ของผู้เล่นอื่น')}
- else{toast('ไม่มีไอเทมที่เก็บได้ในระยะ')}
+ if(collected){save();v09Refresh();if(!quiet)toast('📦 เก็บได้ '+collected+' ชิ้น'+(full?' · กระเป๋าเต็ม ยังมีของเหลือบนพื้น':' สำเร็จ'))}
+ else if(!quiet){
+   if(full)toast('🎒 กระเป๋าเต็ม เก็บของเพิ่มไม่ได้');
+   else if(locked)toast('🔒 ของที่อยู่ใกล้ยังเป็นสิทธิ์ของผู้เล่นอื่น');
+   else toast('ไม่มีไอเทมที่เก็บได้ในระยะ');
+ }
  return collected;
 }
 
@@ -536,6 +551,12 @@ function v09Tick(dt){
    const drop=p.groundLoot.find(x=>x.id===pendingLootId&&x.map===p.map);
    if(!drop){pendingLootId=null}
    else if(dist(p,drop)<=RULES.pickupRange){pendingLootId=null;walkTarget=null;v09Pickup(drop,null,false)}
+ }
+ if(p.autoPickup&&now-lastAutoPickup>=700){
+   lastAutoPickup=now;
+   if((p.groundLoot||[]).some(x=>x.map===p.map&&dist(p,x)<=RULES.pickupRange&&v09CanCollect(x))){
+     v09CollectAll(true);
+   }
  }
  if(now-lastPetPickup>=600){
    lastPetPickup=now;v09PetAutoPickup();
