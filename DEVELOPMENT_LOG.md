@@ -1,5 +1,14 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.4
+- Backed up v0.9.3 to `backup/before-v0-9-4-performance-foundation-2026-11-25` before code edits.
+- Added three device-local graphics presets with editable 30/45/60 FPS drawing caps, separately timed fixed 30Hz gameplay updates, bounded catch-up ticks, and adaptive Canvas DPR.
+- Avoid drawing hidden/inactive/paused world, cull off-camera monster/NPC/portal/ground loot art, and simplify loot glow in Eco mode.
+- Reduce repeat inventory migration/normalization checks by throttling `v09Init` on the simulation path without affecting immediate UI initialization.
+- Added actual measured FPS, Canvas CPU render-call time and resolution scale to an on-screen performance panel.
+- JavaScript syntax and deterministic 60Hz pacing simulations passed: 30/45/60 FPS, ~10 seconds simulation time all modes, pause and hidden-tab stops.
+- Not yet measured actual temperature or browser CPU/GPU load on an iPad. Preserve v0.9.3 attack/crit/magic/pet numbers, 40% item drops, bag and forge rules.
+
 ## 2026-11-25 — v0.9.3
 - Backed up v0.9.2 to `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
 - Added styled floating hit values: normal ⚔️, crit 💥 + CRIT! gold banner, skill magic 🔮 purple, per-species pet/mount icons in aqua, monster 👹 incoming red, and green 💚 healing. Pet hit location aligns with the actual companion position.
