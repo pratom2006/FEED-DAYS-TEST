@@ -4,6 +4,7 @@ const RULES={pickupRange:75,petRange:95,ownerMs:60000,expireMs:180000,holdMs:420
 const rarityNames=['','ทั่วไป','Uncommon','Rare','Epic','Legendary'];
 const originals={fdInit,fdPetGear,fdShowPet,showScreen};
 let currentUid=null,highestZ=40,lastPetPickup=0,lastSweep=0,pendingLootId=null;
+let v09LastTickInit=0,v09LastTickPlayer=null;
 const windowMap=new Map();
 const here=()=>Boolean(p&&$('game')&&!$('game').classList.contains('hide'));
 function safeItemName(it){return esc(itemName(it))}
@@ -487,11 +488,17 @@ function v09TapLoot(id){
 function v09DrawGroundLoot(){
  if(!p)return;
  const now=Date.now();
+ // Skip drawing off-camera world loot while keeping its gameplay/timers intact.
+ const scale=view.scale||1;
+ const minX=-view.x/scale-52,maxX=(view.cw-view.x)/scale+52;
+ const minY=-view.y/scale-52,maxY=(view.ch-view.y)/scale+52;
+ const eco=typeof perfMode!=='undefined'&&perfMode==='eco';
  for(const drop of p.groundLoot||[]){
-   if(drop.map!==p.map||drop.expiresAt<=now)continue;
+   if(drop.map!==p.map||drop.expiresAt<=now||
+     drop.x<minX||drop.x>maxX||drop.y<minY||drop.y>maxY)continue;
    const rarity=drop.item.rarity||1;
    const color=['','#d1e8e1','#93d89c','#80afff','#c68bff','#f7d179'][rarity]||'#d1e8e1';
-   ctx.save();ctx.shadowColor=color;ctx.shadowBlur=rarity>=3?15:4;
+   ctx.save();ctx.shadowColor=color;ctx.shadowBlur=eco?0:(rarity>=3?12:2);
    ctx.textAlign='center';ctx.font='24px Arial';ctx.fillText(drop.item.icon||'📦',drop.x,drop.y+4);
    ctx.shadowBlur=0;ctx.fillStyle=color;ctx.font='10px sans-serif';
    ctx.fillText(String(drop.item.name||'ไอเทม').slice(0,17),drop.x,drop.y-20);
@@ -513,7 +520,12 @@ function v09PetAutoPickup(){
 }
 function v09Tick(dt){
  if(!p)return;
- v09Init();const now=Date.now();
+ const now=Date.now();
+ // Inventory migration/matching remains available immediately via fdInit/UI,
+ // but the heavier full inventory normalization need not run every simulation tick.
+ if(p!==v09LastTickPlayer||!p.v09InventoryMigrated||now-v09LastTickInit>=1500){
+   v09LastTickPlayer=p;v09LastTickInit=now;v09Init();
+ }
  if(now-lastSweep>=1000){
    lastSweep=now;
    const before=p.groundLoot.length;
