@@ -111,13 +111,27 @@ function spawnInitial(){
  configureWorld();enemies=[];
  if(!p||p.map==='town')return;
  const z=zone(p.map);if(!z){baseSpawn();return}
- // Place some ordinary monsters near the arrival area so the new huge maps
- // do not appear empty, but leave a safe radius around the entry.
- for(let i=0;i<z.count;i++){
-  const spec=chooseSpec(z);
-  const nearby=i<Math.min(5,Math.round(z.count/6));
-  spawnOne(spec,nearby?{x:p.x+240,y:p.y+(i-2)*100}:null);
+ // Seed nearby encounters, plus grouped peaceful species to make their
+ // same-species defensive swarms observable rather than isolated across huge maps.
+ const initialNear=Math.min(5,Math.round(z.count/6));
+ for(let i=0;i<initialNear;i++){
+   const spec=z.mobs[i%z.mobs.length];
+   spawnOne(spec,{x:p.x+260,y:p.y+(i-2)*80});
  }
+ const peaceful=z.mobs.find(m=>m.mood==='peaceful');
+ const packs=Math.max(2,Math.round(z.count/11));
+ for(let pack=0;pack<packs;pack++){
+   const center=findSpawn(peaceful);
+   const members=Math.min(4,z.count-enemies.length);
+   for(let j=0;j<members;j++){
+     const theta=j*Math.PI*2/Math.max(1,members),r=25+j*14;
+     const x=clamp(center.x+Math.cos(theta)*r,55,WORLD.w-55);
+     const y=clamp(center.y+Math.sin(theta)*r,55,WORLD.h-55);
+     enemies.push(makeMob(peaceful,x,y,false));
+   }
+ }
+ while(enemies.length<z.count){spawnOne(chooseSpec(z))}
+
  if(z.boss){
   const x=ZONES[p.map]?WORLD.w*.72:WORLD.w*.62;
   const y=ZONES[p.map]?WORLD.h*.6:WORLD.h*.77;
