@@ -1,0 +1,6 @@
+# Starter male — East visual preview (v1.4.1)
+- Male only, east movement sector (22.5 degrees either side of due east); east idle retains direction. All other directions and mounted movement use the original renderer.
+- Actual movement delta from simulation drives the animation for joystick, keyboard and tap-to-move. Fixed 100 ms per slot (10 FPS), five slots per loop; no idle in the walk loop. The provided GIF has one idle and four moving poses, so one passing pose is reused; five unique moving poses are not yet available.
+- Sprite atlas: WebP with alpha, 576×96, 6 equal cells of 96×96; source GIF resized and aligned to fixed ground baseline. Cell 0 idle; cells 1–5 movement. One image loaded once; fallback on decode failure. No new save fields.
+- Existing shadow, enhancement aura, name/level and weapon overlays retained. Armor and headgear art not yet layered on the east chibi; their stats and inventory unchanged. No speed, combat, EXP, loot, maps, pet or local account changes.
+- iPad visual, touch, and live Pages deployment checks still required.
