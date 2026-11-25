@@ -1,5 +1,13 @@
 # FEED DAYS — Development log
 
+## 2026-11-25 — v0.9.5
+- Backed up v0.9.4 to `backup/before-v0-9-5-rarity-affixes-bank-sort-auto-pickup-2026-11-25`.
+- Added `v095.js` gear rarity and enhancement-property extension. Five tier colors/names and equipped rarity bonuses; trait at successful +7 that persists (including legacy ≥+7); trait scales at +9 and +10 for player and pet gear.
+- Enhanced NPC personal/shared bank with explicit rarity-first auto-sort; also optional bag sort without changing its normal manual layout.
+- Added per-character ☑ Auto Pickup world checkbox, off by default; updates roughly 700ms with 75-unit pickup radius and all pre-existing expiry/owner/bag limitations. Pet treasure-skill auto pickup remains separate.
+- Player gear now appears in normal/boss loot alongside pet gear; overall 40% chance of one ground item unchanged.
+- JS parse, item stat/migration/bank sorting and auto-pickup rights/range/capacity simulations passed. Real iPad visual QA pending.
+
 ## 2026-11-25 — v0.9.4
 - Backed up v0.9.3 to `backup/before-v0-9-4-performance-foundation-2026-11-25` before code edits.
 - Added three device-local graphics presets with editable 30/45/60 FPS drawing caps, separately timed fixed 30Hz gameplay updates, bounded catch-up ticks, and adaptive Canvas DPR.
