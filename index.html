@@ -482,7 +482,7 @@ function resizeCanvas(){
  const backingWidth=Math.ceil(width*dpr),backingHeight=Math.ceil(height*dpr);
  if(canvas.width!==backingWidth)canvas.width=backingWidth;
  if(canvas.height!==backingHeight)canvas.height=backingHeight;
- view.scale=Math.max(view.cw/WORLD.w,view.ch/WORLD.h);
+ view.scale=Math.max(view.cw/960,view.ch/600); // Fixed visual zoom even on enlarged scrolling worlds
  view.dpr=dpr;perfForceRender=true;
 }
 window.addEventListener('resize',resizeCanvas);resizeCanvas();
