@@ -367,7 +367,7 @@ function v09SpawnGround(it,x,y,source){
  if(!p||!it)return;
  v09Init();
  const created=Date.now(),n=p.groundLoot.filter(x=>x.map===p.map).length;
- const targetX=clamp(x+Math.sin(n*2.4)*20,30,930),targetY=clamp(y+Math.cos(n*2.1)*16,45,555);
+ const targetX=clamp(x+Math.sin(n*2.4)*20,30,WORLD.w-30),targetY=clamp(y+Math.cos(n*2.1)*16,45,WORLD.h-45);
  const ground={id:guid(),item:makeItem(it,it.qty||1),x:targetX,y:targetY,map:p.map,
    owner:accountId||'local',ownerChar:p.name,createdAt:created,publicAt:created+RULES.ownerMs,expiresAt:created+RULES.expireMs,source:source||'drop'};
  delete ground.item.bagSlot;
@@ -439,7 +439,8 @@ function v09KillEnemy(mon){
  effects.push({x:mon.x,y:mon.y-50,text:'EXP +'+mon.xp,life:1100,max:1100,color:'#f9da8a'});
  toast((mon.boss?'👑 บอส ':'กำจัด ')+mon.name+' สำเร็จ! '+(dropped?'มีไอเทมตกบนพื้น 📦':'ครั้งนี้ไม่มีไอเทมดรอป'));
  const map=p.map;
- setTimeout(()=>{
+ if(typeof window.fd96ScheduleRespawn==='function')window.fd96ScheduleRespawn(mon,map);
+ else setTimeout(()=>{
    if(p&&p.map===map&&map!=='town'&&enemies.length<7){
      enemies.push({uid:guid(),x:rand(120,830),y:rand(145,510),
        hp:map==='left'?40:map==='right'?80:60,max:map==='left'?40:map==='right'?80:60,
