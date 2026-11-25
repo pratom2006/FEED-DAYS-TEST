@@ -118,6 +118,7 @@ function css(){
  const st=document.createElement('style');
  st.textContent=`
  #overlay:not(.hide){z-index:100!important}
+ #overlay:not(.hide):has(#fdHatchPanel){z-index:100000!important}
  .v09-window{position:fixed;display:flex;flex-direction:column;z-index:41;background:rgba(16,33,49,.92);backdrop-filter:blur(5px);border:1px solid #91b1bf;border-radius:13px;color:#f2f6fa;box-shadow:0 12px 35px #0009;min-width:245px;min-height:180px;max-width:96vw;max-height:80dvh;overflow:hidden;font-size:13px}
  .v09-head{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:9px;background:#27445ae8;touch-action:none;cursor:grab;user-select:none}
  .v09-head b{flex:1}.v09-head button{width:29px;height:27px;background:#142a39;border:1px solid #88a6b3;border-radius:6px;color:white;cursor:pointer}
@@ -187,7 +188,7 @@ function v09Detail(){
  (it.type==='gear'?'<button class="button gold sm" data-act="equip">⚔️ สวมใส่</button>':'')+
  (it.type?.startsWith('potion')?'<button class="button gold sm" data-act="use">🧪 ใช้ยา</button>':'')+
  (it.type==='skillScroll'?'<button class="button gold sm" data-act="scroll">📜 ใช้คัมภีร์</button>':'')+
- (it.type==='petEgg'?'<button class="button gold sm" data-act="hatch">🥚 ฟักไข่</button>':'')+
+ (it.type==='petEgg'?'<button class="button gold sm" data-act="hatch">🥚 เปิดห้องฟักไข่</button>':'')+
  '<button class="button red sm" data-act="drop">🗑️ ทิ้งไอเทม</button></div>';
  detail.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{
    const idx=p.items.findIndex(x=>x.uid===currentUid);if(idx<0)return;
@@ -195,7 +196,7 @@ function v09Detail(){
      case 'equip':equipFromBag(idx);return;
      case 'use':usePotion(idx);break;
      case 'scroll':fdUseScroll(idx);break;
-     case 'hatch':fdHatch(idx);break;
+     case 'hatch':fdHatch(idx);return;
      case 'drop':v09Discard(idx);return;
    }
    currentUid=null;v09ShowBag();
@@ -279,6 +280,7 @@ function v09ShowBag(){
  if(sortBtn)sortBtn.onclick=()=>{if(typeof fd95SortBag==='function')fd95SortBag()};
 }
 showBag=v09ShowBag;
+window.fdHatchRefreshBag=()=>{const bag=windowMap.get('bag');if(bag&&bag.style.display!=='none'){currentUid=null;v09ShowBag()}};
 function v09ShowEquip(){
  if(!p)return;v09Init();
  const win=v09Window('equip','🛡️ อุปกรณ์ที่สวมอยู่');

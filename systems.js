@@ -212,12 +212,100 @@ function fdDropLoot(mon){
  }
  if(Math.random()<(mon.boss?.55:.08))addItem(p.items,FD_PET_GEAR[rand(0,2)],1,80);
 }
-function fdHatch(index){
- fdInit();const it=p.items[index];if(!it||it.type!=='petEgg')return;
- const sp=FD_SPECIES[it.species]?it.species:'wolf';
- const c=fdCreatePet(sp,{rarity:Math.random()<.08?2:1});
- p.companions.push(c);consume(p.items,index,1);save();selectedItem=-1;showBag();toast('🐣 ฟักไข่ได้ '+c.name+'!');
+/* Timed hatchery: one persistent job per character, absolute device timestamp. */
+const FD_HATCH_FEEDS={hatchFood:{minutes:5,label:'อาหารสัตว์'},hatchTea:{minutes:3,label:'ชาบำรุงไข่'}};
+const FD_HATCH_TITLE='🥚 ห้องฟักไข่';
+function fdHatchQty(item){return item?Number(item.qty??1):0}
+function fdHatchDuration(egg,feed){
+ const spec=FD_HATCH_FEEDS[feed?.type];
+ return spec?spec.minutes*60000*((egg?.rarity||1)>=4?2:1):0;
 }
+function fdHatchStart(eggUid,feedUid,now=Date.now()){
+ if(!p)return {error:'ยังไม่ได้เลือกตัวละคร'};
+ if(p.hatchJob)return {error:'มีไข่ในตู้ฟักอยู่แล้ว'};
+ const egg=p.items.find(x=>x.uid===eggUid&&x.type==='petEgg');
+ const feed=p.items.find(x=>x.uid===feedUid&&Object.prototype.hasOwnProperty.call(FD_HATCH_FEEDS,x.type));
+ if(fdHatchQty(egg)<1)return {error:'กรุณาเลือกไข่ที่อยู่ในกระเป๋า'};
+ if(fdHatchQty(feed)<1)return {error:'กรุณาใส่อาหารหรือชา 1 ชิ้น'};
+ const duration=fdHatchDuration(egg,feed);
+ if(!duration)return {error:'อาหารไม่ถูกต้อง'};
+ const job={id:guid(),species:FD_SPECIES[egg.species]?egg.species:'wolf',eggName:egg.name,eggRarity:egg.rarity||1,
+  feedType:feed.type,feedName:feed.name,startedAt:now,readyAt:now+duration,petRarity:Math.random()<.08?2:1};
+ // Resolve each UID again after removal so index shifts cannot consume the wrong item.
+ consume(p.items,p.items.findIndex(x=>x.uid===eggUid),1);
+ consume(p.items,p.items.findIndex(x=>x.uid===feedUid),1);
+ p.hatchJob=job;save();return {job};
+}
+function fdHatchClaim(now=Date.now()){
+ if(!p?.hatchJob)return {error:'ไม่มีไข่ในตู้ฟัก'};
+ const job=p.hatchJob;
+ if(now<job.readyAt)return {error:'ไข่ยังฟักไม่เสร็จ'};
+ const pet=fdCreatePet(job.species,{rarity:job.petRarity});
+ p.companions.push(pet);p.hatchJob=null;save();return {pet};
+}
+function fdHatch(index){
+ if(!p)return;
+ fdInit();
+ fdShowHatch(p.items[index]?.type==='petEgg'?p.items[index].uid:'');
+}
+function fdShowHatch(eggUid='',feedUid=''){
+ if(!p)return;
+ fdInit();const owner=p,job=p.hatchJob;
+ const eggs=p.items.filter(x=>x.type==='petEgg'&&fdHatchQty(x)>0);
+ const feeds=p.items.filter(x=>Object.prototype.hasOwnProperty.call(FD_HATCH_FEEDS,x.type)&&fdHatchQty(x)>0);
+ if(!eggs.some(x=>x.uid===eggUid))eggUid='';
+ if(!feeds.some(x=>x.uid===feedUid))feedUid='';
+ const opts=(items,chosen,label)=>'<option value="">'+label+'</option>'+items.map(it=>'<option value="'+esc(it.uid)+'" '+(it.uid===chosen?'selected':'')+'>'+esc(it.icon||'')+' '+esc(itemName(it))+' ×'+fdHatchQty(it)+'</option>').join('');
+ let body='<div id="fdHatchPanel" class="stack"><div style="text-align:center;font-size:56px;line-height:1.1">🥚</div>';
+ if(job){
+   body+='<div class="section stack" style="text-align:center"><b>'+esc(job.eggName)+'</b><div class="dim tiny">ใช้ '+esc(job.feedName)+'</div><b id="fdHatchClock">--:--:--</b><div class="fd-bar"><span id="fdHatchProgress" style="width:0%"></span></div><div class="dim tiny" id="fdHatchStatus">กำลังฟักไข่</div></div>'+
+   '<button class="button gold full" id="fdHatchClaim" disabled>🐣 รับสัตว์ที่ฟักแล้ว</button><div class="notice">ปิดหน้าต่างหรือออกเกมได้ เวลาอ้างอิงจากเวลาบนอุปกรณ์ · กลับมารับสัตว์เมื่อครบเวลา</div>';
+ }else{
+   body+='<div class="section stack"><label>ช่องไข่สัตว์<select class="input" id="fdHatchEggSelect">'+opts(eggs,eggUid,'เลือกไข่ 1 ฟอง')+'</select></label>'+
+   '<label>ช่องอาหารหรือชา<select class="input" id="fdHatchFeedSelect">'+opts(feeds,feedUid,'เลือกอาหารหรือชา 1 ชิ้น')+'</select></label>'+
+   '<div class="notice" id="fdHatchEstimate"></div><button class="button gold full" id="fdHatchStart" disabled>เริ่มฟักไข่</button></div>'+
+   '<div class="tiny dim">ซื้ออาหารสัตว์ 25 เหรียญ หรือชาบำรุงไข่ 50 เหรียญ ที่ NPC ร้านค้า · ฟักได้ครั้งละ 1 ฟอง · ใช้ไข่และอาหาร/ชาอย่างละ 1 ชิ้นเมื่อเริ่มฟัก</div>';
+   if(!eggs.length)body+='<div class="notice">ไม่มีไข่สัตว์ในกระเป๋าตัวละคร</div>';
+   if(!feeds.length)body+='<div class="notice">ไม่มีอาหารหรือชาสำหรับฟักไข่ กรุณาซื้อจากร้านค้า</div>';
+ }
+ body+='<button class="button ghost" id="fdHatchBack">กลับหน้าสัตว์เลี้ยง</button></div>';
+ openModal(FD_HATCH_TITLE,body);
+ $('fdHatchBack').onclick=()=>{closeModal();fdPetTab='team';fdShowPet()};
+ if(job){
+   $('fdHatchClaim').onclick=()=>{
+     if(p!==owner)return;
+     const result=fdHatchClaim();if(result.error)return toast(result.error);
+     fdPetIndex=p.companions.length-1;fdPetTab='team';closeModal();fdShowPet();toast('🐣 ฟักไข่ได้ '+result.pet.name+'!');
+   };
+   fdHatchUpdateClock();
+ }else{
+   const eggSelect=$('fdHatchEggSelect'),feedSelect=$('fdHatchFeedSelect');
+   const update=()=>{
+     const egg=p.items.find(it=>it.uid===eggSelect.value&&it.type==='petEgg');
+     const feed=p.items.find(it=>it.uid===feedSelect.value);
+     const duration=fdHatchDuration(egg,feed);
+     $('fdHatchEstimate').textContent=egg&&duration?'เวลาฟัก '+duration/60000+' นาที · ใช้ไข่ 1 ฟอง + '+feed.name+' 1 ชิ้น':'เลือกไข่และอาหารหรือชาก่อนเริ่มฟัก';
+     $('fdHatchStart').disabled=!(fdHatchQty(egg)>=1&&fdHatchQty(feed)>=1&&duration>0);
+   };
+   eggSelect.onchange=feedSelect.onchange=update;update();
+   $('fdHatchStart').onclick=()=>{
+     if(p!==owner)return;
+     const result=fdHatchStart(eggSelect.value,feedSelect.value);if(result.error)return toast(result.error);
+     if(typeof window.fdHatchRefreshBag==='function')window.fdHatchRefreshBag();
+     fdShowHatch();toast('🥚 เริ่มฟักไข่แล้ว');
+   };
+ }
+}
+function fdHatchUpdateClock(){
+ if(!p||ui!==FD_HATCH_TITLE||!p.hatchJob||!$('fdHatchClock'))return;
+ const job=p.hatchJob,now=Date.now(),ready=now>=job.readyAt;
+ const progress=clamp((now-job.startedAt)/Math.max(1,job.readyAt-job.startedAt),0,1);
+ $('fdHatchClock').textContent=ready?'ฟักเสร็จแล้ว!':fdRemaining(job.readyAt);
+ $('fdHatchProgress').style.width=(progress*100)+'%';
+ $('fdHatchStatus').textContent=ready?'พร้อมรับสัตว์เลี้ยง':'กำลังฟักไข่ · '+Math.floor(progress*100)+'%';
+ $('fdHatchClaim').disabled=!ready;
+}
+setInterval(fdHatchUpdateClock,1000);
 function fdPetGainExp(c,amount){
  if(!c||!fdReady(c))return;
  c.xp+=amount;let up=0;
@@ -506,7 +594,7 @@ function fdShowPet(){
  const collection=`<div class="fd-list">${all.map((c,i)=>`<button class="button ${i===fdPetIndex?'selected':'ghost'} sm" data-pick="${i}">${c.icon} ${esc(c.name)} Lv.${c.level} ${c.knockedUntil>Date.now()?'💤':''}</button>`).join('')}</div>`;
  const activeNames=p.activePets.map(id=>fdPetById(id)?.name||'-');
  const state=`<div class="notice">สัตว์เลี้ยง 2 ตัว: ${activeNames.map(esc).join(' / ')||'ว่าง'} · สัตว์ขี่: ${esc(fdPetById(p.activeMount)?.name||'ว่าง')} · โหมดสัตว์ขี่: ${p.mountMode==='auto'?'Auto':'Manual'}<br>สะสมได้ไม่จำกัดตามพื้นที่บันทึกของอุปกรณ์ · พ่ายแพ้พัก 10 นาทีและเปิดกระเป๋าไม่ได้</div>`;
- let body='';
+ let body='<button class="button gold full" id="fdOpenHatch">🥚 ห้องฟักไข่'+(p.hatchJob?(Date.now()>=p.hatchJob.readyAt?' · พร้อมรับสัตว์':' · กำลังฟัก'):'')+'</button>';
  if(!p.starterPetsClaimed)body+='<button class="button gold full" id="fdStarter">🎁 รับสัตว์เริ่มต้น 3 ตัวเพื่อทดลองระบบ (ครั้งเดียว)</button>';
  if(fdPetTab==='team'){
    body+=state+collection;
@@ -558,6 +646,7 @@ function fdShowPet(){
  openModal('🐾 สัตว์เลี้ยง / สัตว์ขี่',`<div class="stack">${tabs}${body}</div>`);
  $('modalBody').querySelectorAll('[data-ptab]').forEach(b=>b.onclick=()=>{fdPetTab=b.dataset.ptab;fdShowPet()});
  $('modalBody').querySelectorAll('[data-pick]').forEach(b=>{b.onclick=()=>{fdPetIndex=Number(b.dataset.pick);fdShowPet()}});
+ if($('fdOpenHatch'))$('fdOpenHatch').onclick=()=>fdShowHatch();
  if($('fdStarter'))$('fdStarter').onclick=fdStarterPets;
  if($('fdEvolve'))$('fdEvolve').onclick=()=>fdEvolvePet(selected);
  $('modalBody').querySelectorAll('[data-setslot]').forEach(b=>b.onclick=()=>fdSetPet(b.dataset.setslot==='mount'?'mount':Number(b.dataset.setslot),selected.id));

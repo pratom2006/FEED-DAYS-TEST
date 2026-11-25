@@ -307,6 +307,7 @@ SHOP.push(
  {name:'คัมภีร์ลูกไฟน้อย',icon:'📜',type:'skillScroll',skill:'fire',price:130,desc:'ประเภท: เวทโจมตี · ใช้เพื่อเรียนรู้'},
  {name:'คัมภีร์แสงเยียวยา',icon:'📜',type:'skillScroll',skill:'heal',price:150,desc:'ประเภท: รักษา · ใช้เพื่อเรียนรู้'}
 );
+SHOP.push({name:'อาหารสัตว์',icon:'🍖',type:'hatchFood',price:25,desc:'ใช้ฟักไข่ 1 ฟอง · 5 นาที / ไข่บอส 10 นาที'}, {name:'ชาบำรุงไข่',icon:'🍵',type:'hatchTea',price:50,desc:'ใช้ฟักไข่เร็วขึ้น · 3 นาที / ไข่บอส 6 นาที'});
 const SLOTS={head:'🎩 หมวก',armor:'🥋 เกราะ',arms:'🧤 ปลอกแขน',feet:'🥾 รองเท้า',right:'⚔️ มือขวา',left:'🗡️ มือซ้าย'};
 const STATS={STR:'พลังโจมตี',AGI:'ความเร็วเคลื่อนที่',VIT:'HP สูงสุด',DEX:'ความแม่นยำ',INT:'พลังสกิล / MP',LUX:'โชค / คริ'};
 const MILESTONES=[10,30,60,80,100,120,135,150];
@@ -1121,8 +1122,8 @@ requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
-<script src="./systems.js?v=97"></script>
-<script src="./v09.js?v=99"></script>
+<script src="./systems.js?v=100"></script>
+<script src="./v09.js?v=100"></script>
 <script src="./v095.js?v=95"></script>
 <script src="./v096.js?v=97"></script>
 </body>
