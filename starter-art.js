@@ -1,12 +1,13 @@
-/* FEED DAYS v1.2 — male starter art extracted from approved concept sheet.
+/* FEED DAYS v1.2 — male and female starter art extracted from approved concept sheets.
    Atlas: 21 cells, 24x28, nearest-neighbor rendering. Existing gameplay is unchanged. */
 (function(){
 'use strict';
 const atlas=new Image();atlas.src='./assets/starter-male.png?v=120';
+const femaleAtlas=new Image();femaleAtlas.src='./assets/starter-female.png?v=132';
+const artFor=gender=>gender==='female'?femaleAtlas:atlas;
 const FRAMES={front:0,back:1,left:2,right:3,walk:[4,5],run:[6,7],attack:[8,9,10],cast:[11,12,13],hurt:[14,15],fall:[16,17,18],idle:[19,20]};
 const state={owner:null,map:null,dir:'front',movingUntil:0,speed:0,action:null,started:0,until:0,death:null};
-const loaded=()=>atlas.complete&&atlas.naturalWidth===504&&atlas.naturalHeight===28;
-const male=()=>p&&p.gender==='male';
+const loaded=(gender=p?.gender)=>{const art=artFor(gender);return art.complete&&art.naturalWidth===504&&art.naturalHeight===28};
 function reset(){
  if(state.owner!==p||state.map!==p?.map){Object.assign(state,{owner:p,map:p?.map,dir:'front',movingUntil:0,speed:0,action:null,started:0,until:0,death:null})}
 }
@@ -28,11 +29,11 @@ function frameFor(now,armed){
 }
 function drawSprite(frame,x,y,flip=false,bob=0){
  ctx.save();ctx.imageSmoothingEnabled=false;ctx.translate(Math.round(x),Math.round(y-bob));if(flip)ctx.scale(-1,1);
- ctx.drawImage(atlas,frame*24,0,24,28,-30,-37,60,70);ctx.restore();
+ ctx.drawImage(artFor(p?.gender),frame*24,0,24,28,-30,-37,60,70);ctx.restore();
 }
 const oldDraw=drawPlayer;
 drawPlayer=function(){
- if(!male()||!loaded()){
+ if(!p||!loaded()){
   if(!p||typeof window.fdPaperDollLayers!=='function')return oldDraw();
   reset();const now=Date.now(),busy=state.action&&now<state.until,params={x:p.x,y:p.y,dir:state.dir,now,moving:now<state.movingUntil,speed:state.speed,act:busy?state.action:null,t:busy?clamp((now-state.started)/Math.max(1,state.until-state.started),0,1):0,bob:0};
   window.fdPaperDollLayers('back',params);oldDraw();window.fdPaperDollLayers('front',params);return;
@@ -61,7 +62,7 @@ drawPlayer=function(){
 };
 const oldStep=step,oldWarp=warp;
 warp=function(dest,options={}){
- if(options.respawn&&male()&&loaded()){
+ if(options.respawn&&p&&loaded()){
   reset();if(!state.death){action('fall',650);state.death={dest,options,owner:p};state.movingUntil=0;walkTarget=null;heldAttackPointer=null;moveDir={x:0,y:0}}
   return;
  }
@@ -88,20 +89,20 @@ attack=function(skill,silent=false){
 const oldCast=fdCastSkill;
 fdCastSkill=function(id,silent=false){if(state.death&&state.owner===p)return false;const result=oldCast(id,silent);if(result&&p)action('cast',540);return result};
 const oldNumber=pushCombatNumber;
-pushCombatNumber=function(x,y,amount,kind='physical',ownerIcon=''){const result=oldNumber(x,y,amount,kind,ownerIcon);if(kind==='monster'&&male()&&!state.death)action('hurt',260);return result};
-const style=document.createElement('style');style.textContent='.fd-starter-preview{display:inline-block;width:48px;height:56px;background-image:url("./assets/starter-male.png?v=120");background-size:2100% 100%;background-repeat:no-repeat;image-rendering:pixelated;vertical-align:middle}.fd-starter-hud{width:30px;height:35px}.fd-starter-create{width:72px;height:84px}.fd-starter-createbox{display:flex;align-items:center;justify-content:center;gap:12px;min-height:88px;background:#193649;border:1px solid #657c8c;border-radius:10px;padding:7px}';
+pushCombatNumber=function(x,y,amount,kind='physical',ownerIcon=''){const result=oldNumber(x,y,amount,kind,ownerIcon);if(kind==='monster'&&p&&loaded()&&!state.death)action('hurt',260);return result};
+const style=document.createElement('style');style.textContent='.fd-starter-preview{display:inline-block;width:48px;height:56px;background-image:url("./assets/starter-male.png?v=120");background-size:2100% 100%;background-repeat:no-repeat;image-rendering:pixelated;vertical-align:middle}.fd-starter-preview.fd-female{background-image:url("./assets/starter-female.png?v=132")}.fd-starter-hud{width:30px;height:35px}.fd-starter-create{width:72px;height:84px}.fd-starter-createbox{display:flex;align-items:center;justify-content:center;gap:12px;min-height:88px;background:#193649;border:1px solid #657c8c;border-radius:10px;padding:7px}';
 document.head.appendChild(style);
-function preview(cls=''){const span=document.createElement('span');span.className='fd-starter-preview '+cls;span.setAttribute('aria-label','ตัวละครชายชุดเริ่มต้น');return span}
+function preview(cls='',gender='male'){const span=document.createElement('span');span.className='fd-starter-preview '+cls+(gender==='female'?' fd-female':'');span.setAttribute('aria-label',gender==='female'?'ตัวละครหญิงชุดเริ่มต้น':'ตัวละครชายชุดเริ่มต้น');return span}
 const oldChars=renderChars;
-renderChars=function(){const result=oldChars();$('charSlots').querySelectorAll('.slot').forEach(node=>{const c=account().characters[Number(node.dataset.i)],el=node.querySelector('.miniChar');if(c?.gender==='male'&&el)el.replaceChildren(preview())});return result};
+renderChars=function(){const result=oldChars();$('charSlots').querySelectorAll('.slot').forEach(node=>{const c=account().characters[Number(node.dataset.i)],el=node.querySelector('.miniChar');if(c&&el)el.replaceChildren(preview('',c.gender))});return result};
 const oldCreate=openCreate;
 openCreate=function(i){const result=oldCreate(i),box=document.createElement('div');box.className='fd-starter-createbox';
  const label=document.createElement('span');label.textContent='ชุดเริ่มต้น · เสื้อขาว กางเกงขาสั้นสีดำ';box.append(preview('fd-starter-create'),label);
  const maleBtn=$('maleBtn'),femaleBtn=$('femaleBtn');maleBtn.parentElement.insertAdjacentElement('beforebegin',box);
  maleBtn.addEventListener('click',()=>{box.replaceChildren(preview('fd-starter-create'),label);label.textContent='ชุดเริ่มต้น · เสื้อขาว กางเกงขาสั้นสีดำ'});
- femaleBtn.addEventListener('click',()=>{const icon=document.createElement('span');icon.textContent='👩‍🎤';icon.style.fontSize='48px';label.textContent='ตัวละครหญิง · ภาพเดิม';box.replaceChildren(icon,label)});
+ femaleBtn.addEventListener('click',()=>{label.textContent='ชุดเริ่มต้น · เสื้อขาว กางเกงขาสั้นสีดำ';box.replaceChildren(preview('fd-starter-create','female'),label)});
  return result};
 const oldHUD=refreshHUD;
-refreshHUD=function(){const result=oldHUD();if(male())$('hudAvatar').replaceChildren(preview('fd-starter-hud'));return result};
+refreshHUD=function(){const result=oldHUD();if(p){const el=$('hudAvatar');if(el)el.replaceChildren(preview('fd-starter-hud',p.gender))}return result};
 window.fdStarterArtReady=loaded;
 })();
