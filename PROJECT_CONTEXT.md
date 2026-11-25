@@ -34,6 +34,16 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Pets do not disappear/merge upon breeding; no guaranteed upgrades every generation.
 - Current prototype requires both parents Lv.3 for same species, Lv.8 for cross-species and uses basic inheritance. Recessive/ancestral allele simulation and advanced special species recipes are a future milestone.
 
+## Large new leveling areas and monster AI — v0.9.6 implemented
+- Added `v096.js` after `v095.js`, keeping the original town and all 3 legacy fields. New maps and connected gates:
+  - `right` (wolf valley) **east gate** ➜ `meadow` / ทุ่งเขียวคราม **2300×1500, levels 18–32**; meadow east ➜ `ruins` / ซากนครอาคม **2880×1800, levels 30–48**; ruins east ➜ `ashlands` / แดนเถ้าอัคคี **3200×2100, levels 45–65**. West gates return in reverse, old town portals unchanged. Re-entry from saves respects custom dimensions and entries.
+- Ordinary mob counts by zone: old `left` 16, `right` 18, `bottom` 17; new `meadow` 32, `ruins` 38, `ashlands` 44; each also has a boss. Mobs have Lv, color, individual HP/ATK/XP/coin and species icon. New meadow monsters give ~300–720 EXP to provide meaningful level-25 progression; old XP requirements/status bonuses remain.
+- Three AI archetypes: `normal` does not chase; only retaliates in melee when hit. `peaceful` only aggros if attacked and triggers same-species allies inside 265 units. `aggressive` chases automatically if it sees the player within ~215 units, with leash to prevent map-wide pursuit. Wander 36–118 units from spawn with stops/idle; distant mobs sleep (>820 units) to save CPU. Attacks by player, skill, pet and mount all trigger peaceful pack defense.
+- Mini map button `🧭 แผนที่` shows player position, mobs/bosses and connected gate markers and AI legend. Map exploration uses fixed original zoom from a 960×600 baseline, but `WORLD.w/h` expand dynamically; movement and tap-to-walk clamps use actual world bounds.
+- Large map artwork is procedurally and deterministically generated on off-screen 400×400 chunks and cached with at most 27 retained map-chunks; render only visible chunks. The old 960×600 cached static map art remains as-is for all legacy areas.
+- Monster spawn/respawn adapts to each zone (ordinary 3–5 s, bosses 70s) instead of the previous fixed seven-entity respawn. Save schema and local account remain unchanged. Existing 40% one-item overall drop, loot ownership, item expiration and auto-pickup maintained. Still **local offline prototype, not MMO online**.
+- QA: code syntax verified, test simulation checks zone sizes, portal graph, ordinary/boss counts, all AI types, same-species retaliation vs neutral other species, aggressive chase, no-chase normal, and chunk reuse. iPad field/thermal QA pending.
+
 ## Gear and storage improvements — v0.9.5 implemented
 - Added separate `v095.js` extension loaded after `systems.js` and `v09.js`; preserves all older main game code and player data. Old gear without rarity remains tier 1.
 - Five tier gear rarity: ⚪ทั่วไป (1), 🟢พิเศษ (2), 🔵หายาก (3), 🟣มหากาพย์ (4), 🟡ตำนาน (5). Gear rarity names/colors show in name, inventory slot, tooltip, equipment, bank and shops. Equipped base ATK/DEF gain additive rarity bonuses without resetting existing + enhancement/stars. Pet gear similarly boosts only its companion.
@@ -79,7 +89,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Player-to-player free trade, escrow-confirmed trades, markets for scrolls, pet gear and other items; no forced scroll soulbinding.
 - Server-side accounts, database, anti-cheat, persistence, marketplace and multiplayer on Railway/GitHub remain future work; do not claim a deployed server or functioning player-to-player economy.
 
-## Current implementation status: v0.9.5 (code in main)
+## Current implementation status: v0.9.6 (code in main)
 - `index.html`: original game world/HUD/menus, v0.7 pixel-art map, 3 paired directional portals, local login, 6 character slots, combat, inventory, forge and NPCs.
 - `v09.js`: draggable multi-window interface (bag, equipped items, stats, pets), hold-to-drag 80-slot storage, no scroll reset, separated equipped player/pet gear, confirmation for dropping/selling rare gear, manual ground pickup (tap and hold), item ground drop with local 1-minute owner priority and 3-minute expiry, and fox treasure-hunter auto pickup with filters and destination.
 - `systems.js`: skill-scroll discovery / duplicates / six-slot hotbar; sample 10 skill types; monster and boss scroll/egg drops; two AI combat pets + mount with auto/manual skill; pet HP/MP potions; inventory transfer and lock; equipment and enhance; stat points and evolution; breeding with inherited genes and 5h parental cooldown.
@@ -93,6 +103,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Backup before v0.9.3: `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
 - Backup before v0.9.4: `backup/before-v0-9-4-performance-foundation-2026-11-25`.
 - Backup before v0.9.5: `backup/before-v0-9-5-rarity-affixes-bank-sort-auto-pickup-2026-11-25`.
+- Backup before v0.9.6: `backup/before-v0-9-6-expanded-maps-monster-behaviors-2026-11-25`.
 
 ## Engineering norms
 - Always backup main first. Preserve maps, graphics, UI, existing saves, all existing game mechanics unless explicitly approved.
