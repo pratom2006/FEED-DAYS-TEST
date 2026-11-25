@@ -173,7 +173,7 @@ html,body{height:100%;height:100dvh;overscroll-behavior:none}
 <section id="login" class="screen">
   <div class="glow"></div>
   <div class="panel stack">
-    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.9.4</div></div>
+    <div style="text-align:center"><div style="font-size:46px">⚔️🌲</div><h1>FANTASY REALM</h1><div class="sub">Feed Days · 2D MMORPG Prototype v0.9.5</div></div>
     <div class="tabs"><button id="tabLogin" class="button selected">เข้าสู่ระบบ</button><button id="tabRegister" class="button ghost">สมัครบัญชี</button></div>
     <label class="stack" style="gap:4px"><b>ID ผู้เล่น</b><input id="loginId" class="input" type="text" maxlength="20" placeholder="ตั้งชื่อ ID 3–20 ตัวอักษร" autocomplete="username" /></label>
     <label class="stack" style="gap:4px"><b>Password</b><input id="loginPass" class="input" type="password" maxlength="60" placeholder="รหัสผ่านสำหรับทดสอบอย่างน้อย 4 ตัว" autocomplete="off" /></label>
@@ -427,7 +427,7 @@ function showForge(tab='enh',keepStarMain=''){
   if(keepStarMain&&p.items.some(it=>it.uid===keepStarMain&&it.type==='gear'))mainSelect.value=keepStarMain;
   mainSelect.onchange=updateFeed;updateFeed();
  }
- if(tab==='enh'){$('enhDo').onclick=()=>{let uid=$('enhItem').value,it=p.items.find(x=>x.uid===uid);if(!it){toast('เลือกอุปกรณ์ก่อน');return}if(it.enh>=10){toast('อุปกรณ์ +10 สูงสุดแล้ว');return}if(itemCount('enhCrystal')<1){toast('ต้องมีผลึกตีบวก');return}let next=it.enh+1,rates=[100,94,88,78,68,56,45,35,26,17];let chance=rates[next-1];let risky=next>=8;if(risky&&!confirm(`กำลังเสี่ยงตีบวก +${next} สำเร็จ ${chance}% หากล้มเหลวอุปกรณ์จะหาย ยืนยันหรือไม่?`))return;takeType('enhCrystal',1);let success=Math.random()*100<chance;if(success){it.enh=next;toast('สำเร็จ! '+it.name+' +'+next)}else if(risky){let i=p.items.findIndex(x=>x.uid===uid);consume(p.items,i,1);toast('ตีบวกล้มเหลว อุปกรณ์ถูกทำลาย')}else toast('ตีบวกล้มเหลว อุปกรณ์ยังอยู่');save();refreshHUD();showForge('enh')}}
+ if(tab==='enh'){$('enhDo').onclick=()=>{let uid=$('enhItem').value,it=p.items.find(x=>x.uid===uid);if(!it){toast('เลือกอุปกรณ์ก่อน');return}if(it.enh>=10){toast('อุปกรณ์ +10 สูงสุดแล้ว');return}if(itemCount('enhCrystal')<1){toast('ต้องมีผลึกตีบวก');return}let next=it.enh+1,rates=[100,94,88,78,68,56,45,35,26,17];let chance=rates[next-1];let risky=next>=8;if(risky&&!confirm(`กำลังเสี่ยงตีบวก +${next} สำเร็จ ${chance}% หากล้มเหลวอุปกรณ์จะหาย ยืนยันหรือไม่?`))return;takeType('enhCrystal',1);let success=Math.random()*100<chance;if(success){it.enh=next;const unlocked=next>=7&&typeof fd95AwardAffix==='function'&&fd95AwardAffix(it);toast('สำเร็จ! '+it.name+' +'+next+(unlocked?' · ✨ ปลดล็อกคุณสมบัติพิเศษ!':''))}else if(risky){let i=p.items.findIndex(x=>x.uid===uid);consume(p.items,i,1);toast('ตีบวกล้มเหลว อุปกรณ์ถูกทำลาย')}else toast('ตีบวกล้มเหลว อุปกรณ์ยังอยู่');save();refreshHUD();showForge('enh')}}
  else{$('starDo').onclick=()=>{let a=$('starMain').value,b=$('starFeed').value,main=p.items.find(x=>x.uid===a&&x.type==='gear'),feed=p.items.find(x=>x.uid===b&&x.type==='gear');if(!main||!feed||a===b){toast('เลือกอุปกรณ์หลักและอุปกรณ์วัตถุดิบ');return}if(main.name!==feed.name){toast('อุปกรณ์ต้องเป็นชื่อเดียวกัน');return}const stars=Number(main.stars)||0;if(stars>=10){toast('ครบ 10 ดาวแล้ว');return}if(itemCount('starCrystal')<1){toast('ต้องมีผลึกดาว');return}const feedIndex=p.items.findIndex(x=>x.uid===b);if(feedIndex<0)return toast('ไม่พบอุปกรณ์วัตถุดิบ');const chance=Math.max(20,80-stars*7);if(!confirm('🌟 อุปกรณ์หลัก: '+itemName(main)+'\nวัตถุดิบที่จะถูกใช้: '+itemName(feed)+'\nโอกาสสำเร็จ: '+chance+'%\n\nไม่ว่าผลสำเร็จหรือล้มเหลว จะเสียอุปกรณ์วัตถุดิบ 1 ชิ้น และผลึกดาว 1 ชิ้นเสมอ อุปกรณ์หลักไม่หายและดาวไม่ลดหากพลาด\n\nยืนยันการเพิ่มดาวหรือไม่?'))return;takeType('starCrystal',1);const currentFeedIndex=p.items.findIndex(x=>x.uid===b);if(currentFeedIndex<0){toast('ไม่พบอุปกรณ์วัตถุดิบ');save();showForge('star',a);return}consume(p.items,currentFeedIndex,1);const success=Math.random()*100<chance;if(success){main.stars=stars+1;toast('🌟 เพิ่มดาวสำเร็จ! '+main.name+' '+main.stars+' ดาว')}else toast('เพิ่มดาวไม่สำเร็จ ดาวยัง '+stars+' · อุปกรณ์หลักยังอยู่ แต่วัตถุดิบและผลึกดาวถูกใช้แล้ว');save();refreshHUD();showForge('star',a)}}
 }
 function itemCount(type){return p.items.filter(it=>it.type===type).reduce((sum,it)=>sum+(it.qty||1),0)}
@@ -603,7 +603,7 @@ function attack(skill,silent=false){
   attackTime=Date.now();
   if(skill)p.mp-=mana;
   let dmg=Math.max(1,Math.round((attackPower()*(skill?1.45+p.skills.slash*.13:1)+(skill?p.stats.INT*.6:0))*(.88+Math.random()*.24)));
-  const critical=Math.random()<Math.min(.4,p.stats.LUX*.007);
+  const critical=Math.random()<Math.min(.4,p.stats.LUX*.007+(typeof fd95CritBonus==='function'?fd95CritBonus():0));
   if(critical)dmg=Math.round(dmg*1.5);
   t.hp-=dmg;
   pushCombatNumber(t.x,t.y-25,dmg,critical?'critical':skill?'magic':'physical');
@@ -1111,6 +1111,7 @@ window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
 <script src="./systems.js?v=10"></script>
-<script src="./v09.js?v=94"></script>
+<script src="./v09.js?v=95"></script>
+<script src="./v095.js?v=95"></script>
 </body>
 </html>
