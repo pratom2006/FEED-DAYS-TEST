@@ -34,6 +34,14 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Pets do not disappear/merge upon breeding; no guaranteed upgrades every generation.
 - Current prototype requires both parents Lv.3 for same species, Lv.8 for cross-species and uses basic inheritance. Recessive/ancestral allele simulation and advanced special species recipes are a future milestone.
 
+## Performance Foundation — v0.9.4 implemented
+- Performance control accessible from **🌿/⚖️/🔥 top-left button within world**, with Eco 30 FPS, Balanced 45 FPS (default), High 60 FPS target. Device-local preference stored at `feed_days_performance_v1`, independent of character localStorage key.
+- Independently run gameplay at fixed 30 Hz and draw at 30/45/60 FPS target, maintaining time-based movement and attack cooldowns. Cap backlog to 3 updates following stalls to reduce stutter, rather than simulating hundreds of updates after long background pauses.
+- Adaptive canvas DPR by mode (1.0, 1.35, 2.0, bounded by native DPR and maximum ~2.8M backing pixels). Skip rendering when browser is hidden or game/character screen inactive, and stop frame redraws behind paused modal except initial snapshot.
+- Camera culling for monster/NPC/portal/ground item drawing; all remain in simulation and can be interacted with when relevant. Eco mode reduces loot glow effects.
+- Inventory normalization is throttled in `v09Tick`; item/pet interactions still force immediate `v09Init`. Existing player saves, skill/loot/forge/companions and 40% item drop rules preserved.
+- Settings panel measures actual frame rate and JS Canvas render-call time, not thermal temperature. 60 Hz simulated 10 s tests yielded 300/450/600 frames for 30/45/60 targets and equal simulation times. **Real iPad battery/heat tests not performed yet**.
+
 ## Floating combat numbers — v0.9.3 implemented
 - Floating actual hit amount at target; white/cream **⚔️** for player physical; large gold **💥 CRIT!** for player critical; purple **🔮** for player magic attack-type skills; aqua number plus actual companion species icon for pet/mount attacks; red **👹** for monster damage dealt to the player or pet; green positive **💚** for healing.
 - Collisions between simultaneous hit numbers are offset/staggered. Optional Thai **ℹ️ ตัวเลขโจมตี** legend toggles on/off from the world.
@@ -62,7 +70,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Player-to-player free trade, escrow-confirmed trades, markets for scrolls, pet gear and other items; no forced scroll soulbinding.
 - Server-side accounts, database, anti-cheat, persistence, marketplace and multiplayer on Railway/GitHub remain future work; do not claim a deployed server or functioning player-to-player economy.
 
-## Current implementation status: v0.9.3 (code in main)
+## Current implementation status: v0.9.4 (code in main)
 - `index.html`: original game world/HUD/menus, v0.7 pixel-art map, 3 paired directional portals, local login, 6 character slots, combat, inventory, forge and NPCs.
 - `v09.js`: draggable multi-window interface (bag, equipped items, stats, pets), hold-to-drag 80-slot storage, no scroll reset, separated equipped player/pet gear, confirmation for dropping/selling rare gear, manual ground pickup (tap and hold), item ground drop with local 1-minute owner priority and 3-minute expiry, and fox treasure-hunter auto pickup with filters and destination.
 - `systems.js`: skill-scroll discovery / duplicates / six-slot hotbar; sample 10 skill types; monster and boss scroll/egg drops; two AI combat pets + mount with auto/manual skill; pet HP/MP potions; inventory transfer and lock; equipment and enhance; stat points and evolution; breeding with inherited genes and 5h parental cooldown.
@@ -74,6 +82,7 @@ This file is the canonical design and state handoff for new ChatGPT conversation
 - Backup before v0.9.1: `backup/before-pickup-all-and-drop-rate-40-percent-2026-11-25`.
 - Backup before v0.9.2: `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
 - Backup before v0.9.3: `backup/before-v0-9-3-combat-damage-numbers-2026-11-25`.
+- Backup before v0.9.4: `backup/before-v0-9-4-performance-foundation-2026-11-25`.
 
 ## Engineering norms
 - Always backup main first. Preserve maps, graphics, UI, existing saves, all existing game mechanics unless explicitly approved.
