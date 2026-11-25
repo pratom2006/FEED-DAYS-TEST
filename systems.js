@@ -237,60 +237,139 @@ function fdPetAutoPotion(c){
    consume(c.bag,i,1);
  }
 }
+/* v0.9.7: transient companion movement; never stored in character saves. */
+const FD_HUNT_RANGE=340,FD_LEASH_RANGE=380,FD_MELEE_RANGE=44;
+const fdCompanionMotion=new Map(),fdCompanionHits=new WeakMap();
+let fdMotionOwner=null,fdMotionMap=null;
+function fdFollowPoint(c){
+ const mount=p.activeMount===c.id,index=p.activePets.indexOf(c.id);
+ return {x:clamp(p.x+(mount?0:index===0?-52:52),25,WORLD.w-25),
+ y:clamp(p.y+(mount?65:38),38,WORLD.h-36)};
+}
+function fdMotion(c){
+ if(fdMotionOwner!==p||fdMotionMap!==p.map){
+   fdCompanionMotion.clear();fdMotionOwner=p;fdMotionMap=p.map;
+ }
+ let a=fdCompanionMotion.get(c);
+ const point=fdFollowPoint(c);
+ if(!a){a={...point,foe:null,returning:false,manual:false,moving:false,mounted:false};fdCompanionMotion.set(c,a)}
+ const mounted=p.activeMount===c.id&&p.riding;
+ if(mounted){Object.assign(a,{x:p.x,y:p.y+36,foe:null,manual:false,returning:false,moving:false,mounted:true})}
+ else if(a.mounted||dist(a,p)>FD_LEASH_RANGE+180){
+   Object.assign(a,{...point,foe:null,manual:false,returning:false,moving:false,mounted:false});
+ }
+ return a;
+}
+function fdCompanionPosition(c){return fdMotion(c)}
+function fdMoveCompanion(a,goal,speed,dt,stop=0){
+ const d=dist(a,goal),travel=Math.min(Math.max(0,d-stop),speed*Math.min(100,Math.max(0,dt))/1000);
+ a.moving=travel>.05;
+ if(travel>0){
+   a.x=clamp(a.x+(goal.x-a.x)/d*travel,25,WORLD.w-25);
+   a.y=clamp(a.y+(goal.y-a.y)/d*travel,38,WORLD.h-36);
+ }
+}
+function fdNearestFoe(range,origin=p){
+ let best=null,bestD=Infinity;
+ for(const e of enemies){
+   if(e.hp<=0||dist(e,p)>range)continue;
+   const d=dist(e,origin);if(d<bestD){best=e;bestD=d}
+ }
+ return best;
+}
+function fdLootPriority(c){
+ return c.lootEnabled&&c.lootMode==='loot'&&c.skills.includes('treasure')&&
+ p.groundLoot?.some(g=>g.map===p.map&&g.expiresAt>Date.now()&&
+ dist(g,p)<=95&&((g.owner===accountId)||Date.now()>=g.publicAt)&&
+ (g.item.rarity||1)>=(c.lootRarity||1)&&c.lootTypes?.includes(
+ g.item.type==='skillScroll'?'คัมภีร์':g.item.type==='petEgg'?'ไข่สัตว์':
+ g.item.type==='gear'?(g.item.slot||'').startsWith('pet')?'อุปกรณ์สัตว์':'อาวุธ/เกราะ':
+ ['material','enhCrystal','starCrystal'].includes(g.item.type)?'วัสดุ':
+ ['potionHP','potionMP'].includes(g.item.type)?'ยา HP/MP':'อื่น ๆ'));
+}
+function fdCompanionStrike(c,foe,damage,kind){
+ foe.hp-=damage;
+ fdCompanionHits.set(foe,{c,owner:p,map:p.map,until:Date.now()+9000});
+ if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(foe);
+ pushCombatNumber(foe.x,foe.y-25,damage,kind,c.icon||'🐾');
+ effects.push({kind:'swing',x:foe.x,y:foe.y,life:220,max:220,color:'#79e8d4'});
+ if(foe.hp<=0)killEnemy(foe);
+}
+function fdCompanionThreat(mob){
+ const hit=fdCompanionHits.get(mob);
+ if(!hit||hit.owner!==p||hit.map!==p.map||hit.until<Date.now()||!fdAllActive().includes(hit.c))return null;
+ return dist(mob,fdCompanionPosition(hit.c))<=62?hit.c:null;
+}
 function fdTickPets(dt){
  if(!p)return;
- fdWakePets();const active=fdAllActive();if(!active.length)return;
- for(const c of active){fdPetAutoPotion(c)}
- if(Date.now()-fdLastTick<330)return;
- fdLastTick=Date.now();
- if(p.map==='town')return;
+ fdWakePets();const active=fdAllActive();
+ if(fdMotionOwner!==p||fdMotionMap!==p.map){fdCompanionMotion.clear();fdMotionOwner=p;fdMotionMap=p.map}
+ for(const c of fdCompanionMotion.keys())if(!active.includes(c))fdCompanionMotion.delete(c);
+ if(!active.length)return;
+ const now=Date.now(),combatTick=now-fdLastTick>=330;
+ if(combatTick)fdLastTick=now;
  for(const c of active){
-   const mount=p.activeMount===c.id;
-   if(mount&&p.mountMode==='manual')continue;
-   // v0.9: treasure-mode AI prioritizes eligible nearby ground loot over attacks.
-   if(c.lootEnabled&&c.lootMode==='loot'&&c.skills.includes('treasure')&&
-     p.groundLoot?.some(g=>g.map===p.map&&g.expiresAt>Date.now()&&
-       dist(g,p)<=95&&((g.owner===accountId)||Date.now()>=g.publicAt)&&
-       (g.item.rarity||1)>=(c.lootRarity||1)&&c.lootTypes?.includes(
-         g.item.type==='skillScroll'?'คัมภีร์':g.item.type==='petEgg'?'ไข่สัตว์':
-         g.item.type==='gear'?(g.item.slot||'').startsWith('pet')?'อุปกรณ์สัตว์':'อาวุธ/เกราะ':
-         ['material','enhCrystal','starCrystal'].includes(g.item.type)?'วัสดุ':
-         ['potionHP','potionMP'].includes(g.item.type)?'ยา HP/MP':'อื่น ๆ'
-       )))continue;
-   const foe=enemies.filter(x=>x.hp>0&&dist(x,p)<220).sort((a,b)=>dist(a,p)-dist(b,p))[0];
-   if(!foe||Date.now()<(c.lastAttack||0))continue;
-   let cost=mount?12:8;
-   const wantsHeal=c.skills.includes('heal')&&p.hp/maxHP()<.65;
-   const wantsBuff=c.skills.includes('buff')&&p.petBuffUntil<Date.now();
-   if(wantsHeal&&c.mp>=cost){
+   if(combatTick)fdPetAutoPotion(c);
+   const mount=p.activeMount===c.id,mounted=mount&&p.riding,a=fdMotion(c);
+   const point=fdFollowPoint(c),manualMode=mount&&p.mountMode==='manual';
+   if(!manualMode)a.manual=false;
+   if(p.map==='town'||(!a.manual&&manualMode)||(!a.manual&&fdLootPriority(c))){
+     a.foe=null;a.manual=false;
+   }else if(!mounted){
+     if(dist(a,p)>FD_LEASH_RANGE){a.returning=true;a.foe=null;a.manual=false}
+     if(a.foe&&(!enemies.includes(a.foe)||a.foe.hp<=0||dist(a.foe,p)>FD_LEASH_RANGE)){
+       if(dist(a,p)>100)a.returning=true;
+       a.foe=null;a.manual=false;
+     }
+     if(a.returning&&dist(a,p)<100)a.returning=false;
+     if(!a.returning&&!a.foe&&!manualMode&&combatTick)a.foe=fdNearestFoe(FD_HUNT_RANGE,a);
+   }
+   if(!mounted){
+     const goal=a.foe&&!a.returning?a.foe:point;
+     const speed=Math.max(205,(138+p.stats.AGI*1.5)*(p.riding&&fdActiveMount()?1.45:1)*1.22)+c.genes.AGI*2;
+     fdMoveCompanion(a,goal,speed,dt,goal===point?9:FD_MELEE_RANGE-7);
+   }
+   if(p.map==='town'||(!combatTick&&!a.manual)||now<(c.lastAttack||0))continue;
+   if(manualMode&&!a.manual)continue;
+   if(!a.manual&&fdLootPriority(c))continue;
+   const foe=mounted?fdNearestFoe(220):a.foe;
+   if(!foe||foe.hp<=0||dist(foe,p)>FD_LEASH_RANGE)continue;
+   const cost=mount?12:8;
+   if(a.manual){
+     if(dist(a,foe)>FD_MELEE_RANGE)continue;
+     if(c.mp<15){a.manual=false;a.foe=null;toast('MP สัตว์ขี่ไม่เพียงพอ');continue}
+     c.mp-=15;c.lastAttack=now+1200;a.manual=false;a.foe=null;
+     fdPetGainExp(c,4);fdCompanionStrike(c,foe,Math.floor(fdPetPower(c)*1.7),'mount');save();continue;
+   }
+   if(c.skills.includes('heal')&&p.hp/maxHP()<.65&&c.mp>=cost){
      c.mp-=cost;const heal=Math.round(15+fdPetPower(c)*.7);
      p.hp=Math.min(maxHP(),p.hp+heal);
      pushCombatNumber(p.x,p.y-40,heal,'petHeal',(c.icon||'🐾')+'💚');
-     c.lastAttack=Date.now()+2500;fdPetGainExp(c,2);refreshHUD();continue;
+     c.lastAttack=now+2500;fdPetGainExp(c,2);refreshHUD();continue;
    }
-   if(wantsBuff&&c.mp>=cost){
-     c.mp-=cost;p.petBuffUntil=Date.now()+10000;
+   if(c.skills.includes('buff')&&p.petBuffUntil<now&&c.mp>=cost){
+     c.mp-=cost;p.petBuffUntil=now+10000;
      effects.push({x:p.x,y:p.y-42,text:'✨ บัฟ',life:850,max:850,color:'#d2f2a5'});
-     c.lastAttack=Date.now()+2600;fdPetGainExp(c,2);continue;
+     c.lastAttack=now+2600;fdPetGainExp(c,2);continue;
    }
+   if(!mounted&&dist(a,foe)>FD_MELEE_RANGE)continue;
    if(c.mp>=cost)c.mp-=cost;
    const damage=Math.max(1,Math.round(fdPetPower(c)*(c.mp>=cost?.95:.65)));
-   foe.hp-=damage;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(foe);pushCombatNumber(foe.x,foe.y-25,damage,mount?'mount':'pet',c.icon||'🐾');
-   c.lastAttack=Date.now()+Math.max(650,1550-c.genes.AGI*24);
-   fdPetGainExp(c,3);
-   if(foe.hp<=0)killEnemy(foe);
+   c.lastAttack=now+Math.max(650,1550-c.genes.AGI*24);
+   fdPetGainExp(c,3);fdCompanionStrike(c,foe,damage,mount?'mount':'pet');
+   if(foe.hp<=0)a.foe=null;
  }
- if(Date.now()-fdLastPetSave>4500){fdLastPetSave=Date.now();save();refreshHUD()}
+ if(now-fdLastPetSave>4500){fdLastPetSave=now;save();refreshHUD()}
 }
 function fdCompanionBuffBonus(){return p&&p.petBuffUntil>Date.now()?8:0}
-function fdMobHitsCompanion(mob){
- const active=fdAllActive();if(!active.length||Math.random()>.5)return false;
- const c=active[rand(0,active.length-1)];
+function fdMobHitsCompanion(mob,preferred=null){
+ const active=fdAllActive().filter(c=>dist(mob,fdCompanionPosition(c))<=76);
+ if(!active.length||(!preferred&&Math.random()>.5))return false;
+ const c=preferred&&active.includes(preferred)?preferred:active[rand(0,active.length-1)];
  const dmg=Math.max(1,mob.atk-Math.floor(fdPetDefense(c)*.4));
  c.hp-=dmg;
- const petSlot=p.activePets.indexOf(c.id),isMount=p.activeMount===c.id;
- const petX=p.x+(isMount?0:petSlot===0?-44:44),petY=p.y+(isMount?36:22)-20;
- pushCombatNumber(petX,petY,dmg,'monsterPet');
+ const a=fdCompanionPosition(c);
+ pushCombatNumber(a.x,a.y-20,dmg,'monsterPet');
  if(c.hp<=0){
    c.hp=0;c.knockedUntil=Date.now()+FD_PET_COOLDOWN;
    p.activePets=p.activePets.filter(id=>id!==c.id);
@@ -300,7 +379,8 @@ function fdMobHitsCompanion(mob){
  return true;
 }
 function fdPetBody(c,index,mount=false){
- const x=p.x+(mount?0:index===0?-44:44),y=p.y+(mount?36:22),bob=Math.sin(Date.now()/235+index)*3;
+ const a=fdCompanionPosition(c),x=a.x,y=a.y,bob=a.moving?Math.sin(Date.now()/105+index)*3:0;
+ if(typeof perfVisibleInCamera==='function'&&!perfVisibleInCamera(x,y))return;
  ctx.save();
  circle(x,y+11,17,mount?'#223d5080':'#0d2f3388');
  circle(x,y-7+bob,mount?24:16,c.species==='dragon'?'#9e4547':c.species==='wolf'?'#78939c':c.species==='fox'?'#c48353':c.species==='horse'?'#8d7351':'#5a9679');
@@ -321,13 +401,13 @@ function fdMountSkill(){
  fdInit();const c=fdActiveMount();if(!c||p.mountMode!=='manual'||gamePaused||ui)return;
  const now=Date.now();
  if(now<(c.lastAttack||0)||p.map==='town')return;
- const t=enemies.filter(e=>e.hp>0&&dist(e,p)<210).sort((a,b)=>dist(a,p)-dist(b,p))[0];
+ const a=fdMotion(c),t=fdNearestFoe(p.riding?210:FD_HUNT_RANGE,a);
  if(!t)return toast('สัตว์ขี่ไม่พบเป้าหมาย');
  if(c.mp<15)return toast('MP สัตว์ขี่ไม่เพียงพอ');
+ if(!p.riding){a.foe=t;a.manual=true;a.returning=false;return}
  c.mp-=15;c.lastAttack=now+1200;
  const dmg=Math.floor(fdPetPower(c)*1.7);
- t.hp-=dmg;if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(t);pushCombatNumber(t.x,t.y-35,dmg,'mount',c.icon||'🐾');
- fdPetGainExp(c,4);if(t.hp<=0)killEnemy(t);save();
+ fdPetGainExp(c,4);fdCompanionStrike(c,t,dmg,'mount');save();
 }
 function fdCanBreed(a,b){
  if(!a||!b||a.id===b.id)return 'เลือกพ่อแม่สองตัวที่แตกต่างกัน';

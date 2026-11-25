@@ -206,6 +206,11 @@ function monsterTick(dt){
    if(now<m.wanderUntil-650&&Math.hypot(m.wanderX-m.x,m.wanderY-m.y)>5)
      moveToward(m,m.wanderX,m.wanderY,m.speed*.58,elapsed);
   }
+  // A creature struck by a nearby companion can retaliate at its actual location.
+  const companion=typeof fdCompanionThreat==='function'?fdCompanionThreat(m):null;
+  if(companion&&now-m.lastAttack>=Math.max(1100,1950-(m.level||1)*7)){
+   m.lastAttack=now;if(fdMobHitsCompanion(m,companion))continue;
+  }
   const normalCanFight=m.mood==='normal'&&now<m.hitUntil;
   const isThreat=alerted||normalCanFight;
   if(isThreat&&d<=62&&now-m.lastAttack>=Math.max(1100,1950-(m.level||1)*7)){
