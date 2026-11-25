@@ -1,10 +1,23 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9.3
+## Current playable build — Fantasy Realm v0.9.4
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.4 — Performance Foundation / iPad power-saving controls
+
+- Added in-game **🌿 / ⚖️ / 🔥 performance settings** opened by the floating performance button in the top-left of the world view: **Eco 30 FPS**, **Balanced 45 FPS** (default), **High 60 FPS**. The FPS values are targets; actual device throughput may be lower.
+- Settings apply to the device browser only via separate `localStorage` key `feed_days_performance_v1`, **not** character saves or server accounts.
+- A fixed **30 Hz gameplay simulation** runs independently of the selected draw FPS, preserving time-based movement speed, attack cooldowns, enemy attacks, pet logic, item ownership/expiry, and numeric damage formulas. Catch-up work after a delay is limited to at most three updates to avoid runaway stutters.
+- Cap backing canvas DPR by mode: **Eco 1.0×**, **Balanced 1.35×**, **High up to 2.0×**, constrained by the device's native DPR and a maximum of about 2.8M canvas pixels.
+- Stop unnecessary per-frame rendering when no character is in the active game, browser tab is hidden, or the game/dialog is paused. Preserve the existing pause/re-enter flow.
+- Cull off-camera monsters, NPCs, portals and ground items from drawing; **do not remove them from game simulation**. In Eco mode, disable glow/shadow blur for ground loot.
+- Throttle repetitive `v09Init()` inventory normalization within the game update loop to approximately 1.5 seconds, retaining immediate initialization for inventory/pet actions and character switching.
+- Show **observed FPS**, chosen FPS target, average JavaScript canvas render-call duration, and DPR in the settings panel to help the owner test on iPad. These measurements **are not device temperature or GPU profiling**.
+- JavaScript syntax and 60 Hz simulated frame pacing checks passed for 30/45/60 drawing FPS, identical elapsed simulation time, halted updates on pause and no hidden-tab drawing. Actual iPad heat and visual/touch QA still required.
+- Backup before changing v0.9.3: `backup/before-v0-9-4-performance-foundation-2026-11-25`.
 
 ### v0.9.3 — Combat damage number clarity
 
