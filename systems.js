@@ -159,7 +159,7 @@ function fdCastSkill(id,silent=false){
    effects.push({x:p.x,y:p.y-32,text:'🛡️ บัฟ',life:850,max:850,color:'#8ee8fb'});
  }else{
    for(const t of targets){
-     let dmg=Math.max(1,Math.round((attackPower()*.35+p.stats.INT*1.7+10+lvl*2.8)*sk.power));
+     let dmg=Math.max(1,Math.round((attackPower()*.35+p.stats.INT*1.7+10+lvl*2.8)*sk.power+(sk.type.includes('เวท')&&typeof fd95MagicBonus==='function'?fd95MagicBonus():0)));
      t.hp-=dmg;pushCombatNumber(t.x,t.y-26,dmg,sk.type.includes('เวท')?'magic':'physical');
      effects.push({kind:'swing',x:t.x,y:t.y,life:290,max:290,color:'#8ae2ff'});
      if(t.hp<=0)killEnemy(t);
