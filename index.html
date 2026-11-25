@@ -318,7 +318,7 @@ function xpNeed(l){return Math.round(45*Math.pow(l,1.48));}
 function maxHP(ch=p){return 60+(ch?.lvl||1)*10+(ch?.stats?.VIT||5)*6;}
 function maxMP(ch=p){return 30+(ch?.lvl||1)*5+(ch?.stats?.INT||5)*5;}
 function itemName(it){return it.name+(it.enh?' +'+it.enh:'')+(it.stars?' ⭐'+it.stars:'');}
-function isStack(it){return it.type!=='gear'}
+function isStack(it){return it.type!=='gear'&&!it.breedData}
 function getEq(it){return p.items.find(x=>x.uid===it) || null}
 function attackPower(){return 5+p.stats.STR*2+(typeof fdCompanionBuffBonus==='function'?fdCompanionBuffBonus():0)+Object.values(p.equip).reduce((sum,uid)=>{let it=uid?getEq(uid):null;return sum+(it?((it.atk||0)+it.enh*2+it.stars*3):0)},0)}
 function defense(){return Object.values(p.equip).reduce((sum,uid)=>{let it=uid?getEq(uid):null;return sum+(it?((it.def||0)+it.enh+it.stars):0)},0)}
@@ -1123,11 +1123,12 @@ requestAnimationFrame(loop);
 window.addEventListener('beforeunload',()=>{if(p)save()});
 load();toggleMode('login');
 </script>
-<script src="./systems.js?v=130"></script>
-<script src="./v09.js?v=110"></script>
+<script src="./systems.js?v=140"></script>
+<script src="./v09.js?v=140"></script>
 <script src="./v095.js?v=95"></script>
 <script src="./v096.js?v=97"></script>
 <script src="./combat-art.js?v=131"></script>
 <script src="./starter-art.js?v=132"></script>
+<script src="./wolf-art.js?v=140"></script>
 </body>
 </html>

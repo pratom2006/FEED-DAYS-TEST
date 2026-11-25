@@ -361,11 +361,11 @@ function petLootPanel(win){
 /* v1.1: Pet Management Center. Uses existing inventory, pet, breeding and hatchery actions. */
 const PC_TABS=[['team','🏠','ภาพรวม'],['stats','📊','สเตตัส'],['gear','⚔️','อุปกรณ์'],['bag','🎒','กระเป๋า'],['settings','⚙️','ตั้งค่า']];
 const PC_SYSTEMS=[['hatch','🥚','ห้องฟักไข่','ไข่ อาหาร และเวลาฟัก'],['breed','🧬','ผสมพันธุ์','สายเลือดและรุ่นลูก'],['bag','🎒','กระเป๋าสัตว์','ย้ายและจัดการไอเทม'],['settings','⚙️','ตั้งค่าการต่อสู้','ยาอัตโนมัติและเก็บสมบัติ'],['evolve','🌟','วิวัฒนาการ','พัฒนาความแข็งแกร่ง']];
-const PC_SKILLS={bite:'กัด',buff:'บัฟ',magic:'เวทโจมตี',heal:'รักษา',fire:'ไฟ',kick:'เตะ',treasure:'ค้นหาสมบัติ'};
+const PC_SKILLS={bite:'กัด',buff:'บัฟ',magic:'เวทโจมตี',heal:'รักษา',fire:'ไฟ',kick:'เตะ',treasure:'ค้นหาสมบัติ',wolfFrost:'กัดน้ำแข็ง',wolfThunder:'พุ่งอัสนี',wolfFlame:'กรงเล็บเพลิง',wolfDrain:'กัดดูดเลือด',wolfStorm:'พายุเหมันต์',wolfVolt:'อัสนีเพลิง',wolfCrimson:'เพลิงโลหิต'};
 let pcOwner=null,pcSearch='';
 function pcStatus(c){return !c?'ว่าง':c.knockedUntil>Date.now()?'พักฟื้น':p.activeMount===c.id?(p.riding?'กำลังขี่':'สัตว์ขี่'):p.activePets.includes(c.id)?'กำลังใช้งาน':'อยู่ในคอก'}
 function pcBar(label,current,max,color){return '<div class="pc-vital"><div class="line space"><b>'+label+'</b><span>'+Math.floor(current)+' / '+Math.floor(max)+'</span></div><div class="pc-track"><i style="width:'+clamp(current/Math.max(1,max)*100,0,100)+'%;background:'+color+'"></i></div></div>'}
-function pcSlot(label,c,selected){return '<button class="pc-slot '+(c&&c===selected?'pc-selected':'')+'" '+(c?'data-pc-pet="'+esc(c.id)+'"':'data-pc-view="stable"')+'><span class="pc-slot-label">'+label+'</span><span class="pc-slot-body"><span class="pc-avatar">'+esc(c?.icon||'＋')+'</span><span><b>'+esc(c?.name||'เลือกสัตว์')+'</b><small>'+(c?'Lv.'+c.level+' · '+esc(pcStatus(c)):'เปิดคอกสัตว์')+'</small></span></span></button>'}
+function pcSlot(label,c,selected){return '<button class="pc-slot '+(c&&c===selected?'pc-selected':'')+'" '+(c?'data-pc-pet="'+esc(c.id)+'"':'data-pc-view="stable"')+'><span class="pc-slot-label">'+label+'</span><span class="pc-slot-body"><span class="pc-avatar">'+(c&&typeof window.fdWolfPortrait==='function'?window.fdWolfPortrait(c):esc(c?.icon||'＋'))+'</span><span><b>'+esc(c?.name||'เลือกสัตว์')+'</b><small>'+(c?'Lv.'+c.level+' · '+esc(pcStatus(c)):'เปิดคอกสัตว์')+'</small></span></span></button>'}
 function pcItem(it){return '<span>'+esc(it.icon||'📦')+' '+esc(itemName(it))+' <small>×'+(it.qty||1)+'</small></span>'}
 function pcGearSlot(it){return ['right','left','petWeapon'].includes(it.slot)?'weapon':['armor','petArmor'].includes(it.slot)?'armor':it.slot==='petOrb'?'orb':null}
 function pcContent(c,all){
@@ -376,7 +376,7 @@ function pcContent(c,all){
  }
  if(view==='breed'){
   const options=all.map((x,i)=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' Lv.'+x.level+(x.breedReadyAt>Date.now()?' · รอ '+fdRemaining(x.breedReadyAt):'')+'</option>').join('');
-  return '<h3>🧬 ห้องผสมพันธุ์</h3><div class="notice">สายพันธุ์เดียวกัน Lv.3 ขึ้นไป · ข้ามสายพันธุ์ Lv.8 ขึ้นไป · พ่อแม่พัก 5 ชั่วโมงหลังผสมพันธุ์</div><label>พ่อแม่ตัวที่ 1<select class="input" id="pcParentA">'+options+'</select></label><label>พ่อแม่ตัวที่ 2<select class="input" id="pcParentB">'+options+'</select></label><div class="notice" id="pcBreedReason"></div><button class="button gold full" id="pcBreed" '+(all.length<2?'disabled':'')+'>🧬 ผสมพันธุ์</button>';
+  return '<h3>🧬 ห้องผสมพันธุ์</h3><div class="notice">สายพันธุ์เดียวกัน Lv.3 ขึ้นไป · ข้ามสายพันธุ์ Lv.8 ขึ้นไป · พ่อแม่พัก 5 ชั่วโมงหลังผสมพันธุ์ · หมาป่าได้รับไข่สายเลือด นำไปฟักด้วยอาหารหรือชา</div><label>พ่อแม่ตัวที่ 1<select class="input" id="pcParentA">'+options+'</select></label><label>พ่อแม่ตัวที่ 2<select class="input" id="pcParentB">'+options+'</select></label><div class="notice" id="pcBreedReason"></div><button class="button gold full" id="pcBreed" '+(all.length<2?'disabled':'')+'>🧬 ผสมพันธุ์</button>';
  }
  if(!c)return '<div class="notice">ยังไม่มีสัตว์ในคอก · รับสัตว์เริ่มต้นหรือเปิดห้องฟักไข่</div>';
  const down=c.knockedUntil>Date.now(),dis=down?'disabled':'',gear=fdPetGear;
@@ -388,7 +388,7 @@ function pcContent(c,all){
  }
  if(view==='settings')return '<h3>⚙️ ตั้งค่า · '+esc(c.name)+'</h3><div class="section stack"><b>🧪 ใช้ยาอัตโนมัติ</b>'+['HP','MP'].map(k=>'<label class="line" style="flex-wrap:wrap"><input id="pcAuto'+k+'" type="checkbox" '+(c['auto'+k]?'checked':'')+' '+dis+'> ใช้ยา '+k+' เมื่อ ≤ <input class="input" type="number" min="0" max="100" id="pcThreshold'+k+'" value="'+c[k.toLowerCase()+'Threshold']+'" style="width:75px" '+dis+'>%</label>').join('')+'<button class="button gold" id="pcSaveSettings" '+dis+'>บันทึกการใช้ยา</button></div>'+(p.activeMount===c.id?'<div class="section stack"><b>🐎 การควบคุมสัตว์ขี่</b><button class="button ghost" id="pcMountMode" '+dis+'>'+ (p.mountMode==='auto'?'Auto · โจมตีอัตโนมัติ':'Manual · สั่งโจมตีเอง')+'</button></div>':'');
  if(view==='evolve')return '<h3>🌟 ห้องวิวัฒนาการ</h3><div class="section stack"><b>'+esc(c.name)+' · ขั้น +'+c.evolution+'</b><div>ขั้นถัดไป +'+(c.evolution+1)+'</div><div>วัสดุพัฒนา '+(3+c.evolution)+' ชิ้น · '+(50+c.evolution*25)+' เหรียญ</div><button class="button gold" id="pcEvolve" '+dis+'>พัฒนาสัตว์ +1</button></div>';
- return '<div class="pc-hero"><span class="pc-portrait">'+esc(c.icon||'🐾')+'</span><div><h3>'+esc(c.name)+' · Lv.'+c.level+'</h3><div>'+esc(pcStatus(c))+' · รุ่น '+c.generation+' · '+'⭐'.repeat(clamp(c.rarity||1,1,5))+'</div><small>'+ (fdIsRideable(c)?'สามารถใช้เป็นสัตว์ขี่':'สัตว์เลี้ยง')+' · วิวัฒนาการ +'+c.evolution+'</small></div></div><div class="pc-live">'+pcBar('❤️ HP',c.hp,fdPetMaxHP(c),'#e16a66')+pcBar('💧 MP',c.mp,fdPetMaxMP(c),'#63a9ed')+pcBar('⭐ EXP',c.xp,Math.ceil(25*Math.pow(c.level,1.3)),'#73d29b')+'</div><div class="pc-statgrid">'+['STR','VIT','AGI','INT'].map(k=>'<div><small>'+k+'</small><b>'+c.genes[k]+'</b></div>').join('')+'</div><div class="section"><b>⚡ สกิล</b><div class="pc-chips">'+c.skills.map(k=>'<span>'+esc(PC_SKILLS[k]||k)+'</span>').join('')+'</div></div><div class="section stack"><b>จัดทีม</b><div class="pc-actions">'+[0,1,'mount'].filter(k=>k!=='mount'||fdIsRideable(c)).map(k=>'<button class="button '+((k==='mount'?p.activeMount:p.activePets[k])===c.id?'selected':'gold')+'" data-pc-slot="'+k+'" '+dis+'>'+ (k==='mount'?'🐎 สัตว์ขี่':'🐾 สัตว์เลี้ยง '+(k+1))+((k==='mount'?p.activeMount:p.activePets[k])===c.id?' ✓':'')+'</button>').join('')+'</div>'+(p.activePets.includes(c.id)||p.activeMount===c.id?'<button class="button ghost" id="pcRemove" '+dis+'>ถอดออกจากทีม</button>':'')+(p.activeMount===c.id?'<button class="button gold" id="pcRide" '+dis+'>'+(p.riding?'ลงจากสัตว์ขี่':'ขึ้นขี่')+'</button>':'')+'</div>'+(down?'<div class="notice">💤 พักฟื้น '+fdRemaining(c.knockedUntil)+'</div>':'')+(c.lineage?.length?'<div class="tiny dim">บรรพบุรุษ: '+c.lineage.map(x=>esc(x.name)).join(' · ')+'</div>':'');
+ return '<div class="pc-hero"><span class="pc-portrait">'+(typeof window.fdWolfPortrait==='function'?window.fdWolfPortrait(c):esc(c.icon||'🐾'))+'</span><div><h3>'+esc(c.name)+' · Lv.'+c.level+'</h3><div>'+esc(pcStatus(c))+' · รุ่น '+c.generation+' · '+'⭐'.repeat(clamp(c.rarity||1,1,5))+'</div><small>'+ (fdIsRideable(c)?'สามารถใช้เป็นสัตว์ขี่':'สัตว์เลี้ยง')+' · วิวัฒนาการ +'+c.evolution+'</small></div></div><div class="pc-live">'+pcBar('❤️ HP',c.hp,fdPetMaxHP(c),'#e16a66')+pcBar('💧 MP',c.mp,fdPetMaxMP(c),'#63a9ed')+pcBar('⭐ EXP',c.xp,Math.ceil(25*Math.pow(c.level,1.3)),'#73d29b')+'</div><div class="pc-statgrid">'+['STR','VIT','AGI','INT'].map(k=>'<div><small>'+k+'</small><b>'+c.genes[k]+'</b></div>').join('')+'</div><div class="section"><b>⚡ สกิล</b><div class="pc-chips">'+c.skills.map(k=>'<span>'+esc(PC_SKILLS[k]||k)+'</span>').join('')+'</div></div><div class="section stack"><b>จัดทีม</b><div class="pc-actions">'+[0,1,'mount'].filter(k=>k!=='mount'||fdIsRideable(c)).map(k=>'<button class="button '+((k==='mount'?p.activeMount:p.activePets[k])===c.id?'selected':'gold')+'" data-pc-slot="'+k+'" '+dis+'>'+ (k==='mount'?'🐎 สัตว์ขี่':'🐾 สัตว์เลี้ยง '+(k+1))+((k==='mount'?p.activeMount:p.activePets[k])===c.id?' ✓':'')+'</button>').join('')+'</div>'+(p.activePets.includes(c.id)||p.activeMount===c.id?'<button class="button ghost" id="pcRemove" '+dis+'>ถอดออกจากทีม</button>':'')+(p.activeMount===c.id?'<button class="button gold" id="pcRide" '+dis+'>'+(p.riding?'ลงจากสัตว์ขี่':'ขึ้นขี่')+'</button>':'')+'</div>'+(down?'<div class="notice">💤 พักฟื้น '+fdRemaining(c.knockedUntil)+'</div>':'')+(c.lineage?.length?'<div class="tiny dim">บรรพบุรุษ: '+c.lineage.map(x=>esc(x.name)).join(' · ')+'</div>':'');
 }
 fdShowPet=function(){
  if(!p)return;
@@ -424,7 +424,7 @@ fdShowPet=function(){
  on('pcMountMode',()=>{if(valid()&&p.activeMount===c.id){p.mountMode=p.mountMode==='auto'?'manual':'auto';save();fdUpdateHotbar();fdShowPet()}});
  on('pcEvolve',()=>{if(valid())fdEvolvePet(c)});
  if(fdPetTab==='settings'&&c)petLootPanel(win);
- const a=find('pcParentA'),b=find('pcParentB');if(a&&b){if(all.length>1)b.selectedIndex=1;const update=()=>{const reason=fdCanBreed(fdPetById(a.value),fdPetById(b.value));find('pcBreedReason').textContent=reason||'พร้อมผสมพันธุ์';find('pcBreed').disabled=Boolean(reason)};a.onchange=b.onchange=update;update();on('pcBreed',()=>fdBreed(a.value,b.value))}
+ const a=find('pcParentA'),b=find('pcParentB');if(a&&b){if(all.length>1)b.selectedIndex=1;const update=()=>{const reason=fdCanBreed(fdPetById(a.value),fdPetById(b.value));find('pcBreedReason').textContent=reason||fdWolfBreedPreview(fdPetById(a.value),fdPetById(b.value))||'พร้อมผสมพันธุ์';find('pcBreed').disabled=Boolean(reason)};a.onchange=b.onchange=update;update();on('pcBreed',()=>fdBreed(a.value,b.value))}
 };
 showPet=fdShowPet;
 setInterval(()=>{
@@ -477,7 +477,7 @@ function v09DropMonsterLoot(mon){
      const id=Math.random()<.7?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
      item={...fdMakeScroll(id),rarity:4,qty:1};
    }else if(roll<.36+eggWeight){
-     const sp={left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf';
+     const sp=fdWolfDrop({left:'slime',right:'wolf',bottom:'crab'}[p.map]||'wolf',true);
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:4,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
    }else if(roll<.65){
      item={name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1};
@@ -500,7 +500,7 @@ function v09DropMonsterLoot(mon){
      const id=Math.random()<.6?ids[rand(0,ids.length-1)]:FD_SCROLL_IDS[rand(0,FD_SCROLL_IDS.length-1)];
      item={...fdMakeScroll(id),rarity:2,qty:1};
    }else if(roll<.87+eggWeight){
-     const sp=['wolf','fox','horse','slime','crab'][rand(0,4)];
+     const sp=fdWolfDrop(['wolf','fox','horse','slime','crab'][rand(0,4)],false);
      item={name:'ไข่สัตว์: '+FD_SPECIES[sp].name,icon:'🥚',type:'petEgg',species:sp,rarity:2,qty:1,desc:'ฟักเป็นสัตว์เลี้ยง'};
    }else if(roll<.96){
      item={name:'วัสดุพัฒนา',icon:'🧱',type:'material',desc:'วัสดุอัปเกรด',rarity:1,qty:1};

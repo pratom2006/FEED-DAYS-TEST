@@ -16,6 +16,13 @@ const FD_SKILLS={
 };
 const FD_SPECIES={
  wolf:{name:'หมาป่า',icon:'🐺',rideable:true,genes:{STR:7,VIT:5,AGI:7,INT:3},skills:['bite','buff'],element:'wolf'},
+ wolfIce:{name:'หมาป่าน้ำแข็ง',icon:'❄️',rideable:true,genes:{STR:5,VIT:10,AGI:5,INT:5},skills:['bite','wolfFrost'],element:'ice'},
+ wolfThunder:{name:'หมาป่าสายฟ้า',icon:'⚡',rideable:true,genes:{STR:6,VIT:5,AGI:11,INT:3},skills:['bite','wolfThunder'],element:'thunder'},
+ wolfFire:{name:'หมาป่าเพลิง',icon:'🔥',rideable:true,genes:{STR:11,VIT:5,AGI:5,INT:4},skills:['bite','wolfFlame'],element:'fire'},
+ wolfBlood:{name:'หมาป่าโลหิต',icon:'🩸',rideable:true,genes:{STR:9,VIT:7,AGI:6,INT:3},skills:['bite','wolfDrain'],element:'blood'},
+ wolfStorm:{name:'หมาป่าพายุเหมันต์',icon:'🌨️',rideable:true,genes:{STR:6,VIT:9,AGI:10,INT:4},skills:['bite','wolfStorm'],element:'ice+thunder'},
+ wolfVolt:{name:'หมาป่าอัสนีเพลิง',icon:'⚡',rideable:true,genes:{STR:11,VIT:5,AGI:10,INT:3},skills:['bite','wolfVolt'],element:'thunder+fire'},
+ wolfCrimson:{name:'หมาป่าเพลิงโลหิต',icon:'🩸',rideable:true,genes:{STR:11,VIT:8,AGI:6,INT:4},skills:['bite','wolfCrimson'],element:'fire+blood'},
  fox:{name:'จิ้งจอกเวท',icon:'🦊',rideable:false,genes:{STR:4,VIT:4,AGI:7,INT:8},skills:['magic','heal'],element:'fox'},
  horse:{name:'ม้าผจญภัย',icon:'🐎',rideable:true,genes:{STR:4,VIT:8,AGI:9,INT:3},skills:['kick','buff'],element:'horse'},
  dragon:{name:'ลูกมังกร',icon:'🐉',rideable:true,genes:{STR:9,VIT:8,AGI:5,INT:9},skills:['fire','buff'],element:'dragon'},
@@ -23,6 +30,35 @@ const FD_SPECIES={
  crab:{name:'ปูเวท',icon:'🦀',rideable:false,genes:{STR:6,VIT:8,AGI:3,INT:6},skills:['bite','buff'],element:'crab'},
  hybrid:{name:'สัตว์สายเลือดผสม',icon:'🧬',rideable:true,genes:{STR:6,VIT:6,AGI:6,INT:6},skills:['bite','buff'],element:'hybrid'}
 };
+
+/* Wolf elemental family: independent species, same wolf family. Rarity remains separate. */
+const FD_WOLVES={
+ wolf:{label:'ธรรมดา',color:'#c4ccdf',filter:'none',skill:'bite',fx:'basic'},
+ wolfIce:{label:'น้ำแข็ง',color:'#65d8ff',filter:'sepia(.55) saturate(2) hue-rotate(155deg)',skill:'wolfFrost',fx:'ice'},
+ wolfThunder:{label:'สายฟ้า',color:'#b996ff',filter:'sepia(.4) saturate(3) hue-rotate(220deg)',skill:'wolfThunder',fx:'thunder'},
+ wolfFire:{label:'เพลิง',color:'#ff9b48',filter:'sepia(.85) saturate(3)',skill:'wolfFlame',fx:'fire'},
+ wolfBlood:{label:'โลหิต',color:'#ff395a',filter:'brightness(.65) sepia(.75) saturate(4) hue-rotate(310deg)',skill:'wolfDrain',fx:'slash'},
+ wolfStorm:{label:'พายุเหมันต์',color:'#a2edff',filter:'sepia(.4) saturate(3) hue-rotate(180deg)',skill:'wolfStorm',fx:'ice'},
+ wolfVolt:{label:'อัสนีเพลิง',color:'#ffcf58',filter:'sepia(.9) saturate(4) hue-rotate(350deg)',skill:'wolfVolt',fx:'thunder'},
+ wolfCrimson:{label:'เพลิงโลหิต',color:'#ff3150',filter:'brightness(.8) sepia(1) saturate(5) hue-rotate(320deg)',skill:'wolfCrimson',fx:'fire'}
+};
+const FD_WOLF_BASE=['wolf','wolfIce','wolfThunder','wolfFire','wolfBlood'];
+const FD_WOLF_PAIRS={'wolfIce+wolfThunder':'wolfStorm','wolfFire+wolfThunder':'wolfVolt','wolfBlood+wolfFire':'wolfCrimson'};
+function fdWolfPair(a,b){return FD_WOLF_PAIRS[[a,b].sort().join('+')]||null}
+function fdWolfOptions(a,b){
+ if(!FD_WOLVES[a]||!FD_WOLVES[b])return null;
+ if(a===b)return FD_WOLF_BASE.includes(a)?[[a,.8],...FD_WOLF_BASE.filter(x=>x!==a).map(x=>[x,.05])]:[[a,1]];
+ const special=fdWolfPair(a,b);return special?[[a,.45],[b,.45],[special,.10]]:[[a,.5],[b,.5]];
+}
+function fdWolfRoll(options,r=Math.random()){let sum=0;for(const [species,weight] of options){sum+=weight;if(r<sum)return species}return options.at(-1)[0]}
+function fdWolfDrop(species,boss=false,r=Math.random()){
+ if(species!=='wolf')return species;
+ const normal=boss?.35:.6;if(r<normal)return 'wolf';
+ return FD_WOLF_BASE[1+Math.min(3,Math.floor((r-normal)/(1-normal)*4))];
+}
+function fdWolfBreedPreview(a,b){const options=fdWolfOptions(a?.species,b?.species);return options?options.map(([id,weight])=>FD_SPECIES[id].name+' '+Math.round(weight*100)+'%').join(' · '):''}
+const fdWolfAttackAt=new WeakMap(),fdWolfSkillAt=new WeakMap();
+
 const FD_PET_GEAR=[
  {name:'เขี้ยวพิทักษ์',icon:'🗡️',type:'gear',slot:'petWeapon',atk:13,def:1,price:220,petOnly:true,desc:'อาวุธเฉพาะสัตว์ · ATK สูงกว่าอุปกรณ์ทั่วไป'},
  {name:'เกราะอสูร',icon:'🛡️',type:'gear',slot:'petArmor',atk:1,def:14,price:230,petOnly:true,desc:'เกราะเฉพาะสัตว์ · DEF สูงกว่าอุปกรณ์ทั่วไป'},
@@ -231,7 +267,7 @@ function fdHatchStart(eggUid,feedUid,now=Date.now()){
  const duration=fdHatchDuration(egg,feed);
  if(!duration)return {error:'อาหารไม่ถูกต้อง'};
  const job={id:guid(),species:FD_SPECIES[egg.species]?egg.species:'wolf',eggName:egg.name,eggRarity:egg.rarity||1,
-  feedType:feed.type,feedName:feed.name,startedAt:now,readyAt:now+duration,petRarity:Math.random()<.08?2:1};
+  feedType:feed.type,feedName:feed.name,startedAt:now,readyAt:now+duration,petRarity:egg.breedData?.rarity||(Math.random()<.08?2:1),breedData:egg.breedData?JSON.parse(JSON.stringify(egg.breedData)):null};
  // Resolve each UID again after removal so index shifts cannot consume the wrong item.
  consume(p.items,p.items.findIndex(x=>x.uid===eggUid),1);
  consume(p.items,p.items.findIndex(x=>x.uid===feedUid),1);
@@ -241,7 +277,7 @@ function fdHatchClaim(now=Date.now()){
  if(!p?.hatchJob)return {error:'ไม่มีไข่ในตู้ฟัก'};
  const job=p.hatchJob;
  if(now<job.readyAt)return {error:'ไข่ยังฟักไม่เสร็จ'};
- const pet=fdCreatePet(job.species,{rarity:job.petRarity});
+ const pet=fdCreatePet(job.species,{...(job.breedData||{}),rarity:job.petRarity});
  p.companions.push(pet);p.hatchJob=null;save();return {pet};
 }
 function fdHatch(index){
@@ -354,6 +390,7 @@ function fdMoveCompanion(a,goal,speed,dt,stop=0){
  const d=dist(a,goal),travel=Math.min(Math.max(0,d-stop),speed*Math.min(100,Math.max(0,dt))/1000);
  a.moving=travel>.05;
  if(travel>0){
+   if(Math.abs(goal.x-a.x)>.1)a.facing=goal.x<a.x?-1:1;
    a.x=clamp(a.x+(goal.x-a.x)/d*travel,25,WORLD.w-25);
    a.y=clamp(a.y+(goal.y-a.y)/d*travel,38,WORLD.h-36);
  }
@@ -377,6 +414,15 @@ function fdLootPriority(c){
  ['potionHP','potionMP'].includes(g.item.type)?'ยา HP/MP':'อื่น ๆ'));
 }
 function fdCompanionStrike(c,foe,damage,kind){
+ const now=Date.now(),spec=FD_WOLVES[c.species],pos=fdCompanionPosition(c);
+ fdWolfAttackAt.set(c,now);
+ if(spec&&c.species!=='wolf'&&c.skills.includes(spec.skill)&&now>=(fdWolfSkillAt.get(c)||0)&&c.mp>=5){
+   c.mp-=5;fdWolfSkillAt.set(c,now+3000);
+   damage=Math.round(damage*(['wolfFire','wolfVolt','wolfCrimson'].includes(c.species)?1.25:1.15));
+   if(['wolfBlood','wolfCrimson'].includes(c.species))c.hp=Math.min(fdPetMaxHP(c),c.hp+Math.max(1,Math.round(Math.min(damage,foe.hp)*.15)));
+   if(['wolfThunder','wolfStorm','wolfVolt'].includes(c.species))c.lastAttack=Math.max(now+330,c.lastAttack-150);
+   if(typeof window.fdCombatVfx==='function')window.fdCombatVfx(spec.fx,pos.x,pos.y,foe.x,foe.y);
+ }
  foe.hp-=damage;
  fdCompanionHits.set(foe,{c,owner:p,map:p.map,until:Date.now()+9000});
  if(typeof window.fd96MarkMonsterHit==='function')window.fd96MarkMonsterHit(foe);
@@ -470,6 +516,7 @@ function fdMobHitsCompanion(mob,preferred=null){
 function fdPetBody(c,index,mount=false){
  const a=fdCompanionPosition(c),x=a.x,y=a.y,bob=a.moving?Math.sin(Date.now()/105+index)*3:0;
  if(typeof perfVisibleInCamera==='function'&&!perfVisibleInCamera(x,y))return;
+ if(typeof window.fdDrawWolf==='function'&&window.fdDrawWolf(c,a,index,mount))return;
  ctx.save();
  circle(x,y+11,17,mount?'#223d5080':'#0d2f3388');
  circle(x,y-7+bob,mount?24:16,c.species==='dragon'?'#9e4547':c.species==='wolf'?'#78939c':c.species==='fox'?'#c48353':c.species==='horse'?'#8d7351':'#5a9679');
@@ -510,13 +557,23 @@ function fdBreed(aId,bId){
  fdInit();const a=fdPetById(aId),b=fdPetById(bId),reason=fdCanBreed(a,b);
  if(reason)return toast(reason);
  if(!confirm('ผสมพันธุ์ '+a.name+' กับ '+b.name+' ? พ่อแม่ยังอยู่ แต่พักผสมพันธุ์ 5 ชั่วโมง'))return;
- const cross=a.species!==b.species,species=cross?'hybrid':a.species;
+ const cross=a.species!==b.species,wolfOptions=fdWolfOptions(a.species,b.species),species=wolfOptions?fdWolfRoll(wolfOptions):cross?'hybrid':a.species;
  const genes={};
  for(const stat of ['STR','VIT','AGI','INT'])genes[stat]=clamp(Math.round((a.genes[stat]+b.genes[stat])/2)+rand(-3,3),1,40);
  const rare=clamp(Math.max(1,Math.round((a.rarity+b.rarity)/2))+(Math.random()<.15?1:0)-(Math.random()<.13?1:0),1,5);
  const skills=[...new Set([a.skills[rand(0,a.skills.length-1)]||'bite',b.skills[rand(0,b.skills.length-1)]||'buff'])];
  if(Math.random()<.09)skills.push(['heal','magic','fire','buff'][rand(0,3)]);
- const name=cross?'ลูกผสม '+a.name+'–'+b.name:FD_SPECIES[species].name+'รุ่นใหม่';
+ const name=wolfOptions?FD_SPECIES[species].name:cross?'ลูกผสม '+a.name+'–'+b.name:FD_SPECIES[species].name+'รุ่นใหม่';
+ if(wolfOptions){
+   if(p.items.length>=80)return toast('กระเป๋าเต็ม · ต้องมีช่องสำหรับไข่สายเลือด');
+   const def=FD_SPECIES[species];
+   const lineage=[{id:a.id,name:a.name,gen:a.generation},{id:b.id,name:b.name,gen:b.generation},...(a.lineage||[]).slice(0,2),...(b.lineage||[]).slice(0,2)].slice(0,6);
+   const breedData={name,genes,skills:[...new Set([...def.skills,...skills.filter(k=>!k.startsWith('wolf'))])],rarity:rare,generation:Math.max(a.generation,b.generation)+1,lineage};
+   const egg={type:'petEgg',species,name:'ไข่สายเลือด: '+def.name,icon:'🥚',rarity:rare,qty:1,desc:'ไข่จากการผสมพันธุ์ · รุ่น '+breedData.generation,breedData};
+   if(!addItem(p.items,egg,1,80))return toast('กระเป๋าเต็ม');
+   a.breedReadyAt=b.breedReadyAt=Date.now()+FD_BREED_COOLDOWN;
+   save();fdShowPet();toast('🥚 ได้ไข่สายเลือด '+def.name+' · นำไปฟักในห้องฟักไข่');return;
+ }
  const child=fdCreatePet(species,{name,genes,skills:[...new Set(skills)],rarity:rare,generation:Math.max(a.generation,b.generation)+1,
   lineage:[{id:a.id,name:a.name,gen:a.generation},{id:b.id,name:b.name,gen:b.generation},...(a.lineage||[]).slice(0,2),...(b.lineage||[]).slice(0,2)].slice(0,6)});
  if(cross&&!(FD_SPECIES[a.species]?.rideable||FD_SPECIES[b.species]?.rideable))child.rideable=false;
