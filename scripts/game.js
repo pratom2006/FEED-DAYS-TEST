@@ -11,8 +11,6 @@
         this.load.on('loaderror',file=>status('โหลดไฟล์ภาพไม่สำเร็จ: '+file.key,true));
         // The town and six wooden buildings are drawn from code in create().
         for(const c of covers) this.load.image('cover_'+c.id,ART.covers[c.id]);
-        this.load.spritesheet('male_walk',ART.male,{frameWidth:128,frameHeight:128});
-        this.load.spritesheet('female_walk',ART.female,{frameWidth:128,frameHeight:128});
       }
       create(){
         liveScene=this;
@@ -31,16 +29,19 @@
         this.debugG=this.add.graphics().setDepth(25000).setVisible(false);
         this.debugEnabled=false;
         this.drawDebug();
-        const texture=this.gender+'_walk';
-        for(const [direction,row] of [['down',0],['up',1],['left',2],['right',3]]){
-          const name=this.gender+'_'+direction;
-          if(!this.anims.exists(name))this.anims.create({key:name,frames:this.anims.generateFrameNumbers(texture,{start:row*4,end:row*4+3}),frameRate:7,repeat:-1});
-        }
+        // Temporary procedural marker until a new character art direction is approved.
+        const texture='placeholder_'+this.gender;
+        const markerCanvas=document.createElement('canvas');markerCanvas.width=128;markerCanvas.height=128;
+        const markerCtx=markerCanvas.getContext('2d');
+        markerCtx.fillStyle='#4777a1';markerCtx.fillRect(46,46,36,45);
+        markerCtx.fillStyle='#d9b18f';markerCtx.fillRect(48,23,32,27);
+        markerCtx.fillStyle='#38363e';markerCtx.fillRect(48,18,32,9);markerCtx.fillRect(47,91,13,29);markerCtx.fillRect(68,91,13,29);
+        this.textures.addCanvas(texture,markerCanvas);
         const spawn={x:1024,y:1800};
         if(!walkable(spawn.x,spawn.y))throw new Error('ตำแหน่งเริ่มต้นซ้อนพื้นที่ห้ามเดิน');
         this.feet=new Phaser.Math.Vector2(spawn.x,spawn.y);
         this.shadow=this.add.ellipse(spawn.x,spawn.y-1,37,13,0x152820,.55).setDepth(spawn.y-.2);
-        this.hero=this.add.sprite(spawn.x,spawn.y,texture,0).setScale(.72).setOrigin(.5,122/128).setDepth(spawn.y+.1);
+        this.hero=this.add.image(spawn.x,spawn.y,texture).setScale(.72).setOrigin(.5,122/128).setDepth(spawn.y+.1);
         this.face='down';this.route=[];this.destination=null;this.oldMode='';this.blockedFor=0;
         this.label=this.add.text(spawn.x,spawn.y-94,this.playerName,{fontFamily:'system-ui,sans-serif',fontSize:'17px',color:'#fff8e9',stroke:'#193125',strokeThickness:5}).setOrigin(.5).setDepth(30000);
         this.marker=this.add.graphics().setDepth(5);
@@ -152,11 +153,6 @@
         }
         if(len>.12&&moved){
           this.face=Math.abs(vx)>Math.abs(vy)?(vx<0?'left':'right'):(vy<0?'up':'down');
-          const key=this.gender+'_'+this.face;
-          if(this.hero.anims.currentAnim?.key!==key||!this.hero.anims.isPlaying)this.hero.play(key,true);
-        }else{
-          this.hero.anims.stop();
-          this.hero.setFrame({down:0,up:4,left:8,right:12}[this.face]);
         }
         // Future roofs/canopies can hide the character while keeping the nameplate visible.
         const behind=covers.some(c=>c.hide&&this.feet.y<c.anchor &&

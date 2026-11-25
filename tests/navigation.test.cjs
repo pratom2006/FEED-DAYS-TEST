@@ -11,20 +11,15 @@ const context = vm.createContext({window:{}});
 for (const p of [files[0], files[2], files[3]]) new vm.Script(read(p), {filename:p}).runInContext(context);
 const q = context.window.FEED_DAYS_QA;
 const spawn = {x:1024,y:1800};
-test('classic scripts parse and load in original dependency order', () => {
-  let last = -1;
+test('legacy scripts parse; active game has no retired sprite loader', () => {
+  for (const p of files) new vm.Script(read(p), {filename:p});
   const html = read('index.html');
-  for (const p of files) {
-    new vm.Script(read(p), {filename:p});
-    const position = html.indexOf(`src="${p}"`);
-    assert.ok(position > last); last = position;
-  }
-  assert.ok(html.includes('styles/game.css'));
+  assert.ok(!html.includes('starter-art.js'));
+  assert.ok(html.includes('function drawPlayer()'));
 });
-test('original sprites are PNG files', () => {
-  for (const name of ['male','female']) {
-    const data = fs.readFileSync(path.join(root,'assets','characters',name+'.png'));
-    assert.equal(data.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+test('retired player sprite assets are absent', () => {
+  for (const p of ['assets/characters/male.png','assets/characters/female.png','assets/starter-male.png','assets/starter-female.png','assets/player_male_walk_hd.png','assets/FEED_DAYS_Male_Walk_4x4.png','starter-art.js']) {
+    assert.ok(!fs.existsSync(path.join(root,p)),p);
   }
 });
 test('spawn and collision geometry', () => {

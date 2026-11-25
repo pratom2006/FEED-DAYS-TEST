@@ -173,8 +173,8 @@ Serve the repository root with a static HTTP server (or GitHub Pages). Open `ind
 - `scripts/town.js`: procedural map and buildings
 - `scripts/navigation.js`: collision and A* navigation
 - `scripts/game.js`: Phaser scene, animations, movement, startup
-- `assets/characters/`: original PNG spritesheets, extracted without re-encoding
-- `tests/navigation.test.cjs`: syntax, sprite signature, and navigation smoke checks
+- Player art: temporary procedural placeholder; prior player sprite designs retired at owner request.
+- `tests/navigation.test.cjs`: syntax, retired-asset absence, and navigation smoke checks
 
 Scripts are classic browser scripts and must load in the order defined by `index.html`.
 
