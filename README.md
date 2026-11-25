@@ -1,10 +1,21 @@
 # FEED-DAYS-TEST
 
-## Current playable build — Fantasy Realm v0.9.1
+## Current playable build — Fantasy Realm v0.9.2
 
 **Live GitHub Pages (when Pages is enabled):** https://pratom2006.github.io/FEED-DAYS-TEST/
 
 The current `main/index.html` + `main/systems.js` + `main/v09.js` form a 2D top-down browser RPG prototype with simulated local login, up to six characters, town, three monster areas, quests, equipment, inventory, and other starter systems. **It is not yet multiplayer.** Player data and demo accounts are stored only in the current browser/device; do not use a real password.
+
+### v0.9.2 — Star upgrade material rules and same-name selection
+
+- **Star-upgrade failure protection:** the main equipment is never destroyed on failure, and its current stars, enhancement level and unique identity remain unchanged.
+- **Every star attempt consumes one identically named equipment material and one star crystal**, regardless of success/failure. On success, the main item gains exactly +1 star. On failure, its stars do not change.
+- Once a main equipment item is selected, the star-upgrade **material dropdown displays only other inventory equipment with exactly the same base name** (excludes the main item's unique ID). Empty when no matching material is available.
+- The confirmation dialog clearly names the main and sacrificed items, lists the success chance, and warns about consumption on failure. The main selection persists across attempts for convenience.
+- Existing weapon enhancement rules, monster drop chance, manual pickup, character/pet gear and v0.9.1 features are unchanged.
+- **Additional new random bonus properties / extra status attributes from enhancement are only proposed**; they have not been implemented or balanced in this patch. Existing enhancement/star ATK and DEF formula bonuses continue.
+- Backup: `backup/before-v0-9-2-star-upgrade-safety-2026-11-25`.
+- Tested via isolated JS UI/logic checks: exact-name filtering, success and failure material consumption, main gear preservation, crystal consumption, warnings, no duplicate use, and persistent main selection. Full iPad UI remains to be user-tested.
 
 ### v0.9.1 — Collect all + 40% item drop chance
 
