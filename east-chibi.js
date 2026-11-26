@@ -1,9 +1,9 @@
-/* FEED DAYS v1.6.8 — northeast impact blade lifted 20 degrees.
+/* FEED DAYS v1.6.9 — northeast overhead slash using approved body poses.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
 const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image();
-attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=167';
+attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=169';
 attackSouth.src='./assets/characters/starter-male-attack-south.webp?v=165';
 attackSE.src='./assets/characters/starter-male-attack-se.webp?v=164';
 attackEast.src='./assets/characters/starter-male-attack-east.webp?v=159';
@@ -149,8 +149,8 @@ const attackSEHands=[[30.46,52.88],[31.52,37.05],[68.31,61.32],[32.7,59.34]];
 const attackSEAngles=[45,145,55,27],attackSESides=[-1,-1,1,1];
 const attackSouthHands=[[33,57],[32,33],[47,62],[46,62]];
 const attackSouthAngles=[30,155,5,3],attackSouthSides=[-1,-1,-1,-1];
-const attackNEHands=[[63.1,55.16],[65.71,32.58],[72.4,44.1],[67,67.74]];
-const attackNEAngles=[135,180,140,65],attackNESides=[1,1,1,1];
+const attackNEHands=[[63.1,54.64],[64.95,26.91],[73.52,56.35],[66.6,67.29]];
+const attackNEAngles=[140,180,125,65],attackNESides=[1,1,1,1];
 function attackAtlas(facing){return facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
