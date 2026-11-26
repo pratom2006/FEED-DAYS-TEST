@@ -1,4 +1,4 @@
-/* FEED DAYS v1.6.0 — normal attack animation uses shared dynamic duration.
+/* FEED DAYS v1.6.1 — mirrored west one-handed sword attack, shared dynamic duration.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -156,11 +156,12 @@ function startAttack(ch,tx,ty,right,left,now,duration=380){
  attackPose=null;
  if(!ch||ch.gender!=='male'||ch.riding||!isAttackSword(right)||left||!Number.isFinite(now)||!Number.isFinite(duration)||duration<=0)return false;
  const dx=tx-ch.x,dy=ty-ch.y;
- if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001||((Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8)!==0)return false;
- if(!ready(attackEast,384,96))return false;
- attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right)};
+ if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001)return false;
+ const facing=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
+ if((facing!==0&&facing!==4)||!ready(attackEast,384,96))return false;
+ attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right),facing};
  // Face the actual accepted target rather than the previous movement direction.
- if(owner===ch&&map===ch.map)dir=0;
+ if(owner===ch&&map===ch.map)dir=facing;
  return true;
 }
 function attackSlash(x,top,size,t,color){
@@ -187,12 +188,18 @@ function drawAttack(ch,x,top,size,right,left){
  const t=age*380/a.duration;
  if(a.ch!==ch||a.map!==ch.map||ch.riding||!isAttackSword(right)||left||(a.uid?a.uid!==right.uid:a.weapon!==right)||gamePaused||ui||age<0||age>=a.duration||!ready(attackEast,384,96)){attackPose=null;return false}
  const frame=t<110?0:t<165?1:t<230?2:3;
+ // Mirror the entire visual coordinate system around the player for west.
+ // Sprite, grip, weapon rotation, and crescent reflect together; no extra atlas.
+ const west=a.facing===4;
+ if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
+ const anchor=west?0:x;
  ctx.save();ctx.imageSmoothingEnabled=true;
- ctx.drawImage(attackEast,frame*96,0,96,96,x-size/2,top,size,size);
+ ctx.drawImage(attackEast,frame*96,0,96,96,anchor-size/2,top,size,size);
  ctx.restore();
  const hand=attackHands[frame];
- drawHeldSword(x,top,size,hand[0],hand[1],attackAngles[frame],attackSides[frame]);
- attackSlash(x,top,size,t,a.color);
+ drawHeldSword(anchor,top,size,hand[0],hand[1],attackAngles[frame],attackSides[frame]);
+ attackSlash(anchor,top,size,t,a.color);
+ if(west)ctx.restore();
  return true;
 }
 
