@@ -990,7 +990,7 @@ function drawPlayer(){
    circle(x,y-11,32,col);
    ctx.globalAlpha=1;
  }
- const eastSprite=typeof window.fdEastDraw==='function'&&window.fdEastDraw(p,x,y);
+ const eastSprite=typeof window.fdEastDraw==='function'&&window.fdEastDraw(p,x,y,right,left);
  if(!eastSprite){
  rect(x-11,y+12+anim,9,20,'#283b50');
  rect(x+3,y+12-anim,9,20,'#283b50');
@@ -1018,13 +1018,13 @@ function drawPlayer(){
    rect(x-1,y-40-bob,4,6,'#e6d39e');
  }
  }
- if(right){
+ if(right&&!eastSprite){
    rect(x+23,y-21-bob,6,33,'#d5e9ee');
    rect(x+25,y-25-bob,3,12,'#fff6cf');
    rect(x+16,y+4-bob,20,5,'#b98b5b');
    rect(x+22,y+9-bob,8,10,'#493b39');
  }
- if(left){
+ if(left&&!eastSprite){
    rect(x-29,y-18-bob,5,29,'#d4e5e7');
    rect(x-31,y-23-bob,5,10,'#f4e6c6');
    rect(x-35,y+4-bob,17,5,'#bba16e');
@@ -1133,6 +1133,6 @@ load();toggleMode('login');
 <script src="./v096.js?v=97"></script>
 <script src="./combat-art.js?v=131"></script>
 <script src="./wolf-art.js?v=140"></script>
-<script src="./east-chibi.js?v=145"></script>
+<script src="./east-chibi.js?v=146"></script>
 </body>
 </html>

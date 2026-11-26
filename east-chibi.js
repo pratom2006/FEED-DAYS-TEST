@@ -1,4 +1,4 @@
-/* FEED DAYS v1.4.5 — eight running directions and eight standing directions.
+/* FEED DAYS v1.4.6 — eight running/standing directions with per-frame weapon grip sockets.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -19,7 +19,60 @@ function motion(ch,dx,dy,dt){
  else elapsed=(elapsed+Math.max(0,Math.min(dt,100)))%600;
  dir=next;moving=true;
 }
-function draw(ch,x,y){
+
+// Each entry: right hand x,y then left hand x,y, in the final displayed 96px cell.
+// Measured from the actual approved atlases. Mirrored directions swap anatomical hands.
+const mirrorHands=p=>[95-p[2],p[3],95-p[0],p[1]];
+const eastHands=[[36,60,67,53],[44,61,60,56],[65,54,38,61],[51,62,59,59]];
+const seHands=[[36,55,62,57],[36,60,59,56],[34,55,60,58],[46,59,59,52]];
+const neHands=[[33,56,62,46],[59,53,35,50],[64,44,34,57],[60,53,35,49]];
+const runHands=[
+ eastHands,seHands,
+ [[42,56,61,58],[37,61,57,55],[39,57,57,56],[43,55,61,61]],
+ seHands.map(mirrorHands),
+ [[31,52,61,58],[36,56,53,61],[59,61,34,54],[38,58,47,60]],
+ neHands.map(mirrorHands),
+ [[60,47,37,60],[61,61,39,49],[61,59,39,48],[59,50,37,62]],
+ neHands
+];
+const idleHands=[[47,65,54,64],[39,64,61,62],[36,64,60,64],[34,62,56,64],[41,64,48,65],[58,61,39,64],[61,64,36,64],[57,65,36,62]];
+// Far-side weapons render behind the sprite; near-side weapons above it.
+// In front/back views both hands are visible.
+const farSide=[1,1,-1,0,0,0,-1,1];
+function drawHeldSword(x,top,size,hx,hy){
+ const k=size/96;
+ ctx.save();
+ ctx.translate(x+(hx-48)*k,top+hy*k);
+ ctx.scale(k,k);
+ // Point away from the body and downward, with the grip centered on the fist.
+ ctx.rotate(-Math.atan2(hx-48,13));
+ ctx.lineJoin='round';
+ ctx.lineWidth=1.4;ctx.strokeStyle='#51464b';
+ ctx.fillStyle='#d5e9ee';
+ ctx.beginPath();ctx.moveTo(-3.1,7);ctx.lineTo(3.1,7);ctx.lineTo(2.8,29);ctx.lineTo(0,34);ctx.lineTo(-2.8,29);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle='#fff6cf';ctx.beginPath();ctx.moveTo(-1.7,8);ctx.lineTo(-.2,8);ctx.lineTo(-.2,30);ctx.lineTo(-1.7,27);ctx.closePath();ctx.fill();
+ // Leave the center of the grip uncovered so the hand remains visible.
+ ctx.fillStyle='#493b39';ctx.fillRect(-2.3,-7,4.6,4);ctx.fillRect(-2.3,3,4.6,3);
+ ctx.fillStyle='#b98b5b';ctx.fillRect(-3.5,-8,7,2.5);ctx.fillRect(-7,5,14,3);
+ ctx.restore();
+}
+function drawPose(img,col,row,flip,x,top,size,hands,right,left){
+ const far=farSide[dir];
+ const held=[right,left];
+ function pass(behind){
+  for(let hand=0;hand<2;hand++){
+   if(held[hand]&&((hand===far)===behind))drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1]);
+  }
+ }
+ pass(true);
+ ctx.save();ctx.imageSmoothingEnabled=true;
+ if(flip){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(img,col*96,row*96,96,96,-size/2,top,size,size)}
+ else ctx.drawImage(img,col*96,row*96,96,96,x-size/2,top,size,size);
+ ctx.restore();
+ pass(false);
+}
+
+function draw(ch,x,y,right,left){
  if(ch.gender!=='male'||ch!==owner||ch.map!==map||ch.riding)return false;
  const active=moving&&!gamePaused&&(!ui||ui==='📜 สกิล');
  const row=rows[dir],size=80,top=y+35-size*92/96;
@@ -28,19 +81,15 @@ function draw(ch,x,y){
   const img=isUpperDiagonal?ne:atlas;
   if((!isUpperDiagonal&&row<0)||!ready(img,384,isUpperDiagonal?96:576))return false;
   const frame=Math.floor(elapsed/150);
-  ctx.save();ctx.imageSmoothingEnabled=true;
-  if(isNW){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(img,frame*96,0,96,96,-size/2,top,size,size)}
-  else ctx.drawImage(img,frame*96,isUpperDiagonal?0:row*96,96,96,x-size/2,top,size,size);
-  ctx.restore();return true;
+  drawPose(img,frame,isUpperDiagonal?0:row,isNW,x,top,size,runHands[dir][frame],right,left);
+  return true;
  }
  // Standing pose uses the most recent movement direction. Preserve the original E/W idle.
  const col=idleCols[dir],side=dir===0||dir===4;
  const still=side?idle:idleSix;
  if(!ready(still,576,96))return false;
- ctx.save();ctx.imageSmoothingEnabled=true;
- if(dir===4){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(still,0,0,96,96,-size/2,top,size,size)}
- else ctx.drawImage(still,(side?0:col)*96,0,96,96,x-size/2,top,size,size);
- ctx.restore();return true;
+ drawPose(still,side?0:col,0,dir===4,x,top,size,idleHands[dir],right,left);
+ return true;
 }
 window.fdEastMotion=motion;window.fdEastDraw=draw;
 })();
