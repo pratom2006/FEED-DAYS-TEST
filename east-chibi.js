@@ -1,4 +1,4 @@
-/* FEED DAYS v1.4.8 — right-hand running sword raises to horizontal (90 degrees).
+/* FEED DAYS v1.4.9 — right-hand running sword points diagonally upward.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -39,27 +39,30 @@ const idleHands=[[47,65,54,64],[39,64,61,62],[36,64,60,64],[34,62,56,64],[41,64,
 // Far-side weapons render behind the sprite; near-side weapons above it.
 // In front/back views both hands are visible.
 const farSide=[1,1,-1,0,0,0,-1,1];
-// Absolute running blade angle from downward, in degrees, per sprite frame.
-// At the high point the blade is horizontal (90 degrees); keep the same fist pivot.
+// Absolute angle from vertically downward, per running frame.
+// 135° is diagonally upward; 150° is closer to vertical.
 const rightRunLift=[
- [65,55,90,70], // E
- [75,55,90,65], // SE
- [70,55,65,90], // S
- [65,75,55,90], // SW
- [90,75,55,65], // W
- [90,75,55,75], // NW
- [90,55,65,75], // N
- [65,75,90,75]  // NE
+ [135,125,150,140], // E
+ [140,125,150,135], // SE
+ [135,125,130,150], // S
+ [130,140,125,150], // SW
+ [150,140,125,135], // W
+ [150,140,125,140], // NW
+ [150,125,135,140], // N
+ [135,140,150,140]  // NE
 ];
+// Keep blade on a consistent screen side throughout each four-frame cycle.
+// Select side to favor clearance from body/face; no sign flip when a fist crosses center.
+const rightRunSide=[1,-1,-1,-1,-1,1,1,1];
 function drawHeldSword(x,top,size,hx,hy,liftDeg=0){
  const k=size/96;
  ctx.save();
  ctx.translate(x+(hx-48)*k,top+hy*k);
  ctx.scale(k,k);
- // Rotate about the fist. The idle/left-hand angle remains identical to v1.4.7.
+ // Rotate around the existing fist socket, not the blade tip.
+ // Idle and left-hand rendering keep the old base angle.
  const baseAngle=-Math.atan2(hx-48,13);
- const outward=hx===48?1:Math.sign(hx-48);
- const angle=liftDeg===0?baseAngle:-outward*Math.min(Math.PI/2,Math.max(Math.abs(baseAngle),liftDeg*Math.PI/180));
+ const angle=liftDeg===0?baseAngle:-rightRunSide[dir]*liftDeg*Math.PI/180;
  ctx.rotate(angle);
  ctx.lineJoin='round';
  ctx.lineWidth=1.4;ctx.strokeStyle='#51464b';
