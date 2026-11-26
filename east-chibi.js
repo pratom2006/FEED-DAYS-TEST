@@ -1,4 +1,4 @@
-/* FEED DAYS v1.4.9 — right-hand running sword points diagonally upward.
+/* FEED DAYS v1.5.0 — independently animated dual swords on all eight running directions.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -54,15 +54,24 @@ const rightRunLift=[
 // Keep blade on a consistent screen side throughout each four-frame cycle.
 // Select side to favor clearance from body/face; no sign flip when a fist crosses center.
 const rightRunSide=[1,-1,-1,-1,-1,1,1,1];
-function drawHeldSword(x,top,size,hx,hy,liftDeg=0){
+// Independent per-hand motion profiles. Opposite phase gives a counter-swing;
+// opposite screen side separates the two blade tips without flipping within a cycle.
+// This is for two independent one-handed weapons, not one two-handed weapon.
+const leftRunLift=rightRunLift.map(frames=>frames.map((_,i)=>frames[(i+2)%4]));
+const leftRunSide=rightRunSide.map(side=>-side);
+const runWeaponProfiles=[
+ {lift:rightRunLift,side:rightRunSide},
+ {lift:leftRunLift,side:leftRunSide}
+];
+function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1){
  const k=size/96;
  ctx.save();
  ctx.translate(x+(hx-48)*k,top+hy*k);
  ctx.scale(k,k);
  // Rotate around the existing fist socket, not the blade tip.
- // Idle and left-hand rendering keep the old base angle.
+ // Idle rendering keeps the old base angle for either hand.
  const baseAngle=-Math.atan2(hx-48,13);
- const angle=liftDeg===0?baseAngle:-rightRunSide[dir]*liftDeg*Math.PI/180;
+ const angle=liftDeg===0?baseAngle:-bladeSide*liftDeg*Math.PI/180;
  ctx.rotate(angle);
  ctx.lineJoin='round';
  ctx.lineWidth=1.4;ctx.strokeStyle='#51464b';
@@ -74,12 +83,15 @@ function drawHeldSword(x,top,size,hx,hy,liftDeg=0){
  ctx.fillStyle='#b98b5b';ctx.fillRect(-3.5,-8,7,2.5);ctx.fillRect(-7,5,14,3);
  ctx.restore();
 }
-function drawPose(img,col,row,flip,x,top,size,hands,right,left,rightLift=0){
+function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1){
  const far=farSide[dir];
  const held=[right,left];
  function pass(behind){
   for(let hand=0;hand<2;hand++){
-   if(held[hand]&&((hand===far)===behind))drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],hand===0?rightLift:0);
+   if(!held[hand]||((hand===far)!==behind))continue;
+   const profile=runWeaponProfiles[hand];
+   const lift=runFrame<0?0:profile.lift[dir][runFrame];
+   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,profile.side[dir]);
   }
  }
  pass(true);
@@ -99,7 +111,7 @@ function draw(ch,x,y,right,left){
   const img=isUpperDiagonal?ne:atlas;
   if((!isUpperDiagonal&&row<0)||!ready(img,384,isUpperDiagonal?96:576))return false;
   const frame=Math.floor(elapsed/150);
-  drawPose(img,frame,isUpperDiagonal?0:row,isNW,x,top,size,runHands[dir][frame],right,left,rightRunLift[dir][frame]);
+  drawPose(img,frame,isUpperDiagonal?0:row,isNW,x,top,size,runHands[dir][frame],right,left,frame);
   return true;
  }
  // Standing pose uses the most recent movement direction. Preserve the original E/W idle.
