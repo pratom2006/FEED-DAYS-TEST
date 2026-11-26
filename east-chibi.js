@@ -1,4 +1,4 @@
-/* FEED DAYS v1.5.4 — five Combat Front directions; front-facing high dual-blade stance.
+/* FEED DAYS v1.5.5 — front-facing Combat Front blades at 170 degrees.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -78,7 +78,8 @@ const combatSEHands=[[52,53,63,52],[51,53,62,52],[51,53,63,52],[51,53,64,52]];
 const combatSWHands=combatSEHands.map(mirrorHands);
 // Front-facing character: anatomical right is screen-left.
 const combatSouthHands=[[39.8,55,59.4,54.8],[39.8,54.7,58.5,54.4],[39.6,55,59,55],[39.7,54.9,59,54.3]];
-const combatSouthMotion=[[110,110,110,110],[110,110,110,110]];
+// Owner-approved near-vertical blades; face overlap is intentional.
+const combatSouthMotion=[[170,170,170,170],[170,170,170,170]];
 function isOneHandBlade(item){
  if(!item||item.twoHanded||item.hands===2||item.grip==='twoHanded')return false;
  const name=String(item.name||'');

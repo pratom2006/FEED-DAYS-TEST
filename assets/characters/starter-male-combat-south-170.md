@@ -1,0 +1,2 @@
+# v1.5.5 — Combat Front south 170°
+Owner requested both blades at 170 degrees from downward and explicitly accepted face overlap. Change only the four south-facing dual-blade movement angles from 110 to 170; keep hand anchors, sprites, layer order, all other directions, idle, combat and saved data unchanged. Mock Canvas tests passed for all eight directions, including four changed frames and unchanged idle and equipment fallbacks. Live device visual and deployment checks pending.
