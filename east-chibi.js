@@ -1,9 +1,9 @@
-/* FEED DAYS v1.6.6 — northeast one-handed sword attack.
+/* FEED DAYS v1.6.7 — northeast overhead downward sword slash.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
 const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image();
-attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=166';
+attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=167';
 attackSouth.src='./assets/characters/starter-male-attack-south.webp?v=165';
 attackSE.src='./assets/characters/starter-male-attack-se.webp?v=164';
 attackEast.src='./assets/characters/starter-male-attack-east.webp?v=159';
@@ -149,8 +149,8 @@ const attackSEHands=[[30.46,52.88],[31.52,37.05],[68.31,61.32],[32.7,59.34]];
 const attackSEAngles=[45,145,55,27],attackSESides=[-1,-1,1,1];
 const attackSouthHands=[[33,57],[32,33],[47,62],[46,62]];
 const attackSouthAngles=[30,155,5,3],attackSouthSides=[-1,-1,-1,-1];
-const attackNEHands=[[57.8,67.4],[73.23,32.66],[75.97,37],[70.6,65.38]];
-const attackNEAngles=[70,150,125,70],attackNESides=[1,1,1,1];
+const attackNEHands=[[63.1,55.16],[65.71,32.58],[72.4,44.1],[67,67.74]];
+const attackNEAngles=[135,180,120,65],attackNESides=[1,1,1,1];
 function attackAtlas(facing){return facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
@@ -209,21 +209,22 @@ function attackSouthSlash(x,top,size,t,color){
  ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=2;
  ctx.beginPath();ctx.moveTo(-32,-17);ctx.bezierCurveTo(-44,20,-3,48,29,22);ctx.stroke();ctx.restore();
 }
-// NE arc follows the rising slash and is occluded by the body where they overlap.
+// NE overhead slash: high-to-low crescent, behind the body, independent of sword.
 function attackNESlash(x,top,size,t,color){
- if(t<110||t>=330)return;
- const opacity=t<165?(t-110)/55:t<230?1:1-(t-230)/100;
- if(opacity<=0)return;
+ if(t<165||t>=350)return;
+ const opacity=t<230?1:1-(t-230)/120;
  const k=size/96;
- ctx.save();ctx.translate(x+10*k,top+44*k);ctx.scale(k,k);ctx.rotate(-Math.PI/4);
+ // Follow the impact/recovery fist along its downward path.
+ const u=Math.max(0,Math.min(1,(t-165)/165));
+ ctx.save();ctx.translate(x+(24-5*u)*k,top+(40+24*u)*k);ctx.scale(k,k);
  ctx.globalAlpha*=opacity;ctx.shadowColor=color;ctx.shadowBlur=9;ctx.fillStyle=color;
- ctx.beginPath();ctx.moveTo(18,-36);
- ctx.bezierCurveTo(67,-39,86,-5,62,14);
- ctx.bezierCurveTo(43,29,17,28,0,22);
- ctx.bezierCurveTo(42,20,65,2,49,-16);
- ctx.bezierCurveTo(42,-25,30,-32,18,-36);
+ ctx.beginPath();ctx.moveTo(-8,-49);
+ ctx.bezierCurveTo(36,-54,62,-25,53,7);
+ ctx.bezierCurveTo(46,28,22,40,-7,37);
+ ctx.bezierCurveTo(23,26,40,7,35,-14);
+ ctx.bezierCurveTo(31,-31,14,-43,-8,-49);
  ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=2;
- ctx.beginPath();ctx.moveTo(35,-31);ctx.bezierCurveTo(76,-17,78,10,32,24);ctx.stroke();ctx.restore();
+ ctx.beginPath();ctx.moveTo(9,-46);ctx.bezierCurveTo(56,-38,66,11,19,32);ctx.stroke();ctx.restore();
 }
 function drawAttack(ch,x,top,size,right,left){
  const a=attackPose;if(!a)return false;
