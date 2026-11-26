@@ -1,8 +1,10 @@
-/* FEED DAYS v1.4.4 — eight approved directions, four unique frames each.
+/* FEED DAYS v1.4.5 — eight running directions and eight standing directions.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image();
+idleSix.src='./assets/characters/starter-male-idle-six.webp?v=145';
+const idleCols=[-1,0,1,2,-1,3,4,5]; // E, SE, S, SW, W, NW, N, NE
 ne.src='./assets/characters/starter-male-ne.webp?v=143';
 atlas.src='./assets/characters/starter-male-six.webp?v=142';
 idle.src='./assets/characters/starter-male-east.webp?v=141';
@@ -31,11 +33,13 @@ function draw(ch,x,y){
   else ctx.drawImage(img,frame*96,isUpperDiagonal?0:row*96,96,96,x-size/2,top,size,size);
   ctx.restore();return true;
  }
- // Only E/W have a separate existing idle image. Never use a moving pose for idle.
- if((dir!==0&&dir!==4)||!ready(idle,576,96))return false;
+ // Standing pose uses the most recent movement direction. Preserve the original E/W idle.
+ const col=idleCols[dir],side=dir===0||dir===4;
+ const still=side?idle:idleSix;
+ if(!ready(still,576,96))return false;
  ctx.save();ctx.imageSmoothingEnabled=true;
- if(dir===4){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(idle,0,0,96,96,-size/2,top,size,size)}
- else ctx.drawImage(idle,0,0,96,96,x-size/2,top,size,size);
+ if(dir===4){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(still,0,0,96,96,-size/2,top,size,size)}
+ else ctx.drawImage(still,(side?0:col)*96,0,96,96,x-size/2,top,size,size);
  ctx.restore();return true;
 }
 window.fdEastMotion=motion;window.fdEastDraw=draw;

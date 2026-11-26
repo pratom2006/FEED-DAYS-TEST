@@ -1,0 +1,2 @@
+# v1.4.5 — complete eight-direction standing poses
+Six new standing images cropped from owner-approved generated sheet (no redraw), alpha cleaned, resized to 96x96 cells with ground baseline 92. Order SE, S, SW (mirrored SE), NW, N, NE. Original E/W idle retained. Standing uses last movement direction; initial direction retains existing east default. All running frames and timing unchanged. Mounted and female fallback unchanged. No gameplay or save changes. Automated direction mapping, standing transitions, pause and syntax tests passed. Live deployment/iPad test pending.
