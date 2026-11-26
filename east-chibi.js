@@ -1,4 +1,4 @@
-/* FEED DAYS v1.6.2 — southeast one-handed sword attack, shared dynamic duration.
+/* FEED DAYS v1.6.3 — mirrored southwest one-handed sword attack, shared dynamic duration.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -145,7 +145,7 @@ const attackHands=[[37.2,58.9],[32.3,22.2],[83.5,54.3],[41.9,60.2]];
 const attackAngles=[45,70,90,45],attackSides=[1,-1,1,1];
 const attackSEHands=[[27.2,59.7],[27.5,30.7],[57.1,69.9],[51.3,71.5]];
 const attackSEAngles=[45,140,55,52],attackSESides=[-1,1,1,1];
-function attackAtlas(facing){return facing===1?attackSE:attackEast}
+function attackAtlas(facing){return facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
  const raw=w.slashColor;
@@ -162,7 +162,7 @@ function startAttack(ch,tx,ty,right,left,now,duration=380){
  const dx=tx-ch.x,dy=ty-ch.y;
  if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001)return false;
  const facing=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
- if(![0,1,4].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
+ if(![0,1,3,4].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
  attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right),facing};
  // Face the actual accepted target rather than the previous movement direction.
  if(owner===ch&&map===ch.map)dir=facing;
@@ -195,7 +195,7 @@ function drawAttack(ch,x,top,size,right,left){
  const frame=t<110?0:t<165?1:t<230?2:3;
  // Mirror the entire visual coordinate system around the player for west.
  // Sprite, grip, weapon rotation, and crescent reflect together; no extra atlas.
- const west=a.facing===4,diagonal=a.facing===1;
+ const west=a.facing===4||a.facing===3,diagonal=a.facing===1||a.facing===3;
  if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
  const anchor=west?0:x;
  ctx.save();ctx.imageSmoothingEnabled=true;
