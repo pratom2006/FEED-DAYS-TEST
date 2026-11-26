@@ -318,7 +318,7 @@ function v09ShowStats(){
  const win=v09Window('stats','💪 สเตตัสตัวละคร');
  win.querySelector('.v09-content').innerHTML='<div class="line space"><b>'+esc(p.name)+' Lv.'+p.lvl+'</b><span class="pill">แต้ม '+p.sp+'</span></div>'+
  '<div class="section">'+Object.entries(STATS).map(([k,desc])=>'<div class="statrow"><div><b>'+k+' '+p.stats[k]+'</b><div class="dim tiny">'+esc(desc)+'</div></div><button type="button" class="button sm" data-stat="'+k+'" '+(p.sp<1?'disabled':'')+'>+1</button></div>').join('')+'</div>'+
- '<div class="notice">HP '+maxHP()+' · MP '+maxMP()+' · ATK '+attackPower()+' · DEF '+defense()+'</div>';
+ '<div class="notice">HP '+maxHP()+' · MP '+maxMP()+' · ATK '+attackPower()+' · DEF '+defense()+'<br>ASPD '+Math.round(fdNormalTiming().rate*100)+'% · '+(1000/fdNormalTiming().duration).toFixed(2)+' ครั้ง/วินาที · '+fdNormalTiming().duration+' ms</div>';
  win.querySelectorAll('[data-stat]').forEach(b=>b.onclick=()=>{
    if(p.sp<1||!Object.prototype.hasOwnProperty.call(p.stats,b.dataset.stat))return;
    p.stats[b.dataset.stat]++;p.sp--;p.hp=clamp(p.hp,0,maxHP());p.mp=clamp(p.mp,0,maxMP());

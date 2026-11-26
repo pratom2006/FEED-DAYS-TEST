@@ -61,11 +61,11 @@ function layers(phase,params){
   const it=getEq(p.equip[hand]);drawWeapon(it,hand,x,y,dir,now,moving,speed,act,t,bob);
  }
 }
-function enqueue(kind,x,y,tx,ty){
+function enqueue(kind,x,y,tx,ty,durationOverride){
  if(!p||!COLORS[kind]||![x,y,tx,ty].every(Number.isFinite))return false;
  sync();const max=perfMode==='eco'?10:24;
  if(active.length>=max)active.splice(0,active.length-max+1);
- active.push({kind,x,y,tx,ty,start:Date.now(),duration:DURATION[kind],angle:Math.atan2(ty-y,tx-x)});return true;
+ active.push({kind,x,y,tx,ty,start:Date.now(),duration:kind==='basic'&&Number.isFinite(durationOverride)&&durationOverride>0?durationOverride:DURATION[kind],angle:Math.atan2(ty-y,tx-x)});return true;
 }
 function particles(x,y,t,color,count,radius,up=0){
  const n=perfMode==='eco'?Math.max(3,Math.ceil(count/3)):count;
