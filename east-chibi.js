@@ -1,8 +1,9 @@
-/* FEED DAYS v1.7.1 — dedicated right-hand northwest overhead slash.
+/* FEED DAYS v1.7.2 — north-facing modular overhead slash.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image(),attackNW=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image(),attackNW=new Image(),attackNorth=new Image();
+attackNorth.src='./assets/characters/starter-male-attack-north.webp?v=172';
 attackNW.src='./assets/characters/starter-male-attack-nw.webp?v=171';
 attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=169';
 attackSouth.src='./assets/characters/starter-male-attack-south.webp?v=165';
@@ -103,7 +104,7 @@ function isOneHandBlade(item){
  const name=String(item.name||'');
  return /ดาบ|มีด|sword|dagger/i.test(name)&&!/ดาบใหญ่|ดาบสองมือ|สองมือ|greatsword|two.hand/i.test(name);
 }
-function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1){
+function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1,projectedLength=1){
  const k=size/96;
  ctx.save();
  ctx.translate(x+(hx-48)*k,top+hy*k);
@@ -113,6 +114,8 @@ function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1){
  const baseAngle=-Math.atan2(hx-48,13);
  const angle=liftDeg===0?baseAngle:-bladeSide*liftDeg*Math.PI/180;
  ctx.rotate(angle);
+ // Foreshorten only the projected weapon, preserving the grip position.
+ if(projectedLength!==1)ctx.scale(1,projectedLength);
  ctx.lineJoin='round';
  ctx.lineWidth=1.4;ctx.strokeStyle='#51464b';
  ctx.fillStyle='#d5e9ee';
@@ -154,7 +157,9 @@ const attackNEHands=[[63.1,54.64],[64.95,26.91],[73.52,56.35],[66.6,67.29]];
 const attackNEAngles=[140,180,125,65],attackNESides=[1,1,1,1];
 const attackNWHands=[[64.72,54.09],[62.92,23.03],[28.35,59.05],[33.15,64.39]];
 const attackNWAngles=[125,145,65,65],attackNWSides=[1,1,-1,-1];
-function attackAtlas(facing){return facing===5?attackNW:facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
+const attackNorthHands=[[63.14,44.4],[65.18,31.09],[54.31,42.77],[63.68,60.42]];
+const attackNorthAngles=[150,180,175,45],attackNorthLength=[1,1,.3,1];
+function attackAtlas(facing){return facing===6?attackNorth:facing===5?attackNW:facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
  const raw=w.slashColor;
@@ -171,7 +176,7 @@ function startAttack(ch,tx,ty,right,left,now,duration=380){
  const dx=tx-ch.x,dy=ty-ch.y;
  if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001)return false;
  const facing=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
- if(![0,1,2,3,4,5,7].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
+ if(![0,1,2,3,4,5,6,7].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
  attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right),facing};
  // Face the actual accepted target rather than the previous movement direction.
  if(owner===ch&&map===ch.map)dir=facing;
@@ -229,6 +234,32 @@ function attackNESlash(x,top,size,t,color){
  ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=2;
  ctx.beginPath();ctx.moveTo(9,-46);ctx.bezierCurveTo(56,-38,66,11,19,32);ctx.stroke();ctx.restore();
 }
+// North: projected frontal strike, behind the head/body in screen space.
+function attackNorthSlash(x,top,size,t,color){
+ if(t<165||t>=350)return;
+ const k=size/96;
+ ctx.save();ctx.translate(x,top);ctx.scale(k,k);
+ ctx.globalAlpha*=t<230?1:(350-t)/120;
+ ctx.shadowColor=color;ctx.shadowBlur=9;ctx.fillStyle=color;
+ if(t<230){
+  // Arc endpoints near the neck; center hidden behind the hair.
+  ctx.beginPath();ctx.moveTo(-37,43);
+  ctx.bezierCurveTo(-37,17,-17,12,0,12);
+  ctx.bezierCurveTo(18,12,39,22,39,43);
+  ctx.bezierCurveTo(30,28,16,22,0,22);
+  ctx.bezierCurveTo(-16,22,-28,29,-37,43);
+  ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-32,32);ctx.bezierCurveTo(-14,9,19,13,34,34);ctx.stroke();
+ }else{
+  // Separate short recovery trail, matching the lowered right-hand sword.
+  ctx.beginPath();ctx.moveTo(14,77);
+  ctx.bezierCurveTo(25,86,43,87,49,65);
+  ctx.bezierCurveTo(48,91,25,93,14,77);
+  ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.moveTo(23,83);ctx.bezierCurveTo(37,91,46,80,48,72);ctx.stroke();
+ }
+ ctx.restore();
+}
 function drawAttack(ch,x,top,size,right,left){
  const a=attackPose;if(!a)return false;
  const age=Date.now()-a.start;
@@ -240,6 +271,14 @@ function drawAttack(ch,x,top,size,right,left){
  const west=a.facing===4||a.facing===3,diagonal=a.facing===1||a.facing===3,south=a.facing===2,northeast=a.facing===7,northwest=a.facing===5;
  if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
  const anchor=west?0:x;
+ if(a.facing===6){
+  attackNorthSlash(x,top,size,t,a.color);
+  const h=attackNorthHands[frame];
+  drawHeldSword(x,top,size,h[0],h[1],attackNorthAngles[frame],1,attackNorthLength[frame]);
+  ctx.save();ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(attackNorth,frame*96,0,96,96,x-size/2,top,size,size);
+  ctx.restore();return true;
+ }
  if(northeast)attackNESlash(anchor,top,size,t,a.color);
  // NW has its own body art. Only the independent crescent is reflected.
  if(northwest){
