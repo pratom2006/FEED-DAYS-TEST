@@ -1,4 +1,4 @@
-/* FEED DAYS v1.5.7 — Combat Front dual blades in all eight directions.
+/* FEED DAYS v1.5.8 — smooth subtle dual-blade sway in all eight directions.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -71,8 +71,9 @@ const runWeaponProfiles=[
 // Experimental Combat Front: both fists are forward in all four east frames.
 // Coordinates measured on the actual 96px cells, right (near), left (far).
 const combatEastHands=[[54,55,62,54],[53,55,59,54],[53,55,62,54],[52,55,60,54]];
-// Both blades point east. Modest alternating wobble around the approved angles.
-const combatEastMotion=[[135,137,135,133],[140,138,140,142]];
+// Keep the approved nominal angles. A smooth 600ms counter-sway replaces
+// the old frame-stepped +/-2 degree wobble, rotating about the fist only.
+const combatEastMotion=[135,140];
 // Reuse the approved east atlas, mirror coordinates and swap anatomical hands.
 const combatWestHands=combatEastHands.map(mirrorHands);
 // Fist centers from the approved southeast sprite, in 96px cells.
@@ -81,7 +82,12 @@ const combatSWHands=combatSEHands.map(mirrorHands);
 // Front-facing character: anatomical right is screen-left.
 const combatSouthHands=[[39.8,55,59.4,54.8],[39.8,54.7,58.5,54.4],[39.6,55,59,55],[39.7,54.9,59,54.3]];
 // Owner-approved near-vertical blades; face overlap is intentional.
-const combatSouthMotion=[[170,170,170,170],[170,170,170,170]];
+const combatSouthMotion=[170,170];
+const combatSwayDegrees=5;
+function combatBladeLift(hand){
+ const base=(dir===2||dir>=5?combatSouthMotion:combatEastMotion)[hand];
+ return base+(hand===0?1:-1)*combatSwayDegrees*Math.sin(elapsed*Math.PI/300);
+}
 // Back view: anatomical right is screen-right. Both weapons behind the body.
 const combatNorthHands=[[58,44,36,44],[59,44,36,44],[58,44,36,44],[59,44,36,44]];
 // NE right fist visible; left grip is estimated behind the head/body.
@@ -120,7 +126,7 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
    const behindBody=(combatFront&&dir===6)||hand===far;
    if(!held[hand]||behindBody!==behind)continue;
    const profile=runWeaponProfiles[hand];
-   const lift=combatFront?(dir===2||dir>=5?combatSouthMotion:combatEastMotion)[hand][runFrame]:runFrame<0?0:profile.lift[dir][runFrame];
+   const lift=combatFront?combatBladeLift(hand):runFrame<0?0:profile.lift[dir][runFrame];
    drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?(dir===6?(hand===0?1:-1):dir===2?(hand===0?-1:1):dir===3||dir===4||dir===5?-1:1):profile.side[dir]);
   }
  }
