@@ -1,8 +1,9 @@
-/* FEED DAYS v1.7.0 — mirrored northwest overhead slash.
+/* FEED DAYS v1.7.1 — dedicated right-hand northwest overhead slash.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image(),attackSouth=new Image(),attackNE=new Image(),attackNW=new Image();
+attackNW.src='./assets/characters/starter-male-attack-nw.webp?v=171';
 attackNE.src='./assets/characters/starter-male-attack-ne.webp?v=169';
 attackSouth.src='./assets/characters/starter-male-attack-south.webp?v=165';
 attackSE.src='./assets/characters/starter-male-attack-se.webp?v=164';
@@ -151,7 +152,9 @@ const attackSouthHands=[[33,57],[32,33],[47,62],[46,62]];
 const attackSouthAngles=[30,155,5,3],attackSouthSides=[-1,-1,-1,-1];
 const attackNEHands=[[63.1,54.64],[64.95,26.91],[73.52,56.35],[66.6,67.29]];
 const attackNEAngles=[140,180,125,65],attackNESides=[1,1,1,1];
-function attackAtlas(facing){return facing===7||facing===5?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
+const attackNWHands=[[64.72,54.09],[62.92,23.03],[28.35,59.05],[33.15,64.39]];
+const attackNWAngles=[125,145,65,65],attackNWSides=[1,1,-1,-1];
+function attackAtlas(facing){return facing===5?attackNW:facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
  const raw=w.slashColor;
@@ -234,13 +237,22 @@ function drawAttack(ch,x,top,size,right,left){
  const frame=t<110?0:t<165?1:t<230?2:3;
  // Mirror the entire visual coordinate system around the player for west.
  // Sprite, grip, weapon rotation, and crescent reflect together; no extra atlas.
- const west=a.facing===4||a.facing===3||a.facing===5,diagonal=a.facing===1||a.facing===3,south=a.facing===2,northeast=a.facing===7||a.facing===5;
+ const west=a.facing===4||a.facing===3,diagonal=a.facing===1||a.facing===3,south=a.facing===2,northeast=a.facing===7,northwest=a.facing===5;
  if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
  const anchor=west?0:x;
  if(northeast)attackNESlash(anchor,top,size,t,a.color);
+ // NW has its own body art. Only the independent crescent is reflected.
+ if(northwest){
+  ctx.save();ctx.translate(x,0);ctx.scale(-1,1);attackNESlash(0,top,size,t,a.color);ctx.restore();
+  if(frame<2){const h=attackNWHands[frame];drawHeldSword(x,top,size,h[0],h[1],attackNWAngles[frame],attackNWSides[frame]);}
+ }
  ctx.save();ctx.imageSmoothingEnabled=true;
  ctx.drawImage(attackAtlas(a.facing),frame*96,0,96,96,anchor-size/2,top,size,size);
  ctx.restore();
+ if(northwest){
+  if(frame>=2){const h=attackNWHands[frame];drawHeldSword(x,top,size,h[0],h[1],attackNWAngles[frame],attackNWSides[frame]);}
+  return true;
+ }
  const hand=(northeast?attackNEHands:south?attackSouthHands:diagonal?attackSEHands:attackHands)[frame];
  drawHeldSword(anchor,top,size,hand[0],hand[1],(northeast?attackNEAngles:south?attackSouthAngles:diagonal?attackSEAngles:attackAngles)[frame],(northeast?attackNESides:south?attackSouthSides:diagonal?attackSESides:attackSides)[frame]);
  if(south)attackSouthSlash(anchor,top,size,t,a.color);
