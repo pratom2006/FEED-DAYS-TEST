@@ -1,4 +1,4 @@
-/* FEED DAYS v1.4.3 — seven approved directions, four unique frames each.
+/* FEED DAYS v1.4.4 — eight approved directions, four unique frames each.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -22,12 +22,13 @@ function draw(ch,x,y){
  const active=moving&&!gamePaused&&(!ui||ui==='📜 สกิล');
  const row=rows[dir],size=80,top=y+35-size*92/96;
  if(active){
-  const isNE=dir===7;
-  const img=isNE?ne:atlas;
-  if((!isNE&&row<0)||!ready(img,384,isNE?96:576))return false;
+  const isNW=dir===5,isUpperDiagonal=isNW||dir===7;
+  const img=isUpperDiagonal?ne:atlas;
+  if((!isUpperDiagonal&&row<0)||!ready(img,384,isUpperDiagonal?96:576))return false;
   const frame=Math.floor(elapsed/150);
   ctx.save();ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(img,frame*96,isNE?0:row*96,96,96,x-size/2,top,size,size);
+  if(isNW){ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(img,frame*96,0,96,96,-size/2,top,size,size)}
+  else ctx.drawImage(img,frame*96,isUpperDiagonal?0:row*96,96,96,x-size/2,top,size,size);
   ctx.restore();return true;
  }
  // Only E/W have a separate existing idle image. Never use a moving pose for idle.
