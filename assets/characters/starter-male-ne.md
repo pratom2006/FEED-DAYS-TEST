@@ -1,0 +1,2 @@
+# v1.4.3 — northeast starter male
+Approved latest four-frame NE preview, original order, 150 ms per frame. White exterior background removed, uniform scale and common head registration. Separate 384×96 WebP atlas, four 96×96 cells. Existing six-direction atlas and gameplay untouched. NW and NE idle use legacy renderer. E/W idle unchanged; mounted and female fallback unchanged. iPad visual/deployment test pending.

@@ -1,8 +1,9 @@
-/* FEED DAYS v1.4.2 — six approved directions, four unique frames each.
+/* FEED DAYS v1.4.3 — seven approved directions, four unique frames each.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image();
+ne.src='./assets/characters/starter-male-ne.webp?v=143';
 atlas.src='./assets/characters/starter-male-six.webp?v=142';
 idle.src='./assets/characters/starter-male-east.webp?v=141';
 const rows=[0,1,2,3,4,-1,5,-1]; // E, SE, S, SW, W, NW, N, NE
@@ -21,10 +22,12 @@ function draw(ch,x,y){
  const active=moving&&!gamePaused&&(!ui||ui==='📜 สกิล');
  const row=rows[dir],size=80,top=y+35-size*92/96;
  if(active){
-  if(row<0||!ready(atlas,384,576))return false;
+  const isNE=dir===7;
+  const img=isNE?ne:atlas;
+  if((!isNE&&row<0)||!ready(img,384,isNE?96:576))return false;
   const frame=Math.floor(elapsed/150);
   ctx.save();ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(atlas,frame*96,row*96,96,96,x-size/2,top,size,size);
+  ctx.drawImage(img,frame*96,isNE?0:row*96,96,96,x-size/2,top,size,size);
   ctx.restore();return true;
  }
  // Only E/W have a separate existing idle image. Never use a moving pose for idle.
