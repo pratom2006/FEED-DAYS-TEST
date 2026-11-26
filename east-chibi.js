@@ -1,8 +1,9 @@
-/* FEED DAYS v1.5.0 — independently animated dual swords on all eight running directions.
+/* FEED DAYS v1.5.1 — experimental east-facing Combat Front pose for dual blades.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image();
+combatEast.src='./assets/characters/starter-male-combat-east.webp?v=151';
 idleSix.src='./assets/characters/starter-male-idle-six.webp?v=145';
 const idleCols=[-1,0,1,2,-1,3,4,5]; // E, SE, S, SW, W, NW, N, NE
 ne.src='./assets/characters/starter-male-ne.webp?v=143';
@@ -63,6 +64,16 @@ const runWeaponProfiles=[
  {lift:rightRunLift,side:rightRunSide},
  {lift:leftRunLift,side:leftRunSide}
 ];
+// Experimental Combat Front: both fists are forward in all four east frames.
+// Coordinates measured on the actual 96px cells, right (near), left (far).
+const combatEastHands=[[54,55,62,54],[53,55,59,54],[53,55,62,54],[52,55,60,54]];
+// Both blades point east. Modest alternating wobble around the approved angles.
+const combatEastMotion=[[135,137,135,133],[140,138,140,142]];
+function isOneHandBlade(item){
+ if(!item||item.twoHanded||item.hands===2||item.grip==='twoHanded')return false;
+ const name=String(item.name||'');
+ return /ดาบ|มีด|sword|dagger/i.test(name)&&!/ดาบใหญ่|ดาบสองมือ|สองมือ|greatsword|two.hand/i.test(name);
+}
 function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1){
  const k=size/96;
  ctx.save();
@@ -83,15 +94,15 @@ function drawHeldSword(x,top,size,hx,hy,liftDeg=0,bladeSide=1){
  ctx.fillStyle='#b98b5b';ctx.fillRect(-3.5,-8,7,2.5);ctx.fillRect(-7,5,14,3);
  ctx.restore();
 }
-function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1){
+function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,combatFront=false){
  const far=farSide[dir];
  const held=[right,left];
  function pass(behind){
   for(let hand=0;hand<2;hand++){
    if(!held[hand]||((hand===far)!==behind))continue;
    const profile=runWeaponProfiles[hand];
-   const lift=runFrame<0?0:profile.lift[dir][runFrame];
-   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,profile.side[dir]);
+   const lift=combatFront?combatEastMotion[hand][runFrame]:runFrame<0?0:profile.lift[dir][runFrame];
+   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?1:profile.side[dir]);
   }
  }
  pass(true);
@@ -107,10 +118,14 @@ function draw(ch,x,y,right,left){
  const active=moving&&!gamePaused&&(!ui||ui==='📜 สกิล');
  const row=rows[dir],size=80,top=y+35-size*92/96;
  if(active){
+  const frame=Math.floor(elapsed/150);
+  if(dir===0&&isOneHandBlade(right)&&isOneHandBlade(left)&&right!==left&&(!right.uid||!left.uid||right.uid!==left.uid)&&ready(combatEast,384,96)){
+   drawPose(combatEast,frame,0,false,x,top,size,combatEastHands[frame],right,left,frame,true);
+   return true;
+  }
   const isNW=dir===5,isUpperDiagonal=isNW||dir===7;
   const img=isUpperDiagonal?ne:atlas;
   if((!isUpperDiagonal&&row<0)||!ready(img,384,isUpperDiagonal?96:576))return false;
-  const frame=Math.floor(elapsed/150);
   drawPose(img,frame,isUpperDiagonal?0:row,isNW,x,top,size,runHands[dir][frame],right,left,frame);
   return true;
  }
