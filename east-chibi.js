@@ -1,4 +1,4 @@
-/* FEED DAYS v1.6.9 — northeast overhead slash using approved body poses.
+/* FEED DAYS v1.7.0 — mirrored northwest overhead slash.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -151,7 +151,7 @@ const attackSouthHands=[[33,57],[32,33],[47,62],[46,62]];
 const attackSouthAngles=[30,155,5,3],attackSouthSides=[-1,-1,-1,-1];
 const attackNEHands=[[63.1,54.64],[64.95,26.91],[73.52,56.35],[66.6,67.29]];
 const attackNEAngles=[140,180,125,65],attackNESides=[1,1,1,1];
-function attackAtlas(facing){return facing===7?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
+function attackAtlas(facing){return facing===7||facing===5?attackNE:facing===2?attackSouth:facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
  const raw=w.slashColor;
@@ -168,7 +168,7 @@ function startAttack(ch,tx,ty,right,left,now,duration=380){
  const dx=tx-ch.x,dy=ty-ch.y;
  if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001)return false;
  const facing=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
- if(![0,1,2,3,4,7].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
+ if(![0,1,2,3,4,5,7].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
  attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right),facing};
  // Face the actual accepted target rather than the previous movement direction.
  if(owner===ch&&map===ch.map)dir=facing;
@@ -234,7 +234,7 @@ function drawAttack(ch,x,top,size,right,left){
  const frame=t<110?0:t<165?1:t<230?2:3;
  // Mirror the entire visual coordinate system around the player for west.
  // Sprite, grip, weapon rotation, and crescent reflect together; no extra atlas.
- const west=a.facing===4||a.facing===3,diagonal=a.facing===1||a.facing===3,south=a.facing===2,northeast=a.facing===7;
+ const west=a.facing===4||a.facing===3||a.facing===5,diagonal=a.facing===1||a.facing===3,south=a.facing===2,northeast=a.facing===7||a.facing===5;
  if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
  const anchor=west?0:x;
  if(northeast)attackNESlash(anchor,top,size,t,a.color);
