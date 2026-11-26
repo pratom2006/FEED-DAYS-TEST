@@ -1,8 +1,9 @@
-/* FEED DAYS v1.5.5 — front-facing Combat Front blades at 170 degrees.
+/* FEED DAYS v1.5.6 — six Combat Front directions; north blades behind character.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image();
+combatNorth.src='./assets/characters/starter-male-combat-north.webp?v=156';
 combatSouth.src='./assets/characters/starter-male-combat-south.webp?v=154';
 combatSE.src='./assets/characters/starter-male-combat-se.webp?v=153';
 combatEast.src='./assets/characters/starter-male-combat-east.webp?v=151';
@@ -80,6 +81,8 @@ const combatSWHands=combatSEHands.map(mirrorHands);
 const combatSouthHands=[[39.8,55,59.4,54.8],[39.8,54.7,58.5,54.4],[39.6,55,59,55],[39.7,54.9,59,54.3]];
 // Owner-approved near-vertical blades; face overlap is intentional.
 const combatSouthMotion=[[170,170,170,170],[170,170,170,170]];
+// Back view: anatomical right is screen-right. Both weapons behind the body.
+const combatNorthHands=[[58,44,36,44],[59,44,36,44],[58,44,36,44],[59,44,36,44]];
 function isOneHandBlade(item){
  if(!item||item.twoHanded||item.hands===2||item.grip==='twoHanded')return false;
  const name=String(item.name||'');
@@ -110,10 +113,11 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
  const held=[right,left];
  function pass(behind){
   for(let hand=0;hand<2;hand++){
-   if(!held[hand]||((hand===far)!==behind))continue;
+   const behindBody=(combatFront&&dir===6)||hand===far;
+   if(!held[hand]||behindBody!==behind)continue;
    const profile=runWeaponProfiles[hand];
-   const lift=combatFront?(dir===2?combatSouthMotion:combatEastMotion)[hand][runFrame]:runFrame<0?0:profile.lift[dir][runFrame];
-   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?(dir===2?(hand===0?-1:1):dir===3||dir===4?-1:1):profile.side[dir]);
+   const lift=combatFront?(dir===2||dir===6?combatSouthMotion:combatEastMotion)[hand][runFrame]:runFrame<0?0:profile.lift[dir][runFrame];
+   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?(dir===6?(hand===0?1:-1):dir===2?(hand===0?-1:1):dir===3||dir===4?-1:1):profile.side[dir]);
   }
  }
  pass(true);
@@ -131,10 +135,10 @@ function draw(ch,x,y,right,left){
  if(active){
   const frame=Math.floor(elapsed/150);
   const diagonal=dir===1||dir===3;
-  const combat=dir===2?combatSouth:diagonal?combatSE:combatEast;
-  if((dir===0||dir===2||dir===4||diagonal)&&isOneHandBlade(right)&&isOneHandBlade(left)&&right!==left&&(!right.uid||!left.uid||right.uid!==left.uid)&&ready(combat,384,96)){
+  const combat=dir===6?combatNorth:dir===2?combatSouth:diagonal?combatSE:combatEast;
+  if((dir===0||dir===2||dir===4||dir===6||diagonal)&&isOneHandBlade(right)&&isOneHandBlade(left)&&right!==left&&(!right.uid||!left.uid||right.uid!==left.uid)&&ready(combat,384,96)){
    const west=dir===3||dir===4;
-   const hands=dir===2?combatSouthHands:diagonal?(west?combatSWHands:combatSEHands):(west?combatWestHands:combatEastHands);
+   const hands=dir===6?combatNorthHands:dir===2?combatSouthHands:diagonal?(west?combatSWHands:combatSEHands):(west?combatWestHands:combatEastHands);
    drawPose(combat,frame,0,west,x,top,size,hands[frame],right,left,frame,true);
    return true;
   }
