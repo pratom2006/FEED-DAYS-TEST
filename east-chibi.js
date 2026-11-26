@@ -1,4 +1,4 @@
-/* FEED DAYS v1.5.1 — experimental east-facing Combat Front pose for dual blades.
+/* FEED DAYS v1.5.2 — east and west Combat Front poses for dual blades.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -69,6 +69,8 @@ const runWeaponProfiles=[
 const combatEastHands=[[54,55,62,54],[53,55,59,54],[53,55,62,54],[52,55,60,54]];
 // Both blades point east. Modest alternating wobble around the approved angles.
 const combatEastMotion=[[135,137,135,133],[140,138,140,142]];
+// Reuse the approved east atlas, mirror coordinates and swap anatomical hands.
+const combatWestHands=combatEastHands.map(mirrorHands);
 function isOneHandBlade(item){
  if(!item||item.twoHanded||item.hands===2||item.grip==='twoHanded')return false;
  const name=String(item.name||'');
@@ -102,7 +104,7 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
    if(!held[hand]||((hand===far)!==behind))continue;
    const profile=runWeaponProfiles[hand];
    const lift=combatFront?combatEastMotion[hand][runFrame]:runFrame<0?0:profile.lift[dir][runFrame];
-   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?1:profile.side[dir]);
+   drawHeldSword(x,top,size,hands[hand*2],hands[hand*2+1],lift,combatFront?(dir===4?-1:1):profile.side[dir]);
   }
  }
  pass(true);
@@ -119,8 +121,9 @@ function draw(ch,x,y,right,left){
  const row=rows[dir],size=80,top=y+35-size*92/96;
  if(active){
   const frame=Math.floor(elapsed/150);
-  if(dir===0&&isOneHandBlade(right)&&isOneHandBlade(left)&&right!==left&&(!right.uid||!left.uid||right.uid!==left.uid)&&ready(combatEast,384,96)){
-   drawPose(combatEast,frame,0,false,x,top,size,combatEastHands[frame],right,left,frame,true);
+  if((dir===0||dir===4)&&isOneHandBlade(right)&&isOneHandBlade(left)&&right!==left&&(!right.uid||!left.uid||right.uid!==left.uid)&&ready(combatEast,384,96)){
+   const west=dir===4;
+   drawPose(combatEast,frame,0,west,x,top,size,(west?combatWestHands:combatEastHands)[frame],right,left,frame,true);
    return true;
   }
   const isNW=dir===5,isUpperDiagonal=isNW||dir===7;
