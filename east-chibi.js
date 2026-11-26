@@ -1,8 +1,9 @@
-/* FEED DAYS v1.5.8 — smooth subtle dual-blade sway in all eight directions.
+/* FEED DAYS v1.5.9 — experimental east-facing one-handed sword normal attack.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image();
+attackEast.src='./assets/characters/starter-male-attack-east.webp?v=159';
 combatNE.src='./assets/characters/starter-male-combat-ne.webp?v=157';
 combatNorth.src='./assets/characters/starter-male-combat-north.webp?v=156';
 combatSouth.src='./assets/characters/starter-male-combat-south.webp?v=154';
@@ -15,9 +16,9 @@ atlas.src='./assets/characters/starter-male-six.webp?v=142';
 idle.src='./assets/characters/starter-male-east.webp?v=141';
 const rows=[0,1,2,3,4,-1,5,-1]; // E, SE, S, SW, W, NW, N, NE
 const ready=(img,w,h)=>img.complete&&img.naturalWidth===w&&img.naturalHeight===h;
-let owner=null,map=null,dir=0,moving=false,elapsed=0;
+let owner=null,map=null,dir=0,moving=false,elapsed=0,attackPose=null;
 function motion(ch,dx,dy,dt){
- if(owner!==ch||map!==ch.map){owner=ch;map=ch.map;dir=0;moving=false;elapsed=0}
+ if(owner!==ch||map!==ch.map){owner=ch;map=ch.map;dir=0;moving=false;elapsed=0;attackPose=null}
  if(Math.hypot(dx,dy)<=.001){moving=false;elapsed=0;return}
  const next=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
  if(!moving||next!==dir)elapsed=0;
@@ -138,10 +139,67 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
  pass(false);
 }
 
+// Independent visual-only attack state. The existing 380ms gameplay cooldown is unchanged.
+const attackHands=[[37.2,58.9],[32.3,22.2],[83.5,54.3],[41.9,60.2]];
+const attackAngles=[45,70,90,45],attackSides=[1,-1,1,1];
+const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
+function attackColor(w){
+ const raw=w.slashColor;
+ if(typeof raw==='string'&&/^#[0-9a-f]{6}$/i.test(raw))return raw;
+ const element=String(w.element||'').toLowerCase();
+ return Object.prototype.hasOwnProperty.call(attackColors,element)?attackColors[element]:'#39caff';
+}
+function isAttackSword(w){
+ return isOneHandBlade(w)&&/ดาบ|sword/i.test(String(w.name||''));
+}
+function startAttack(ch,tx,ty,right,left,now){
+ attackPose=null;
+ if(!ch||ch.gender!=='male'||ch.riding||!isAttackSword(right)||left||!Number.isFinite(now))return false;
+ const dx=tx-ch.x,dy=ty-ch.y;
+ if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001||((Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8)!==0)return false;
+ if(!ready(attackEast,384,96))return false;
+ attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,color:attackColor(right)};
+ // Face the actual accepted target rather than the previous movement direction.
+ if(owner===ch&&map===ch.map)dir=0;
+ return true;
+}
+function attackSlash(x,top,size,t,color){
+ // Separate, recolorable procedural crescent. No effect pixels in the character sprite.
+ if(t<110||t>=330)return;
+ const opacity=t<165?(t-110)/55:t<230?1:1-(t-230)/100;
+ if(opacity<=0)return;
+ const k=size/96;
+ ctx.save();ctx.translate(x,top+49*k);ctx.scale(k,k);
+ ctx.globalAlpha*=opacity;ctx.shadowColor=color;ctx.shadowBlur=9;
+ ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(18,-36);
+ ctx.bezierCurveTo(67,-39,86,-5,62,14);
+ ctx.bezierCurveTo(43,29,17,28,0,22);
+ ctx.bezierCurveTo(42,20,65,2,49,-16);
+ ctx.bezierCurveTo(42,-25,30,-32,18,-36);
+ ctx.closePath();ctx.fill();
+ ctx.shadowBlur=0;ctx.strokeStyle='#f5ffff';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(35,-31);ctx.bezierCurveTo(76,-17,78,10,32,24);ctx.stroke();
+ ctx.restore();
+}
+function drawAttack(ch,x,top,size,right,left){
+ const a=attackPose;if(!a)return false;
+ const t=Date.now()-a.start;
+ if(a.ch!==ch||a.map!==ch.map||ch.riding||!isAttackSword(right)||left||(a.uid?a.uid!==right.uid:a.weapon!==right)||gamePaused||ui||t<0||t>=380||!ready(attackEast,384,96)){attackPose=null;return false}
+ const frame=t<110?0:t<165?1:t<230?2:3;
+ ctx.save();ctx.imageSmoothingEnabled=true;
+ ctx.drawImage(attackEast,frame*96,0,96,96,x-size/2,top,size,size);
+ ctx.restore();
+ const hand=attackHands[frame];
+ drawHeldSword(x,top,size,hand[0],hand[1],attackAngles[frame],attackSides[frame]);
+ attackSlash(x,top,size,t,a.color);
+ return true;
+}
+
 function draw(ch,x,y,right,left){
  if(ch.gender!=='male'||ch!==owner||ch.map!==map||ch.riding)return false;
  const active=moving&&!gamePaused&&(!ui||ui==='📜 สกิล');
  const row=rows[dir],size=80,top=y+35-size*92/96;
+ if(drawAttack(ch,x,top,size,right,left))return true;
  if(active){
   const frame=Math.floor(elapsed/150);
   const diagonal=dir===1||dir===3;
@@ -166,5 +224,5 @@ function draw(ch,x,y,right,left){
  drawPose(still,side?0:col,0,dir===4,x,top,size,idleHands[dir],right,left);
  return true;
 }
-window.fdEastMotion=motion;window.fdEastDraw=draw;
+window.fdEastMotion=motion;window.fdEastDraw=draw;window.fdStartSwordAttack=startAttack;
 })();

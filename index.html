@@ -602,6 +602,8 @@ function attack(skill,silent=false){
   const t=locked||enemies.filter(e=>e.hp>0&&dist(e,p)<range).sort((a,b)=>dist(a,p)-dist(b,p))[0];
   if(!t){if(!silent)toast('ไม่มีมอนสเตอร์ในระยะโจมตี');return false}
   attackTime=Date.now();
+  // Visual hook only after an accepted normal attack; damage and cooldown stay immediate.
+  if(typeof window.fdStartSwordAttack==='function')window.fdStartSwordAttack(p,t.x,t.y,weapon,getEq(p.equip.left),attackTime);
   if(skill)p.mp-=mana;
   let dmg=Math.max(1,Math.round((attackPower()*(skill?1.45+p.skills.slash*.13:1)+(skill?p.stats.INT*.6:0))*(.88+Math.random()*.24)));
   const critical=Math.random()<Math.min(.4,p.stats.LUX*.007+(typeof fd95CritBonus==='function'?fd95CritBonus():0));
@@ -1133,6 +1135,6 @@ load();toggleMode('login');
 <script src="./v096.js?v=97"></script>
 <script src="./combat-art.js?v=131"></script>
 <script src="./wolf-art.js?v=140"></script>
-<script src="./east-chibi.js?v=158"></script>
+<script src="./east-chibi.js?v=159"></script>
 </body>
 </html>
