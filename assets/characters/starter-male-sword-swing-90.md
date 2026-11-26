@@ -1,0 +1,2 @@
+# v1.4.8 — 90-degree running sword lift
+The right-hand blade now swings outward through absolute angles of 55–90 degrees measured from vertically downward, attaining horizontal at the peak of each direction's four-frame cycle. This is not 90 degrees added on top of the old angle, nor an overhead pose. The fist pivot, sprite frame sequence, idle and left hand, layering, stats and combat remain unchanged. Mock Canvas tests verify all 32 moving and eight idle poses and peak angle, single/dual/unarmed, paused and legacy fallback. Visual tuning on device is still needed.

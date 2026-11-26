@@ -1,4 +1,4 @@
-/* FEED DAYS v1.4.7 — right-hand sword lift and swing on all eight running directions.
+/* FEED DAYS v1.4.8 — right-hand running sword raises to horizontal (90 degrees).
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -39,27 +39,27 @@ const idleHands=[[47,65,54,64],[39,64,61,62],[36,64,60,64],[34,62,56,64],[41,64,
 // Far-side weapons render behind the sprite; near-side weapons above it.
 // In front/back views both hands are visible.
 const farSide=[1,1,-1,0,0,0,-1,1];
-// Right-hand running lift (degrees), keyed by direction and the exact sprite frame.
-// Higher fists receive more blade lift; no change to grip coordinates or idle pose.
+// Absolute running blade angle from downward, in degrees, per sprite frame.
+// At the high point the blade is horizontal (90 degrees); keep the same fist pivot.
 const rightRunLift=[
- [12,10,20,14], // E
- [18,10,20,12], // SE
- [16,10,14,20], // S
- [14,16,12,20], // SW
- [20,16,10,14], // W
- [20,16,10,16], // NW
- [20,10,12,18], // N
- [12,16,20,16]  // NE
+ [65,55,90,70], // E
+ [75,55,90,65], // SE
+ [70,55,65,90], // S
+ [65,75,55,90], // SW
+ [90,75,55,65], // W
+ [90,75,55,75], // NW
+ [90,55,65,75], // N
+ [65,75,90,75]  // NE
 ];
 function drawHeldSword(x,top,size,hx,hy,liftDeg=0){
  const k=size/96;
  ctx.save();
  ctx.translate(x+(hx-48)*k,top+hy*k);
  ctx.scale(k,k);
- // Rotate about the fist, not the blade tip. Raise outward without pointing at the head.
+ // Rotate about the fist. The idle/left-hand angle remains identical to v1.4.7.
  const baseAngle=-Math.atan2(hx-48,13);
  const outward=hx===48?1:Math.sign(hx-48);
- const angle=liftDeg===0?baseAngle:Math.max(-Math.PI*82/180,Math.min(Math.PI*82/180,baseAngle-outward*liftDeg*Math.PI/180));
+ const angle=liftDeg===0?baseAngle:-outward*Math.min(Math.PI/2,Math.max(Math.abs(baseAngle),liftDeg*Math.PI/180));
  ctx.rotate(angle);
  ctx.lineJoin='round';
  ctx.lineWidth=1.4;ctx.strokeStyle='#51464b';
