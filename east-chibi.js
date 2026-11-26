@@ -1,8 +1,9 @@
-/* FEED DAYS v1.6.1 — mirrored west one-handed sword attack, shared dynamic duration.
+/* FEED DAYS v1.6.2 — southeast one-handed sword attack, shared dynamic duration.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
-const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image();
+const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image();
+attackSE.src='./assets/characters/starter-male-attack-se.webp?v=162';
 attackEast.src='./assets/characters/starter-male-attack-east.webp?v=159';
 combatNE.src='./assets/characters/starter-male-combat-ne.webp?v=157';
 combatNorth.src='./assets/characters/starter-male-combat-north.webp?v=156';
@@ -142,6 +143,9 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
 // Visual attack clock follows the duration snapshot supplied by the gameplay scheduler.
 const attackHands=[[37.2,58.9],[32.3,22.2],[83.5,54.3],[41.9,60.2]];
 const attackAngles=[45,70,90,45],attackSides=[1,-1,1,1];
+const attackSEHands=[[27.2,59.7],[27.5,30.7],[57.1,69.9],[51.3,71.5]];
+const attackSEAngles=[45,140,55,52],attackSESides=[-1,1,1,1];
+function attackAtlas(facing){return facing===1?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
  const raw=w.slashColor;
@@ -158,19 +162,20 @@ function startAttack(ch,tx,ty,right,left,now,duration=380){
  const dx=tx-ch.x,dy=ty-ch.y;
  if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.001)return false;
  const facing=(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8;
- if((facing!==0&&facing!==4)||!ready(attackEast,384,96))return false;
+ if(![0,1,4].includes(facing)||!ready(attackAtlas(facing),384,96))return false;
  attackPose={ch,map:ch.map,weapon:right,uid:right.uid,start:now,duration,color:attackColor(right),facing};
  // Face the actual accepted target rather than the previous movement direction.
  if(owner===ch&&map===ch.map)dir=facing;
  return true;
 }
-function attackSlash(x,top,size,t,color){
+function attackSlash(x,top,size,t,color,diagonal=false){
  // Separate, recolorable procedural crescent. No effect pixels in the character sprite.
  if(t<110||t>=330)return;
  const opacity=t<165?(t-110)/55:t<230?1:1-(t-230)/100;
  if(opacity<=0)return;
  const k=size/96;
- ctx.save();ctx.translate(x,top+49*k);ctx.scale(k,k);
+ ctx.save();ctx.translate(x,top+(diagonal?57:49)*k);ctx.scale(k,k);
+ if(diagonal)ctx.rotate(Math.PI/6);
  ctx.globalAlpha*=opacity;ctx.shadowColor=color;ctx.shadowBlur=9;
  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(18,-36);
  ctx.bezierCurveTo(67,-39,86,-5,62,14);
@@ -186,19 +191,19 @@ function drawAttack(ch,x,top,size,right,left){
  const a=attackPose;if(!a)return false;
  const age=Date.now()-a.start;
  const t=age*380/a.duration;
- if(a.ch!==ch||a.map!==ch.map||ch.riding||!isAttackSword(right)||left||(a.uid?a.uid!==right.uid:a.weapon!==right)||gamePaused||ui||age<0||age>=a.duration||!ready(attackEast,384,96)){attackPose=null;return false}
+ if(a.ch!==ch||a.map!==ch.map||ch.riding||!isAttackSword(right)||left||(a.uid?a.uid!==right.uid:a.weapon!==right)||gamePaused||ui||age<0||age>=a.duration||!ready(attackAtlas(a.facing),384,96)){attackPose=null;return false}
  const frame=t<110?0:t<165?1:t<230?2:3;
  // Mirror the entire visual coordinate system around the player for west.
  // Sprite, grip, weapon rotation, and crescent reflect together; no extra atlas.
- const west=a.facing===4;
+ const west=a.facing===4,diagonal=a.facing===1;
  if(west){ctx.save();ctx.translate(x,0);ctx.scale(-1,1)}
  const anchor=west?0:x;
  ctx.save();ctx.imageSmoothingEnabled=true;
- ctx.drawImage(attackEast,frame*96,0,96,96,anchor-size/2,top,size,size);
+ ctx.drawImage(attackAtlas(a.facing),frame*96,0,96,96,anchor-size/2,top,size,size);
  ctx.restore();
- const hand=attackHands[frame];
- drawHeldSword(anchor,top,size,hand[0],hand[1],attackAngles[frame],attackSides[frame]);
- attackSlash(anchor,top,size,t,a.color);
+ const hand=(diagonal?attackSEHands:attackHands)[frame];
+ drawHeldSword(anchor,top,size,hand[0],hand[1],(diagonal?attackSEAngles:attackAngles)[frame],(diagonal?attackSESides:attackSides)[frame]);
+ attackSlash(anchor,top,size,t,a.color,diagonal);
  if(west)ctx.restore();
  return true;
 }
