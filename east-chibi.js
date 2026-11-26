@@ -1,9 +1,9 @@
-/* FEED DAYS v1.6.3 — mirrored southwest one-handed sword attack, shared dynamic duration.
+/* FEED DAYS v1.6.4 — clean diagonal sword attack atlas, normalized height and grip sockets.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
 const atlas=new Image(),idle=new Image(),ne=new Image(),idleSix=new Image(),combatEast=new Image(),combatSE=new Image(),combatSouth=new Image(),combatNorth=new Image(),combatNE=new Image(),attackEast=new Image(),attackSE=new Image();
-attackSE.src='./assets/characters/starter-male-attack-se.webp?v=162';
+attackSE.src='./assets/characters/starter-male-attack-se.webp?v=164';
 attackEast.src='./assets/characters/starter-male-attack-east.webp?v=159';
 combatNE.src='./assets/characters/starter-male-combat-ne.webp?v=157';
 combatNorth.src='./assets/characters/starter-male-combat-north.webp?v=156';
@@ -143,8 +143,8 @@ function drawPose(img,col,row,flip,x,top,size,hands,right,left,runFrame=-1,comba
 // Visual attack clock follows the duration snapshot supplied by the gameplay scheduler.
 const attackHands=[[37.2,58.9],[32.3,22.2],[83.5,54.3],[41.9,60.2]];
 const attackAngles=[45,70,90,45],attackSides=[1,-1,1,1];
-const attackSEHands=[[27.2,59.7],[27.5,30.7],[57.1,69.9],[51.3,71.5]];
-const attackSEAngles=[45,140,55,52],attackSESides=[-1,1,1,1];
+const attackSEHands=[[30.46,52.88],[31.52,37.05],[68.31,61.32],[32.7,59.34]];
+const attackSEAngles=[45,145,55,27],attackSESides=[-1,-1,1,1];
 function attackAtlas(facing){return facing===1||facing===3?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
