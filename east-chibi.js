@@ -1,4 +1,4 @@
-/* FEED DAYS v1.7.3 — dedicated southwest right-hand slash.
+/* FEED DAYS v1.7.4 — lift southwest recovery sword 15 degrees.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -161,7 +161,7 @@ const attackNWAngles=[125,145,65,65],attackNWSides=[1,1,-1,-1];
 const attackNorthHands=[[63.14,44.4],[65.18,31.09],[54.31,42.77],[63.68,60.42]];
 const attackNorthAngles=[150,180,175,45],attackNorthLength=[1,1,.3,1];
 const attackSWHands=[[25.04,55.24],[22.16,37.4],[27.43,67.84],[31.88,67.96]];
-const attackSWAngles=[55,180,55,45];
+const attackSWAngles=[55,180,55,60];
 function attackAtlas(facing){return facing===3?attackSW:facing===6?attackNorth:facing===5?attackNW:facing===7?attackNE:facing===2?attackSouth:facing===1?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
