@@ -1,4 +1,4 @@
-/* FEED DAYS v1.7.5 — dedicated west right-hand overhead slash.
+/* FEED DAYS v1.7.6 — refine west sword angles from approved reference.
    Legacy hook names retained; actual movement drives the visual only. */
 (function(){
 'use strict';
@@ -164,7 +164,7 @@ const attackNorthAngles=[150,180,175,45],attackNorthLength=[1,1,.3,1];
 const attackSWHands=[[25.04,55.24],[22.16,37.4],[27.43,67.84],[31.88,67.96]];
 const attackSWAngles=[55,180,55,60];
 const attackWestHands=[[26.67,65.74],[28.06,40.48],[23.77,56.54],[25.11,51.55]];
-const attackWestAngles=[55,180,75,90];
+const attackWestAngles=[55,195,55,55];
 function attackAtlas(facing){return facing===4?attackWest:facing===3?attackSW:facing===6?attackNorth:facing===5?attackNW:facing===7?attackNE:facing===2?attackSouth:facing===1?attackSE:attackEast}
 const attackColors={normal:'#dce6ef',fire:'#ff651c',ice:'#39caff',lightning:'#f8dd39',thunder:'#f8dd39',dark:'#ae42ef',divine:'#ffbc42',poison:'#60d832',blood:'#ed2549'};
 function attackColor(w){
